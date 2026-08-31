@@ -18,4 +18,8 @@
 -- Generating done (0.0s)
 -- Build files have been written to: C:/Youqing-Vault/Embodied-AI/07-projects/sts-agent/third_party/sts_lightspeed/build
 [0/2] Re-checking globbed directories...
-ninja: no work to do.
+[1/3] Building CXX object CMakeFiles\slaythespire.dir\bindings\slaythespire.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(194): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(195): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(287): warning C4068: 未知的杂注“clang”
+[2/3] Linking CXX shared module slaythespire.cp313-win_amd64.pyd

@@ -41,6 +41,7 @@ from models.candidate_encoder import (
 )
 from models.scorer import Scorer
 from env.base_env import Candidate
+from combat_brain import CombatBrain
 
 # 降级路径：规则 bot（战斗启发式 + 宏观规则）
 from main_rule import combat_action, macro_action
@@ -114,6 +115,7 @@ class SimBrain:
         self._ascension = 0
         self._map_cache = None       # (seed, act) 对应的 SpireMap
         self._map_cache_key = None
+        self.combat_brain = CombatBrain(simulation_count=2000)  # MCTS 战斗
 
     # ---- 决策入口 ----
 
@@ -136,9 +138,18 @@ class SimBrain:
         # Communication Mod 的 available_commands 全是小写
         cmds = [c.lower() for c in state.get("available_commands", [])]
 
-        # 战斗：Communication Mod 在战斗中 screen_type 是 NONE，靠 "play" 命令判断
+        # 战斗：MCTS 优先（灌状态进模拟器搜索最优出牌），失败回退规则
         if "play" in cmds:
-            return combat_action(state)
+            try:
+                # 先把整局状态灌入 GameContext（combat brain 需要它初始化 BattleContext）
+                self.gc.init_from_json(json.dumps(_sanitize(state)))
+                cmd = self.combat_brain.decide_with_fallback(
+                    state, self.gc, combat_action)
+            except Exception:
+                log.exception("MCTS 战斗异常，回退规则")
+                cmd = combat_action(state)
+            log.debug("combat -> %s", cmd)
+            return cmd
 
         # 战斗奖励：模拟器没有真实奖励内容，RL 会错误跳过——直接走规则（逐个领取）
         gs = state.get("game_state", {})

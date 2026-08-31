@@ -28,7 +28,7 @@ PYBIND11_MODULE(slaythespire, m) {
     m.def("play", &sts::py::play, "play Slay the Spire Console");
     m.def("get_seed_str", &SeedHelper::getString, "gets the integral representation of seed string used in the game ui");
     m.def("get_seed_long", &SeedHelper::getLong, "gets the seed string representation of an integral seed");
-    m.def("getNNInterface", &sts::NNInterface::getInstance, pybind11::return_value_policy::reference, "gets the NNInterface object (singleton — do NOT take ownership)");
+    m.def("getNNInterface", &sts::NNInterface::getInstance, pybind11::return_value_policy::reference, "gets the NNInterface object (singleton - do NOT take ownership)");
 
     pybind11::class_<NNInterface> nnInterface(m, "NNInterface");
     nnInterface.def("getObservation", &NNInterface::getObservation, "get observation array given a GameContext")
@@ -247,7 +247,7 @@ PYBIND11_MODULE(slaythespire, m) {
             const int raw = a.getTargetIdx();
             return raw == 0x1FFF ? -1 : raw;
         }, "target monster index (0-based); -1 when no target was encoded. "
-           "note: non-targeted CARD actions encode 0 (same as monster 0) — check card.requiresTarget() via desc()")
+           "note: non-targeted CARD actions encode 0 (same as monster 0) - check card.requiresTarget() via desc()")
         .def("desc", [](const search::Action &a, const BattleContext &bc) {
             std::ostringstream oss;
             a.printDesc(oss, bc);
