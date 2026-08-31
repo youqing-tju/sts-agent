@@ -12,6 +12,7 @@
 
 #include "sim/ConsoleSimulator.h"
 #include "sim/search/ScumSearchAgent2.h"
+#include "sim/search/BattleScumSearcher2.h"
 #include "sim/SimHelpers.h"
 #include "sim/PrintHelpers.h"
 #include "game/Game.h"
@@ -226,6 +227,52 @@ PYBIND11_MODULE(slaythespire, m) {
     battleOutcome.value("UNDECIDED", Outcome::UNDECIDED)
         .value("PLAYER_VICTORY", Outcome::PLAYER_VICTORY)
         .value("PLAYER_LOSS", Outcome::PLAYER_LOSS);
+
+    // sts-agent: expose battle MCTS (search::Action + BattleScumSearcher2) so Python
+    // can query combat decisions for a BattleContext loaded via init_from_json
+    pybind11::class_<search::Action> battleAction(m, "BattleAction");
+    battleAction.def_property_readonly("action_type", [](const search::Action &a) {
+            switch (a.getActionType()) {
+                case search::ActionType::CARD: return std::string("CARD");
+                case search::ActionType::POTION: return std::string("POTION");
+                case search::ActionType::SINGLE_CARD_SELECT: return std::string("SINGLE_CARD_SELECT");
+                case search::ActionType::MULTI_CARD_SELECT: return std::string("MULTI_CARD_SELECT");
+                case search::ActionType::END_TURN: return std::string("END_TURN");
+                default: return std::string("UNKNOWN");
+            }
+        }, "one of CARD / POTION / SINGLE_CARD_SELECT / MULTI_CARD_SELECT / END_TURN")
+        .def_property_readonly("source_idx", &search::Action::getSourceIdx,
+            "hand/potion index (0-based) for CARD/POTION actions")
+        .def_property_readonly("target_idx", [](const search::Action &a) {
+            const int raw = a.getTargetIdx();
+            return raw == 0x1FFF ? -1 : raw;
+        }, "target monster index (0-based); -1 when no target was encoded. "
+           "note: non-targeted CARD actions encode 0 (same as monster 0) — check card.requiresTarget() via desc()")
+        .def("desc", [](const search::Action &a, const BattleContext &bc) {
+            std::ostringstream oss;
+            a.printDesc(oss, bc);
+            return oss.str();
+        }, "human-readable description of the action in the given BattleContext");
+
+    pybind11::class_<search::BattleScumSearcher2> battleSearcher(m, "BattleSearcher");
+    battleSearcher.def(pybind11::init([](const BattleContext &bc, int64_t sims) {
+            auto s = std::make_unique<search::BattleScumSearcher2>(bc);
+            {
+                pybind11::gil_scoped_release release;
+                s->search(sims);
+            }
+            return s;
+        }), pybind11::arg("bc"), pybind11::arg("simulation_count") = 10000,
+        "construct from a BattleContext and immediately run MCTS with simulation_count simulations")
+        .def_property_readonly("best_action", [](const search::BattleScumSearcher2 &s) {
+            if (s.bestActionSequence.empty()) {
+                throw std::runtime_error("no best action");
+            }
+            return s.bestActionSequence[0];
+        }, "the first action of the best action sequence found by MCTS")
+        .def_property_readonly("best_action_sequence", [](const search::BattleScumSearcher2 &s) {
+            return s.bestActionSequence;
+        }, "the full best action sequence found by MCTS");
 
     pybind11::class_<RelicInstance> relic(m, "Relic");
     relic.def_readwrite("id", &RelicInstance::id)
