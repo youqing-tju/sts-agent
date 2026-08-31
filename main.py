@@ -140,6 +140,11 @@ class SimBrain:
         if "play" in cmds:
             return combat_action(state)
 
+        # 战斗奖励：模拟器没有真实奖励内容，RL 会错误跳过——直接走规则（逐个领取）
+        gs = state.get("game_state", {})
+        if (gs.get("screen_type") or "").upper() == "COMBAT_REWARD":
+            return macro_action(state)
+
         # 游戏未开始（主菜单）
         if "start" in cmds:
             return "START IRONCLAD"
