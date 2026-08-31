@@ -14,12 +14,12 @@ C++ 侧能力（commit 9e1e391，绑定名以 _probe_api.py 实测为准）：
   （EVENT 类动作 describe 可能返回空串，label 回退为 action_0x<bits>）
 - sts.getNNInterface().getObservation(gc) → 412 维观测向量
 
-【已知 C++ 限制】NNInterface 是进程级单例且一次性绑定：第一次 getObservation(gc)
-之后，对任何其它 GameContext 调用都会 access violation（已实测，含旧 gc 已析构的
-情况）。在 C++ 提供 reset/可构造实例之前，env 侧保证「每进程第一个 GameContext」
-有真实 vec，后续局的 vec 为全零占位并告警一次（M1 随机策略不依赖 vec；
-训练侧一局一进程即可完全规避）。
+【C++ 限制已修复】原 NNInterface 单例 bug（getNNInterface 重复调用堆损坏、
+getObservation 只认首个 GameContext）已在绑定层修复：getNNInterface 改用
+return_value_policy::reference（根因是 pybind11 默认对原始指针 take_ownership，
+Python GC 会 delete 单例）。修复后单进程可连续观测多局游戏。
 """
+
 import slaythespire as sts
 
 from .base_env import Obs, Candidate, StepResult, StsEnv
@@ -43,10 +43,8 @@ _KIND_BY_SCREEN = {
 # 防御性上限：playout 推进循环的最大迭代次数，防止异常状态下死循环
 _MAX_ADVANCE_ROUNDS = 10000
 
-# NNInterface 单例状态（见模块 docstring 的 C++ 限制说明）
-_nni_singleton = None        # getNNInterface() 只允许调用一次，缓存于此
-_nn_bound_gc = None          # 已绑定 NNInterface 的 GameContext
-_nn_fallback_warned = False  # 占位告警只打一次
+# NNInterface 单例缓存（C++ 所有权 bug 已修复，缓存仅为减少调用开销）
+_nni_singleton = None
 
 
 class LightspeedEnv(StsEnv):
@@ -134,27 +132,15 @@ class LightspeedEnv(StsEnv):
         raise RuntimeError("_advance 超过迭代上限，状态可能异常")
 
     def _nn_vec(self) -> list:
-        """取 412 维 NN 观测；受 C++ 单例限制，非首个 GameContext 返回全零占位。
+        """取 412 维 NN 观测。
 
-        注意：sts.getNNInterface() 本身不能重复调用（每次调用都触发堆损坏，
-        已实测），必须缓存首次返回的单例。
+        C++ 侧已修复（return_value_policy::reference）：单例可重复获取，
+        且任意 GameContext 都可观测。Python 侧仍缓存单例减少调用开销。
         """
-        global _nni_singleton, _nn_bound_gc, _nn_fallback_warned
+        global _nni_singleton
         if _nni_singleton is None:
             _nni_singleton = sts.getNNInterface()
-        if _nn_bound_gc is None or _nn_bound_gc is self.gc:
-            vec = list(_nni_singleton.getObservation(self.gc))
-            _nn_bound_gc = self.gc
-            return vec
-        if not _nn_fallback_warned:
-            import warnings
-            warnings.warn(
-                "NNInterface 单例已绑定本进程首个 GameContext；本局 vec 为全零占位"
-                "（C++ 限制，详见 lightspeed_env 模块 docstring）",
-                RuntimeWarning, stacklevel=3,
-            )
-            _nn_fallback_warned = True
-        return [0.0] * _NN_OBS_DIM
+        return list(_nni_singleton.getObservation(self.gc))
 
     @staticmethod
     def _placeholder_desc_vec() -> list:

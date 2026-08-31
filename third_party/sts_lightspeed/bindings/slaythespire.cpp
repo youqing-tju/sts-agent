@@ -26,7 +26,7 @@ PYBIND11_MODULE(slaythespire, m) {
     m.def("play", &sts::py::play, "play Slay the Spire Console");
     m.def("get_seed_str", &SeedHelper::getString, "gets the integral representation of seed string used in the game ui");
     m.def("get_seed_long", &SeedHelper::getLong, "gets the seed string representation of an integral seed");
-    m.def("getNNInterface", &sts::NNInterface::getInstance, "gets the NNInterface object");
+    m.def("getNNInterface", &sts::NNInterface::getInstance, pybind11::return_value_policy::reference, "gets the NNInterface object (singleton — do NOT take ownership)");
 
     pybind11::class_<NNInterface> nnInterface(m, "NNInterface");
     nnInterface.def("getObservation", &NNInterface::getObservation, "get observation array given a GameContext")

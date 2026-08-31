@@ -14,29 +14,14 @@
 
 -- Using the single-header code from C:/Youqing-Vault/Embodied-AI/07-projects/sts-agent/third_party/sts_lightspeed/json/single_include/
 -- pybind11 v2.13.6 
--- Configuring done (1.6s)
+-- Configuring done (1.5s)
 -- Generating done (0.3s)
 -- Build files have been written to: C:/Youqing-Vault/Embodied-AI/07-projects/sts-agent/third_party/sts_lightspeed/build
 [0/2] Re-checking globbed directories...
-[1/5] Building CXX object CMakeFiles\slaythespire.dir\src\sim\search\ScumSearchAgent2.cpp.obj
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
-C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(425): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
-C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(425): note: 模板实例化上下文(最早的实例化上下文)为
-C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
-C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(418): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(double)”时
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\search\ScumSearchAgent2.cpp(311): note: 请参阅 "sts::search::ScumSearchAgent2::weightedCardRewardPolicy" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
-[2/5] Building CXX object CMakeFiles\slaythespire.dir\bindings\bindings-util.cpp.obj
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
-C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(787): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
-C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(787): note: 模板实例化上下文(最早的实例化上下文)为
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\bindings\bindings-util.cpp(25): note: 查看对正在编译的函数 模板 实例化“std::basic_ostream<char,std::char_traits<char>> &std::operator <<<std::char_traits<char>>(std::basic_ostream<char,std::char_traits<char>> &,const char *)”的引用
-[3/5] Building CXX object CMakeFiles\slaythespire.dir\bindings\slaythespire.cpp.obj
+[1/3] Building CXX object CMakeFiles\slaythespire.dir\bindings\slaythespire.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\bindings\slaythespire.cpp(1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
 C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
 C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
 C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\bindings\slaythespire.cpp(24): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
-[4/5] Linking CXX shared module slaythespire.cp313-win_amd64.pyd
+[2/3] Linking CXX shared module slaythespire.cp313-win_amd64.pyd
