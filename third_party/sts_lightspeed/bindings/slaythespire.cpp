@@ -177,6 +177,8 @@ PYBIND11_MODULE(slaythespire, m) {
         .def("init_from_json",
             &sts::py::initBattleContextFromJsonString,
             "initialize the BattleContext from a Communication Mod STATE json string containing combat_state")
+        .def("randomize_rng", &BattleContext::randomizeRngForDeterminization,
+            "sts-agent: reseed combat RNGs and reshuffle draw pile (ISMCTS determinization)")
         .def_property_readonly("player",
             [](const BattleContext &bc) { return bc.player; },
             "returns the player object")

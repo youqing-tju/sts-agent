@@ -71,6 +71,21 @@ namespace {
 
 }
 
+// sts-agent: reseed combat RNGs and reshuffle the draw pile (ISMCTS determinization)
+void BattleContext::randomizeRngForDeterminization(std::uint64_t seed) {
+    // derive independent seeds for the RNGs that affect future simulation;
+    // monsterHpRng / potionRng do not participate in future combat rolls
+    aiRng          = Random(seed ^ 0x9E3779B97F4A7C15ULL);
+    cardRandomRng  = Random(seed ^ 0xC2B2AE3D27D4EB4FULL);
+    miscRng        = Random(seed ^ 0x165667B19E3779F9ULL);
+    shuffleRng     = Random(seed ^ 0x27D4EB2F165667C5ULL);
+
+    // reshuffle the draw pile with the new shuffleRng so each determinization
+    // sees a different draw order (same style as CardManager::init)
+    java::Collections::shuffle(cards.drawPile.begin(), cards.drawPile.end(),
+                               java::Random(shuffleRng.randomLong()));
+}
+
 // initialize from a Communication Mod combat_state (mid-combat or at combat start)
 void BattleContext::initFromJson(const GameContext &gc, const nlohmann::json &json) {
     undefinedBehaviorEvoked = false;

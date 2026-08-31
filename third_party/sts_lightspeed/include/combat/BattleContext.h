@@ -110,6 +110,12 @@ namespace sts {
         void initCardsFromJson(const nlohmann::json &jsonCombatState, int &uniqueCardId);
         void initMonstersFromJson(const nlohmann::json &jsonMonsters, int &uniqueCardId);
 
+        // sts-agent: reseed the combat RNGs that affect future simulation
+        // (aiRng/cardRandomRng/miscRng/shuffleRng) and reshuffle the draw pile,
+        // for ISMCTS determinization. monsterHpRng/potionRng do not participate
+        // in future combat rolls and are left untouched.
+        void randomizeRngForDeterminization(std::uint64_t seed);
+
         void initRelics(const GameContext &gc);
 
         void exitBattle(GameContext &g) const;
