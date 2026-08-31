@@ -6,6 +6,7 @@
 #define STS_LIGHTSPEED_ROOMS_H
 
 #include <cstdint>
+#include <string>
 
 namespace sts {
 
@@ -34,6 +35,29 @@ namespace sts {
             "NONE",
             "INVALID"
     };
+
+    // room class names as sent by the Communication Mod, ordered to match the Room enum
+    static constexpr const char* roomIds[] = {
+        "ShopRoom",
+        "RestRoom",
+        "EventRoom",
+        "MonsterRoomElite",
+        "MonsterRoom",
+        "TreasureRoom",
+        "MonsterRoomBoss",
+        "TreasureRoomBoss",
+        "EmptyRoom",
+        "INVALID"
+    };
+
+    static Room getRoomFromId(const std::string &id) {
+        for (int i = 0; i < static_cast<int>(Room::INVALID); i++) {
+            if (id.compare(roomIds[i]) == 0) {
+                return static_cast<Room>(i);
+            }
+        }
+        return Room::INVALID;
+    }
 
     constexpr char getRoomSymbol(Room room) {
         switch(room) {

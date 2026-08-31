@@ -6,6 +6,7 @@
 #define STS_LIGHTSPEED_CARDS_H
 
 #include <cstdint>
+#include <string>
 
 namespace sts {
 
@@ -457,6 +458,15 @@ namespace sts {
 
     static CardType getCardType(CardId id) {
         return cardTypes[static_cast<int>(id)];
+    }
+
+    static CardId getCardIdFromName(const std::string &name) {
+        for (int i = 0; i <= static_cast<int>(CardId::ZAP); i++) {
+            if (name.compare(cardStringIds[i]) == 0) {
+                return static_cast<CardId>(i);
+            }
+        }
+        return CardId::INVALID;
     }
 
     static int getBaseDamage(CardId id, bool upgraded) {

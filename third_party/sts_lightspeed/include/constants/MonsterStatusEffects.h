@@ -5,6 +5,9 @@
 #ifndef STS_LIGHTSPEED_MONSTERSTATUSEFFECTS_H
 #define STS_LIGHTSPEED_MONSTERSTATUSEFFECTS_H
 
+#include <cstdint>
+#include <string>
+
 namespace sts {
 
     enum class MonsterStatus: std::uint8_t {
@@ -113,6 +116,15 @@ namespace sts {
 
         "INVALID",
     };
+
+    static MonsterStatus monsterStatusFromString(const std::string &str) {
+        for (int i = 0; i < static_cast<int>(MonsterStatus::INVALID); i++) {
+            if (str == enemyStatusStrings[i]) {
+                return static_cast<MonsterStatus>(i);
+            }
+        }
+        return MonsterStatus::INVALID;
+    }
 
     static constexpr const char* const monsterStatusEnumStrings[]{
         "ARTIFACT",

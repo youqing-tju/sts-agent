@@ -6,6 +6,7 @@
 #define STS_LIGHTSPEED_POTIONS_H
 
 #include "constants/CharacterClasses.h"
+#include <string>
 
 namespace sts {
 
@@ -159,6 +160,15 @@ namespace sts {
             "Swift Potion",
             "Weak Potion",
     };
+
+    static Potion getPotionFromId(const std::string &id) {
+        for (int i = 0; i <= static_cast<int>(Potion::WEAK_POTION); i++) {
+            if (id == potionIds[i]) {
+                return static_cast<Potion>(i);
+            }
+        }
+        return Potion::INVALID;
+    }
 
     static constexpr const char *potionEnumNames[] = {"INVALID","EMPTY_POTION_SLOT","AMBROSIA","ANCIENT_POTION","ATTACK_POTION","BLESSING_OF_THE_FORGE","BLOCK_POTION","BLOOD_POTION","BOTTLED_MIRACLE","COLORLESS_POTION","CULTIST_POTION","CUNNING_POTION","DEXTERITY_POTION","DISTILLED_CHAOS","DUPLICATION_POTION","ELIXIR_POTION","ENERGY_POTION","ENTROPIC_BREW","ESSENCE_OF_DARKNESS","ESSENCE_OF_STEEL","EXPLOSIVE_POTION","FAIRY_POTION","FEAR_POTION","FIRE_POTION","FLEX_POTION","FOCUS_POTION","FRUIT_JUICE","GAMBLERS_BREW","GHOST_IN_A_JAR","HEART_OF_IRON","LIQUID_BRONZE","LIQUID_MEMORIES","POISON_POTION","POTION_OF_CAPACITY","POWER_POTION","REGEN_POTION","SKILL_POTION","SMOKE_BOMB","SNECKO_OIL","SPEED_POTION","STANCE_POTION","STRENGTH_POTION","SWIFT_POTION","WEAK_POTION",};
 

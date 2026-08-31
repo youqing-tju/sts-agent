@@ -6,6 +6,7 @@
 #define STS_LIGHTSPEED_PLAYERSTATUSEFFECTS_H
 
 #include <cstdint>
+#include <string>
 
 enum class PlayerStatus : std::uint8_t {
 
@@ -121,6 +122,15 @@ static constexpr const char* const playerStatusStrings[] {
 static constexpr const char* const playerStatusEnumStrings[] {
         "INVALID","DOUBLE_DAMAGE","DRAW_REDUCTION","FRAIL","INTANGIBLE","VULNERABLE","WEAK","BIAS","CONFUSED","CONSTRICTED","ENTANGLED","FASTING","HEX","LOSE_DEXTERITY","LOSE_STRENGTH","NO_BLOCK","NO_DRAW","WRAITH_FORM","BARRICADE","BLASPHEMER","CORRUPTION","ELECTRO","SURROUNDED","MASTER_REALITY","PEN_NIB","WRATH_NEXT_TURN","AMPLIFY","BLUR","BUFFER","COLLECT","DOUBLE_TAP","DUPLICATION","ECHO_FORM","FREE_ATTACK_POWER","REBOUND","MANTRA","ACCURACY","AFTER_IMAGE","BATTLE_HYMN","BRUTALITY","BURST","COMBUST","CREATIVE_AI","DARK_EMBRACE","DEMON_FORM","DEVA","DEVOTION","DRAW_CARD_NEXT_TURN","ENERGIZED","ENVENOM","ESTABLISHMENT","EVOLVE","FEEL_NO_PAIN","FIRE_BREATHING","FLAME_BARRIER","FOCUS","FORESIGHT","HELLO_WORLD","INFINITE_BLADES","JUGGERNAUT","LIKE_WATER","LOOP","MAGNETISM","MAYHEM","METALLICIZE","NEXT_TURN_BLOCK","NOXIOUS_FUMES","OMEGA","PANACHE","PHANTASMAL","PLATED_ARMOR","RAGE","REGEN","RITUAL","RUPTURE","SADISTIC","STATIC_DISCHARGE","THORNS","THOUSAND_CUTS","TOOLS_OF_THE_TRADE","VIGOR","WAVE_OF_THE_HAND","EQUILIBRIUM","ARTIFACT","DEXTERITY","STRENGTH","THE_BOMB",
 };
+
+static PlayerStatus playerStatusFromString(const std::string &str) {
+    for (int i = 0; i <= static_cast<int>(PlayerStatus::THE_BOMB); i++) {
+        if (str == playerStatusStrings[i]) {
+            return static_cast<PlayerStatus>(i);
+        }
+    }
+    return PlayerStatus::INVALID;
+}
 
 enum class Stance : uint8_t {
     NEUTRAL=0,

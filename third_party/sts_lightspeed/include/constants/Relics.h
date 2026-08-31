@@ -6,6 +6,7 @@
 #define STS_LIGHTSPEED_RELICS_H
 
 #include <cstdint>
+#include <string>
 
 namespace sts {
 
@@ -233,6 +234,15 @@ namespace sts {
 
     static const char* getRelicName(RelicId id) {
         return relicNames[static_cast<int>(id)];
+    }
+
+    static RelicId getRelicFromName(const std::string &name) {
+        for (int i = 0; i < static_cast<int>(RelicId::INVALID); i++) {
+            if (name.compare(relicIds[i]) == 0) {
+                return static_cast<RelicId>(i);
+            }
+        }
+        return RelicId::INVALID;
     }
 
     static RelicTier getRelicTier(RelicId id) {
