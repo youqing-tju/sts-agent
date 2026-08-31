@@ -71,6 +71,168 @@ GameContext::GameContext(CharacterClass cc, std::uint64_t seed, int ascension)
     screenState = ScreenState::EVENT_SCREEN;
 }
 
+namespace sts {
+
+    ScreenState screenStateFromId(const std::string &id) {
+        // Communication Mod screen_type strings mapped to the local ScreenState enum
+        if (id == "EVENT") return ScreenState::EVENT_SCREEN;
+        if (id == "COMBAT_REWARD") return ScreenState::REWARDS;
+        if (id == "BOSS_REWARD") return ScreenState::BOSS_RELIC_REWARDS;
+        if (id == "CARD_REWARD") return ScreenState::CARD_SELECT;
+        if (id == "MAP") return ScreenState::MAP_SCREEN;
+        if (id == "CHEST") return ScreenState::TREASURE_ROOM;
+        if (id == "REST") return ScreenState::REST_ROOM;
+        if (id == "SHOP_ROOM") return ScreenState::SHOP_ROOM;
+        return ScreenState::INVALID;
+    }
+
+}
+
+// this initialization only properly sets up things for an already known combat
+// it does not recreate the entire run state perfectly from the communication mod json state
+void GameContext::initFromJson(const nlohmann::json &json) {
+    nlohmann::json jsonState = json.contains("game_state") ? json["game_state"] : json;
+
+    // reset state in case this context was already initialized (e.g. via the constructor)
+    deck = Deck();
+    relics = RelicContainer();
+    eventList.clear();
+    shrineList.clear();
+    specialOneTimeEventList.clear();
+    commonRelicPool.clear();
+    uncommonRelicPool.clear();
+    rareRelicPool.clear();
+    shopRelicPool.clear();
+    bossRelicPool.clear();
+    monsterListOffset = 0;
+    monsterList = {};
+    eliteMonsterListOffset = 0;
+    eliteMonsterList = {};
+    secondBoss = MonsterEncounter::INVALID;
+    boss = MonsterEncounter::INVALID;
+    regainControlAction = nullptr;
+    lastRoom = Room::INVALID;
+    curEvent = Event::INVALID;
+
+    seed = jsonState["seed"].get<std::uint64_t>();
+
+    outcome = GameOutcome::UNDECIDED;
+    ascension = jsonState["ascension_level"].get<int>();
+    act = jsonState["act"].get<int>();
+    floorNum = jsonState["floor"].get<int>();
+
+    if (jsonState.contains("screen_state") && jsonState["screen_state"].contains("current_node")) {
+        jsonState["screen_state"]["current_node"].at("x").get_to(curMapNodeX);
+        jsonState["screen_state"]["current_node"].at("y").get_to(curMapNodeY);
+    }
+
+    cc = sts::getCharacterFromCommModName(jsonState.at("class").get<std::string>());
+
+    curHp = jsonState["current_hp"].get<int>();
+    maxHp = jsonState["max_hp"].get<int>();
+    gold = jsonState["gold"].get<int>();
+    speedrunPace = false;
+
+    // the seed usage counts aren't sent by communication mod
+    // set to 0 uses since it isn't relevant to simulating combats without perfect knowledge
+    treasureRng = Random(seed);
+    eventRng = Random(seed);
+    relicRng = Random(seed);
+    potionRng = Random(seed);
+    cardRng = Random(seed);
+    cardRandomRng = Random(seed);
+    merchantRng = Random(seed);
+    mathUtilRng = Random(seed);
+    miscRng = Random(seed+floorNum);
+    monsterRng = Random(seed);
+
+    initRelics();
+    initRelicsFromJson(jsonState["relics"]);
+
+    potionCount = 0;
+    auto jsonPotions = jsonState["potions"];
+    potionCapacity = static_cast<int>(jsonPotions.size());
+    std::fill(potions.begin(), potions.end(), Potion::EMPTY_POTION_SLOT);
+    for (int i = 0; i < static_cast<int>(jsonPotions.size()); ++i) {
+        auto p = jsonPotions[i];
+        std::string potionId = p["id"].get<std::string>();
+        if (potionId != "Potion Slot") {
+            ++potionCount;
+            potions[i] = getPotionFromId(potionId);
+        } else {
+            potions[i] = Potion::EMPTY_POTION_SLOT;
+        }
+    }
+
+    auto jsonDeck = jsonState["deck"];
+    for (int i = 0; i < static_cast<int>(jsonDeck.size()); ++i) {
+        auto c = jsonDeck[i];
+        CardId cardId = getCardIdFromName(c.at("id").get<std::string>());
+        deck.obtain(*this, cardId, 1);
+        for (int j = 0; j < c["upgrades"].get<int>(); j++) {
+            deck.upgrade(i);
+        }
+    }
+
+    map = std::make_shared<Map>(Map::fromSeed(seed, ascension, act, true));
+
+    // TODO NEOW event
+    curRoom = sts::getRoomFromId(jsonState["room_type"].get<std::string>());
+
+    if (jsonState.contains("combat_state")) {
+        screenState = ScreenState::BATTLE;
+        regainControlAction = [](GameContext &gc) {
+            gc.afterBattle();
+        };
+    } else {
+        screenState = jsonState.contains("screen_type")
+                ? screenStateFromId(jsonState["screen_type"].get<std::string>())
+                : ScreenState::INVALID;
+    }
+
+    generateMonsters();
+
+    if (jsonState.contains("act_boss") && !jsonState["act_boss"].is_null()) {
+        boss = sts::getMonsterEncounterFromString(jsonState["act_boss"].get<std::string>());
+    }
+    // TODO act 3 second boss for ascension 20
+
+    // this is a game bug, the shrine list is not stored in the save file
+    shrineList.clear();
+    switch (act) {
+        case 1:
+            shrineList.insert(shrineList.begin(), EventPools::Act1::shrines.begin(), EventPools::Act1::shrines.end());
+            eventList.insert(eventList.end(), EventPools::Act1::events.begin(), EventPools::Act1::events.end());
+            break;
+
+        case 2:
+            shrineList.insert(shrineList.begin(), EventPools::Act2::shrines.begin(), EventPools::Act2::shrines.end());
+            eventList.insert(eventList.end(), EventPools::Act2::events.begin(), EventPools::Act2::events.end());
+            break;
+
+        case 3:
+            shrineList.insert(shrineList.begin(), EventPools::Act3::shrines.begin(), EventPools::Act3::shrines.end());
+            eventList.insert(eventList.end(), EventPools::Act3::events.begin(), EventPools::Act3::events.end());
+            break;
+
+        case 4:
+        default:
+            break;
+    }
+}
+
+void GameContext::initRelicsFromJson(const nlohmann::json &json) {
+    for (int i = 0; i < static_cast<int>(json.size()); ++i) {
+        auto r = json[i];
+        std::string relicName = r["id"].get<std::string>();
+        RelicId relicId = sts::getRelicFromName(relicName);
+
+        RelicInstance relic {relicId, r.contains("counter") ? r["counter"].get<int>() : -1};
+        relics.add(relic);
+        // TODO remove relics from relic pools
+    }
+}
+
 void GameContext::initFromSave(const SaveFile &s) {
     seed = s.seed;
 

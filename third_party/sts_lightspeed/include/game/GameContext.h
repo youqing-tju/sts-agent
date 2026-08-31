@@ -5,10 +5,12 @@
 #ifndef STS_LIGHTSPEED_GAMECONTEXT_H
 #define STS_LIGHTSPEED_GAMECONTEXT_H
 
+#include <string>
 #include <vector>
 #include <array>
 #include <functional>
 #include <memory>
+#include <nlohmann/json.hpp>
 
 #include "data_structure/fixed_list.h"
 
@@ -67,6 +69,9 @@ namespace sts {
         SHOP_ROOM,
         BATTLE,
     };
+
+    // maps a Communication Mod screen_type string ("EVENT", "COMBAT_REWARD", "MAP", ...) to a ScreenState
+    ScreenState screenStateFromId(const std::string &id);
 
     struct SelectScreenCard {
         Card card;
@@ -241,6 +246,10 @@ namespace sts {
 
         void initFromSave(const SaveFile &s);
         void initRelicsFromSave(const SaveFile &s);
+
+        // initialize from a Communication Mod STATE json (full response or only the game_state subobject)
+        void initFromJson(const nlohmann::json &json);
+        void initRelicsFromJson(const nlohmann::json &json);
 
         // const methods
         [[nodiscard]] const MapNode& getCurMapNode() const;
