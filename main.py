@@ -97,7 +97,6 @@ class SimBrain:
     def __init__(self, checkpoint_path: str = _DEFAULT_CKPT):
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
-        self.won = False  # 首胜即停：检测到通关后锁定，不再开新局
         self._error_count = 0  # 连续游戏错误计数（熔断用）
         self._last_cmd = ""    # 上一次发的命令（检测重复拒绝）
         self.scorer = None
@@ -118,10 +117,6 @@ class SimBrain:
         self._map_cache = None       # (seed, act) 对应的 SpireMap
         self._map_cache_key = None
         self.combat_brain = CombatBrain(simulation_count=2000)  # MCTS 战斗
-        self._combat_unlocked = False  # 首场战斗需玩家确认后才接管
-        self._combat_gate_warned = False
-        # 确认文件：玩家在 project 根目录创建 allow_combat.flag 即解锁
-        self._combat_flag = os.path.join(_ROOT, "allow_combat.flag")
 
     # ---- 决策入口 ----
 
@@ -129,14 +124,9 @@ class SimBrain:
         if state.get("error"):
             log.warning("game error: %s", state["error"])
 
-        # 首胜即停：检测到通关画面后锁定，游戏停在胜利界面不再开新局
         if _is_victory(state):
-            if not self.won:
-                self.won = True
-                log.info("VICTORY DETECTED — 锁定，不再自动开新局")
-            return "STATE"  # 原地等待，让玩家看到胜利画面
-        if self.won:
-            return "STATE"
+            log.info("VICTORY — 通关")
+            # 不停下，继续开新局（连贯性优先）
 
         if not state.get("ready_for_command"):
             return "STATE"
@@ -146,17 +136,6 @@ class SimBrain:
 
         # 战斗：MCTS 优先（灌状态进模拟器搜索最优出牌），失败回退规则
         if "play" in cmds:
-            # 首场战斗闸门：等玩家创建 allow_combat.flag 再接管
-            if not self._combat_unlocked:
-                if os.path.exists(self._combat_flag):
-                    self._combat_unlocked = True
-                    log.info("combat gate unlocked — MCTS taking over")
-                else:
-                    if not self._combat_gate_warned:
-                        log.info("combat gate LOCKED — waiting for allow_combat.flag")
-                        self._combat_gate_warned = True
-                    return "STATE"
-
             # 熔断：同一命令被游戏连续拒绝 ≥3 次，直接 END 回合
             if state.get("error") and self._last_cmd.startswith("PLAY"):
                 self._error_count += 1
