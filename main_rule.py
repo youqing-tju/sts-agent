@@ -29,7 +29,7 @@ log = logging.getLogger("sts-agent")
 # ---------- 战斗启发式 ----------
 
 def combat_action(state: dict) -> str:
-    """极简战斗策略：按顺序出能出的牌，不能出了就 END。
+    """极简战斗策略：按顺序出能出的牌，出不了就先用药水，最后 END。
 
     Communication Mod 的战斗数据在 game_state.combat_state 里。
     """
@@ -52,6 +52,19 @@ def combat_action(state: dict) -> str:
                         break
                 return f"PLAY {i + 1} {target}"
             return f"PLAY {i + 1}"
+
+    # 没牌可出时用药水（Communication Mod：POTION USE <槽位> [目标]）
+    for i, p in enumerate(game.get("potions", [])):
+        if not p.get("can_use") or p.get("id") in (None, "Potion Slot"):
+            continue
+        if p.get("requires_target"):
+            target = 0
+            for j, m in enumerate(combat.get("monsters", [])):
+                if m.get("current_hp", 0) > 0 and not m.get("is_gone", False):
+                    target = j
+                    break
+            return f"POTION USE {i} {target}"
+        return f"POTION USE {i}"
     return "END"
 
 
@@ -100,6 +113,38 @@ def macro_action(state: dict) -> str:
             return "CHOOSE 0"  # 逐个领取所有奖励（金币/药水/遗物先出现）
         if "proceed" in cmds:
             return "PROCEED"
+
+    # 宝箱 / Boss 遗物：必须先拿（choose 优先于 proceed，否则兜底链会跳过奖励）
+    if screen_type in ("CHEST", "BOSS_REWARD"):
+        if "choose" in cmds:
+            return "CHOOSE 0"
+        if "proceed" in cmds:
+            return "PROCEED"
+
+    # 网格选牌屏（篝火升牌 / 商店删牌 / 事件变化牌等）
+    if screen_type == "GRID":
+        ss = game.get("screen_state", {})
+        cards = ss.get("cards", [])
+        if "choose" in cmds and cards:
+            if ss.get("for_purge"):
+                # 删牌：优先删打击/防御这类基础牌
+                for i, c in enumerate(cards):
+                    if str(c.get("id", "")).split("_")[0].lower() in ("strike", "defend"):
+                        return f"CHOOSE {i}"
+                return "CHOOSE 0"
+            # 升牌：优先升级非打击的高费卡（打击升级收益最低）
+            best, best_key = 0, None
+            for i, c in enumerate(cards):
+                cid = str(c.get("id", "")).lower()
+                is_strike = cid.startswith("strike")
+                key = (not is_strike, c.get("cost", 0) or 0)
+                if best_key is None or key > best_key:
+                    best, best_key = i, key
+            return f"CHOOSE {best}"
+        if "confirm" in cmds:
+            return "CONFIRM"
+        if "skip" in cmds:
+            return "SKIP"
 
     # 通用兜底——只从实际可用的命令里选
     for cmd in ("proceed", "confirm", "continue", "leave"):

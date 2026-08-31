@@ -173,8 +173,25 @@ class CombatBrain:
             return "END"
 
         if action_type == "POTION":
-            log.info("MCTS 选择了药水，v1 不支持，回退规则")
-            return None
+            # MCTS 选择了用药水——用真实游戏的药水栏校验后翻译
+            slot = getattr(action, "source_idx", -1)
+            potions = (state or {}).get("game_state", {}).get("potions", [])
+            if not (0 <= slot < len(potions)):
+                log.warning("MCTS 药水槽位 %d 越界（真实共 %d），回退规则",
+                            slot, len(potions))
+                return None
+            p = potions[slot]
+            if not p.get("can_use") or p.get("id") in (None, "Potion Slot"):
+                log.warning("MCTS 选的药水在真实游戏不可用（%s），回退规则",
+                            p.get("id"))
+                return None
+            cmd = f"POTION USE {slot}"
+            if p.get("requires_target"):
+                target_idx = self._first_alive_monster(state)
+                if target_idx is None:
+                    return None
+                cmd += f" {target_idx}"
+            return cmd
 
         log.warning("未知 MCTS 动作类型: %r，回退规则", action_type)
         return None
