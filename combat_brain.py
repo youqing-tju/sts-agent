@@ -19,6 +19,12 @@ import slaythespire as sts
 log = logging.getLogger("sts-agent.combat")
 
 
+def _norm_card_id(s) -> str:
+    """归一化卡牌 ID 用于跨端匹配：模拟器枚举名（STRIKE_R）与
+    Communication Mod 的字符串 ID（Strike_R）只是大小写/下划线风格不同。"""
+    return "".join(ch for ch in str(s).lower() if ch.isalnum())
+
+
 def _sanitize(obj):
     """递归清洗 Communication Mod JSON 里的残缺 UTF-16 代理对。
 
@@ -64,9 +70,13 @@ class CombatBrain:
             bc.init_from_json(gc, json.dumps(_sanitize(state)))
             self._bc = bc
 
-            # 2. MCTS 搜索
+            # 2. MCTS 搜索（记录耗时，方便观察"思考深度"）
+            import time
+            t0 = time.monotonic()
             searcher = searcher_cls(bc, self.sim_count)
             action = searcher.best_action
+            log.info("MCTS %d sims 用时 %.2fs", self.sim_count,
+                     time.monotonic() - t0)
             if callable(action):
                 action = action()
             if action is None:
@@ -82,16 +92,28 @@ class CombatBrain:
     def _to_comm(self, action, state=None):
         """把 MCTS 动作翻译成 comm 命令；无法翻译返回 None（走规则）。
 
-        关键防御：MCTS 的 source_idx 是模拟器手牌的下标，真实游戏手牌顺序
-        可能不同（洗牌顺序、状态同步偏差）。用真实游戏的 hand 校验：
-        若该下标的牌在真实游戏中不可出（费用不够/不可播放），返回 None 回退规则。
+        关键防御：MCTS 的 source_idx 是模拟器手牌的下标，和真实游戏的手牌
+        顺序/内容可能不一致（Communication Mod 不传 RNG 计数器，模拟器重建
+        的状态必然有偏差）。因此不按位置出牌，而是取模拟器选中牌的卡牌 ID，
+        到真实游戏手牌里按 ID 找一张可出的同名牌——身份匹配而非位置匹配。
         """
         action_type = getattr(action, "action_type", None)
 
         if action_type == "CARD":
             src = action.source_idx
 
-            # 用真实游戏的手牌校验可出性
+            # 1. 模拟器侧：读出选中牌的 ID（归一化后用于跨端匹配）
+            sim_card_id = None
+            bc = self._bc
+            if bc is not None:
+                try:
+                    sim_hand = bc.hand
+                    if 0 <= src < len(sim_hand):
+                        sim_card_id = _norm_card_id(sim_hand[src].id.name)
+                except Exception:
+                    log.exception("读取模拟器手牌失败")
+
+            # 2. 真实游戏侧：手牌与能量
             hand = []
             energy = 0
             if state:
@@ -99,25 +121,45 @@ class CombatBrain:
                 hand = combat.get("hand", [])
                 energy = combat.get("player", {}).get("energy", 0)
 
-            if hand:
+            # 3. 按 ID 在真实手牌里找可出的同名牌
+            real_idx = None
+            if sim_card_id and hand:
+                for i, card in enumerate(hand):
+                    if _norm_card_id(card.get("id")) != sim_card_id:
+                        continue
+                    cost = card.get("cost", 99)
+                    if cost < 0:
+                        cost = 99  # 诅咒/特殊牌不可出
+                    if cost <= energy and card.get("is_playable", False):
+                        real_idx = i
+                        break
+                if real_idx is None:
+                    log.warning("真实手牌里找不到可出的同名牌（sim id=%s），回退规则",
+                                sim_card_id)
+                    return None
+            elif hand:
+                # 模拟器手牌读不到时退化为位置匹配 + 可出性校验
                 if not (0 <= src < len(hand)):
                     log.warning("MCTS source_idx %d 超出真实手牌数 %d", src, len(hand))
                     return None
                 card = hand[src]
                 cost = card.get("cost", 99)
                 if cost < 0:
-                    cost = 99  # 诅咒/特殊牌不可出
+                    cost = 99
                 if cost > energy or not card.get("is_playable", False):
                     log.warning("MCTS 选的牌在真实游戏中不可出（%s, cost=%s, energy=%s）",
                                 card.get("name"), cost, energy)
                     return None
+                real_idx = src
+            else:
+                real_idx = src  # 无真实手牌数据（测试场景），直接信任模拟器
 
-            cmd = f"PLAY {src + 1}"
+            cmd = f"PLAY {real_idx + 1}"
 
             # 只有真实游戏里这张牌确实需要目标时才附带 target_idx。
             needs_target = False
-            if hand and 0 <= src < len(hand):
-                needs_target = bool(hand[src].get("has_target", False))
+            if hand and 0 <= real_idx < len(hand):
+                needs_target = bool(hand[real_idx].get("has_target", False))
 
             if needs_target:
                 # 不信任 MCTS 的 target_idx，从真实游戏状态选第一个活着的怪
