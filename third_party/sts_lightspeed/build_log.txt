@@ -14,14 +14,8 @@
 
 -- Using the single-header code from C:/Youqing-Vault/Embodied-AI/07-projects/sts-agent/third_party/sts_lightspeed/json/single_include/
 -- pybind11 v2.13.6 
--- Configuring done (1.5s)
--- Generating done (0.3s)
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
 -- Build files have been written to: C:/Youqing-Vault/Embodied-AI/07-projects/sts-agent/third_party/sts_lightspeed/build
 [0/2] Re-checking globbed directories...
-[1/3] Building CXX object CMakeFiles\slaythespire.dir\bindings\slaythespire.cpp.obj
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\bindings\slaythespire.cpp(1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
-C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\bindings\slaythespire.cpp(24): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
-[2/3] Linking CXX shared module slaythespire.cp313-win_amd64.pyd
+ninja: no work to do.
