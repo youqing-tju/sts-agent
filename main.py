@@ -66,12 +66,37 @@ _REWARD_SKIP = 6
 _SINGING_BOWL_IDX2 = 5
 
 
+def _sanitize(obj):
+    """递归清洗 Communication Mod JSON 里的残缺 UTF-16 代理对。
+
+    CJK 版游戏用 GBK 编码中文，转换时产生 lone surrogate（如 \udc80），
+    json.dumps 会因此抛异常导致 RL 路径每次都回退规则。全部替换为 U+FFFD。
+    """
+    if isinstance(obj, str):
+        return obj.encode("utf-8", "replace").decode("utf-8")
+    if isinstance(obj, list):
+        return [_sanitize(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _sanitize(v) for k, v in obj.items()}
+    return obj
+
+
+def _is_victory(state: dict) -> bool:
+    """检测通关画面：Communication Mod 在胜利时发 screen_type=GAME_OVER 且 screen_state.victory=true。"""
+    gs = state.get("game_state", {})
+    if (gs.get("screen_type") or "").upper() != "GAME_OVER":
+        return False
+    ss = gs.get("screen_state", {})
+    return bool(ss.get("victory"))
+
+
 class SimBrain:
     """模拟器大脑：把真实游戏状态灌进 lightspeed 模拟器，用 RL Scorer 决策。"""
 
     def __init__(self, checkpoint_path: str = _DEFAULT_CKPT):
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
+        self.won = False  # 首胜即停：检测到通关后锁定，不再开新局
         self.scorer = None
         if os.path.exists(checkpoint_path):
             try:
@@ -95,6 +120,16 @@ class SimBrain:
     def decide(self, state: dict) -> str:
         if state.get("error"):
             log.warning("game error: %s", state["error"])
+
+        # 首胜即停：检测到通关画面后锁定，游戏停在胜利界面不再开新局
+        if _is_victory(state):
+            if not self.won:
+                self.won = True
+                log.info("VICTORY DETECTED — 锁定，不再自动开新局")
+            return "STATE"  # 原地等待，让玩家看到胜利画面
+        if self.won:
+            return "STATE"
+
         if not state.get("ready_for_command"):
             return "STATE"
 
@@ -127,7 +162,7 @@ class SimBrain:
         if self.scorer is None:
             return None
         game = state.get("game_state", {})
-        self.gc.init_from_json(json.dumps(state))
+        self.gc.init_from_json(json.dumps(_sanitize(state)))
         gc = self.gc
         self._ascension = int(game.get("ascension_level", 0) or 0)
         screen = gc.screen_state.name

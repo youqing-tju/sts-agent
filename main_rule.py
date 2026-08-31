@@ -94,6 +94,13 @@ def macro_action(state: dict) -> str:
                 return f"CHOOSE {i}"
         return "CHOOSE 0"
 
+    # 战斗奖励：逐个领取金币/药水/遗物/卡牌，领完再 PROCEED
+    if screen_type == "COMBAT_REWARD":
+        if "choose" in cmds:
+            return "CHOOSE 0"  # 逐个领取所有奖励（金币/药水/遗物先出现）
+        if "proceed" in cmds:
+            return "PROCEED"
+
     # 通用兜底——只从实际可用的命令里选
     for cmd in ("proceed", "confirm", "continue", "leave"):
         if cmd in cmds:
