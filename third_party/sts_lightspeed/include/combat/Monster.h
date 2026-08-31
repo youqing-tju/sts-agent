@@ -107,7 +107,9 @@ namespace sts {
         template <MonsterStatus> [[nodiscard]] bool hasStatus() const;
         template <MonsterStatus> [[nodiscard]] int getStatus() const;
         template <MonsterStatus> void setHasStatus(bool value=true);
+        void setHasStatus(MonsterStatus status, bool value=true);
         template <MonsterStatus> void setStatus(int amount);
+        void setStatus(MonsterStatus status, int amount);
         template <MonsterStatus> void decrementStatus(int amount=1);
         template <MonsterStatus> void addDebuff(int amount, bool isSourceMonster=true);
         template <MonsterStatus> void removeStatus();
@@ -115,6 +117,7 @@ namespace sts {
 
 
         template <MonsterStatus> void setJustApplied(bool value);
+        void setJustApplied(MonsterStatus status, bool value);
         template <MonsterStatus> [[nodiscard]] bool wasJustApplied() const;
 
         [[nodiscard]] bool isAlive() const;

@@ -92,7 +92,9 @@ namespace sts {
 
         template <RelicId r> void setHasRelic(bool value);
         template <PlayerStatus> void setHasStatus(bool value);
+        void setHasStatus(PlayerStatus status, bool value);
         template <PlayerStatus> void setStatusValueNoChecks(int value);
+        void setStatusValueNoChecks(PlayerStatus status, int value);
 
         template <PlayerStatus> void removeStatus();
         template <PlayerStatus> void decrementStatus(int amount=1);
@@ -105,6 +107,7 @@ namespace sts {
         // for statuses classified as debuff only
         template <PlayerStatus> [[nodiscard]] bool wasJustApplied() const;
         template<PlayerStatus> void setJustApplied(bool value);
+        void setJustApplied(PlayerStatus status, bool value);
 
 
         [[nodiscard]] bool hasRelicRuntime(RelicId r) const;
