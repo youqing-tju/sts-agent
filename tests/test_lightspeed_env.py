@@ -14,10 +14,8 @@ def test_full_random_game_terminates():
     done, steps = False, 0
     while not done and steps < 500:
         cands = env.candidates()
-        if not cands:                # 战斗内部，env 自动跑 MCTS
-            res = env.step(-1)
-        else:
-            res = env.step(random.choice(cands).idx)
+        assert cands               # 非终局必然停在宏观决策点（战斗由 MCTS 自动打完）
+        res = env.step(random.choice(cands).idx)
         done = res.done
         steps += 1
     assert done                      # 随机玩也必须在 500 步内结束
