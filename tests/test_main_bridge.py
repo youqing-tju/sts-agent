@@ -73,6 +73,13 @@ def brain():
     return SimBrain()
 
 
+@pytest.fixture
+def brain_unlocked(brain):
+    """解锁首场战斗闸门的 brain。"""
+    brain._combat_unlocked = True
+    return brain
+
+
 def test_map_screen_produces_choose(brain):
     """MAP 屏：模拟器路径必须产出合法的 CHOOSE <下标> 命令。"""
     state = _map_state()
@@ -83,7 +90,7 @@ def test_map_screen_produces_choose(brain):
     assert 0 <= idx < 2
 
 
-def test_combat_play_first_playable(brain):
+def test_combat_play_first_playable(brain_unlocked):
     """战斗屏：有能出的攻击牌 → PLAY <hand_1based> <monster_0based>。"""
     state = _combat_state([
         {"id": "Strike_R", "name": "Strike", "cost": 1, "type": "ATTACK",
@@ -91,26 +98,26 @@ def test_combat_play_first_playable(brain):
         {"id": "Defend_R", "name": "Defend", "cost": 1, "type": "SKILL",
          "is_playable": True},
     ])
-    cmd = brain.decide(state)
+    cmd = brain_unlocked.decide(state)
     assert cmd == "PLAY 1 0", f"实际: {cmd}"
 
 
-def test_combat_end_when_nothing_playable(brain):
+def test_combat_end_when_nothing_playable(brain_unlocked):
     """战斗屏：都出不了 → END。"""
     state = _combat_state([
         {"id": "Strike_R", "name": "Strike", "cost": 3, "type": "ATTACK",
          "is_playable": True},
     ], energy=1)
-    assert brain.decide(state) == "END"
+    assert brain_unlocked.decide(state) == "END"
 
 
-def test_fallback_when_sim_decide_raises(brain, monkeypatch):
+def test_fallback_when_sim_decide_raises(brain_unlocked, monkeypatch):
     """模拟器路径抛异常 → 回退规则决策，不崩。"""
     def _boom(self, state, cmds):
         raise RuntimeError("simulated init_from_json failure")
 
     monkeypatch.setattr(SimBrain, "_sim_decide", _boom)
-    cmd = brain.decide(_map_state())
+    cmd = brain_unlocked.decide(_map_state())
     # 规则 bot 在 MAP 屏的兜底就是 CHOOSE 0
     assert cmd == "CHOOSE 0", f"实际: {cmd}"
 
