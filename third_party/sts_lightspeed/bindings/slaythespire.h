@@ -43,6 +43,7 @@ namespace sts {
 
 
     struct GameContext;
+    struct BattleContext;
     struct Map;
 
     namespace py {
@@ -52,6 +53,11 @@ namespace sts {
         search::ScumSearchAgent2* getAgent();
         void setGc(const GameContext &gc);
         GameContext* getGc();
+
+        // initialize contexts from a Communication Mod STATE json string
+        // (accepts the full response or only the game_state subobject)
+        void initGameContextFromJsonString(GameContext &gc, const std::string &json);
+        void initBattleContextFromJsonString(BattleContext &bc, GameContext &gc, const std::string &json);
 
         void playout();
         std::vector<Card> getCardReward(GameContext &gc);

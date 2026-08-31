@@ -4,12 +4,15 @@
 #include <sstream>
 #include <algorithm>
 
+#include <nlohmann/json.hpp>
+
 #include "sim/ConsoleSimulator.h"
 #include "sim/search/ScumSearchAgent2.h"
 #include "sim/SimHelpers.h"
 #include "sim/PrintHelpers.h"
 #include "game/Game.h"
 #include "game/Map.h"
+#include "combat/BattleContext.h"
 
 #include "slaythespire.h"
 
@@ -141,6 +144,16 @@ namespace sts {
 }
 
 namespace sts::py {
+
+    void initGameContextFromJsonString(GameContext &gc, const std::string &json) {
+        nlohmann::json j = nlohmann::json::parse(json);
+        gc.initFromJson(j);
+    }
+
+    void initBattleContextFromJsonString(BattleContext &bc, GameContext &gc, const std::string &json) {
+        nlohmann::json j = nlohmann::json::parse(json);
+        bc.initFromJson(gc, j);
+    }
 
     void play() {
         sts::SimulatorContext ctx;

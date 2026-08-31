@@ -15,6 +15,7 @@
 #include "sim/SimHelpers.h"
 #include "sim/PrintHelpers.h"
 #include "game/Game.h"
+#include "combat/BattleContext.h"
 
 #include "slaythespire.h"
 
@@ -120,6 +121,111 @@ PYBIND11_MODULE(slaythespire, m) {
         .def_readwrite("shop_remove_count", &GameContext::shopRemoveCount)
         .def_readwrite("speedrun_pace", &GameContext::speedrunPace)
         .def_readwrite("note_for_yourself_card", &GameContext::noteForYourselfCard);
+
+    gameContext.def("init_from_json",
+            &sts::py::initGameContextFromJsonString,
+            "initialize the GameContext from a Communication Mod STATE json string");
+
+    pybind11::class_<Player> player(m, "Player");
+    player.def(pybind11::init<>())
+        .def_property_readonly("hp", [](const Player &p) { return p.curHp; })
+        .def_property_readonly("max_hp", [](const Player &p) { return p.maxHp; })
+        .def_property_readonly("energy", [](const Player &p) { return p.energy; })
+        .def_property_readonly("block", [](const Player &p) { return p.block; })
+        .def_property_readonly("gold", [](const Player &p) { return p.gold; })
+        .def_property_readonly("energy_per_turn", [](const Player &p) { return p.energyPerTurn; })
+        .def_property_readonly("draw_per_turn", [](const Player &p) { return p.cardDrawPerTurn; })
+        .def_property_readonly("artifact", [](const Player &p) { return p.artifact; })
+        .def_property_readonly("dexterity", [](const Player &p) { return p.dexterity; })
+        .def_property_readonly("focus", [](const Player &p) { return p.focus; })
+        .def_property_readonly("strength", [](const Player &p) { return p.strength; });
+
+    pybind11::class_<Monster> monster(m, "Monster");
+    monster.def(pybind11::init<>())
+        .def_property_readonly("name", [](const Monster &m) { return m.getName(); })
+        .def_property_readonly("hp", [](const Monster &m) { return m.curHp; })
+        .def_property_readonly("max_hp", [](const Monster &m) { return m.maxHp; })
+        .def_property_readonly("block", [](const Monster &m) { return m.block; })
+        .def_property_readonly("is_targetable", [](const Monster &m) { return m.isTargetable(); })
+        .def_property_readonly("is_alive", [](const Monster &m) { return m.isAlive(); })
+        .def_property_readonly("is_escaping", [](const Monster &m) { return m.isEscaping(); })
+        .def_property_readonly("is_attacking", [](const Monster &m) { return m.isAttacking(); })
+        .def_property_readonly("is_minion", [](const Monster &m) { return m.hasStatus<MS::MINION>() && m.id != MonsterId::INVALID; })
+        .def_property_readonly("move_id", [](const Monster &m) { return static_cast<int>(m.moveHistory[0]); });
+
+    pybind11::class_<CardInstance> cardInstance(m, "CardInstance");
+    cardInstance.def(pybind11::init<>())
+        .def("__repr__", [](const CardInstance &c) {
+            std::string s("<slaythespire.CardInstance ");
+            s += c.getName();
+            if (c.isUpgraded()) {
+                s += '+';
+            }
+            return s += ">";
+        })
+        .def_property_readonly("id", &CardInstance::getId)
+        .def_property_readonly("cost_for_turn", [](const CardInstance &c) { return c.costForTurn; })
+        .def_property_readonly("upgraded", &CardInstance::isUpgraded)
+        .def_property_readonly("upgradable", &CardInstance::canUpgrade)
+        .def_property_readonly("is_strikeCard", &CardInstance::isStrikeCard)
+        .def_property_readonly("type", &CardInstance::getType);
+
+    pybind11::class_<BattleContext> battleContext(m, "BattleContext");
+    battleContext.def(pybind11::init<>())
+        .def(pybind11::init<const BattleContext &>())
+        .def("init_from_json",
+            &sts::py::initBattleContextFromJsonString,
+            "initialize the BattleContext from a Communication Mod STATE json string containing combat_state")
+        .def_property_readonly("player",
+            [](const BattleContext &bc) { return bc.player; },
+            "returns the player object")
+        .def_property_readonly("monsters_alive_count",
+            [](const BattleContext &bc) { return bc.monsters.getAliveCount(); },
+            "returns the number of monsters that are alive")
+        .def_property_readonly("monsters_count",
+            [](const BattleContext &bc) { return bc.monsters.monsterCount; },
+            "returns the number of monsters in this encounter")
+        .def_property_readonly("monsters",
+            [](const BattleContext &bc) {
+                return std::vector<Monster>(bc.monsters.arr.begin(), bc.monsters.arr.begin()+bc.monsters.monsterCount);
+            },
+            "returns the monsters in this encounter")
+        .def_property_readonly("hand",
+            [](const BattleContext &bc) {
+                return std::vector<CardInstance>(bc.cards.hand.begin(), bc.cards.hand.begin()+bc.cards.cardsInHand);
+            },
+            "returns a copy of the list of cards in the player's hand")
+        .def_property_readonly("draw_pile",
+            [](const BattleContext &bc) { return bc.cards.drawPile; },
+            "returns a copy of the list of cards in the draw pile")
+        .def_property_readonly("discard_pile",
+            [](const BattleContext &bc) { return bc.cards.discardPile; },
+            "returns a copy of the list of cards in the discard pile")
+        .def_property_readonly("exhaust_pile",
+            [](const BattleContext &bc) { return bc.cards.exhaustPile; },
+            "returns a copy of the list of cards in the exhaust pile")
+        .def_property_readonly("turn",
+            [](const BattleContext &bc) { return bc.turn; },
+            "returns the turn number")
+        .def_property_readonly("encounter",
+            [](const BattleContext &bc) { return bc.encounter; },
+            "returns the current monster encounter")
+        .def_property_readonly("outcome",
+            [](const BattleContext &bc) { return bc.outcome; },
+            "returns the battle outcome")
+        .def("is_terminal",
+            [](const BattleContext &bc) { return bc.outcome != Outcome::UNDECIDED; },
+            "whether the battle is over")
+        .def("__repr__", [](const BattleContext &bc) {
+            std::ostringstream oss;
+            oss << bc;
+            return oss.str();
+        }, "returns a string representation of the BattleContext");
+
+    pybind11::enum_<Outcome> battleOutcome(m, "BattleOutcome");
+    battleOutcome.value("UNDECIDED", Outcome::UNDECIDED)
+        .value("PLAYER_VICTORY", Outcome::PLAYER_VICTORY)
+        .value("PLAYER_LOSS", Outcome::PLAYER_LOSS);
 
     pybind11::class_<RelicInstance> relic(m, "Relic");
     relic.def_readwrite("id", &RelicInstance::id)
