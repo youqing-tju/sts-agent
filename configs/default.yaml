@@ -1,0 +1,7 @@
+character: IRONCLAD
+ascension: 0
+mcts_simulations_train: 8000    # 训练期 MCTS 预算
+mcts_simulations_eval: 50000    # 评估期 MCTS 预算
+eval_seeds_count: 100
+eval_master_seed: 20260831      # 留出种子母种子，保证可复现
+log_dir: logs/
