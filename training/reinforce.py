@@ -3,7 +3,7 @@
 - collect_episode：用当前 Scorer 玩一局。每个宏观决策点把
   (obs.vec, [cand.desc_vec...]) 过 scorer → softmax 采样（保留探索），
   轨迹记录 (obs_vec, cand_vecs, chosen_pos)。
-- 奖励纯结果：G = final_floor + 50 * win，无过程奖励。
+- 奖励纯结果：G = final_floor + win_bonus * win，无过程奖励。
 - update：对轨迹重新前向（带梯度）计算 log_prob/entropy，
   loss = -mean_episodes sum_t log_prob_t * (G - baseline) - entropy_coef * mean(entropy)，
   baseline 为最近 100 局 G 的滑动平均。
@@ -26,13 +26,14 @@ _WIN_OUTCOME = "PLAYER_VICTORY"
 
 class ReinforceTrainer:
     def __init__(self, scorer, lr=1e-3, gamma=0.99, entropy_coef=0.01,
-                 mcts_sim=8000, device="cpu", log_dir=None):
+                 mcts_sim=8000, device="cpu", log_dir=None, win_bonus=50):
         self.scorer = scorer.to(device)
         self.device = device
         self.optimizer = torch.optim.Adam(self.scorer.parameters(), lr=lr)
         self.gamma = gamma  # 保留：当前奖励为终局一次性 G，未做逐步折扣
         self.entropy_coef = entropy_coef
         self.mcts_sim = mcts_sim
+        self.win_bonus = win_bonus
         self.log_dir = log_dir
         self._g_hist = deque(maxlen=100)
 
@@ -89,7 +90,7 @@ class ReinforceTrainer:
         loss_sum, ent_sum, n_ep = None, 0.0, 0
         floors, wins, gs = [], [], []
         for traj, final_floor, win in episodes:
-            g = float(final_floor) + 50.0 * float(win)
+            g = float(final_floor) + float(self.win_bonus) * float(win)
             gs.append(g)
             floors.append(float(final_floor))
             wins.append(float(win))

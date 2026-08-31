@@ -22,6 +22,8 @@ def main():
     p.add_argument("--log-dir", default="logs/m2-training")
     p.add_argument("--checkpoint", default="checkpoints/scorer.pt")
     p.add_argument("--init-from", default=None, help="从已有 checkpoint 继续训练")
+    p.add_argument("--win-bonus", type=float, default=50,
+                   help="通关奖励：G = final_floor + win_bonus * win")
     args = p.parse_args()
 
     os.makedirs(os.path.dirname(args.checkpoint), exist_ok=True)
@@ -33,7 +35,7 @@ def main():
         scorer.load_state_dict(torch.load(args.init_from, weights_only=True))
         print(f"Warm start from {args.init_from}")
     trainer = ReinforceTrainer(scorer, lr=args.lr, mcts_sim=args.mcts_sim,
-                               log_dir=args.log_dir)
+                               log_dir=args.log_dir, win_bonus=args.win_bonus)
 
     # 训练曲线追加写入 JSONL，供监控/复盘
     curve_path = os.path.join(args.log_dir, "training_curve.jsonl")

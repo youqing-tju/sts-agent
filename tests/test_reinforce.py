@@ -93,6 +93,19 @@ def test_collect_episode_fake_env():
     assert math.isfinite(stats["loss"])
 
 
+def test_win_bonus_used_in_return():
+    """G = final_floor + win_bonus * win：首局后 baseline == G。"""
+    torch.manual_seed(0)
+    random.seed(0)
+    ep = _fake_episode(final_floor=10, win=True)
+    tr_default = ReinforceTrainer(Scorer(), lr=1e-2)
+    tr_default.update([ep])
+    assert tr_default.baseline == 10.0 + 50.0  # 默认 win_bonus=50，向后兼容
+    tr_200 = ReinforceTrainer(Scorer(), lr=1e-2, win_bonus=200)
+    tr_200.update([ep])
+    assert tr_200.baseline == 10.0 + 200.0
+
+
 def test_collect_episode_with_policy_fn():
     torch.manual_seed(0)
     random.seed(0)
