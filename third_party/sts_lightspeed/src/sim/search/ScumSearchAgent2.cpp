@@ -46,6 +46,11 @@ void search::ScumSearchAgent2::playout(GameContext &gc) {
         if (printLogs) {
             std::cout << gc << std::endl;
         }
+        if (pauseOnNonCombatAction) {
+            // sts-agent: cede control to Python at every non-combat decision point
+            paused = true;
+            continue;
+        }
         stepOutOfCombatPolicy(gc);
     }
 }

@@ -23,6 +23,7 @@ namespace sts::search {
         int stepCount = 0;
         bool paused = false;
         bool pauseOnCardReward = false;
+        bool pauseOnNonCombatAction = false;  // sts-agent: pause at every non-combat decision point
 
         bool printActions = false;
         bool printLogs = false;

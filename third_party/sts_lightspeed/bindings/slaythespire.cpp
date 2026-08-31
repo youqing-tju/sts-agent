@@ -38,8 +38,24 @@ PYBIND11_MODULE(slaythespire, m) {
     agent.def_readwrite("simulation_count_base", &search::ScumSearchAgent2::simulationCountBase, "number of simulations the agent uses for monte carlo tree search each turn")
         .def_readwrite("boss_simulation_multiplier", &search::ScumSearchAgent2::bossSimulationMultiplier, "bonus multiplier to the simulation count for boss fights")
         .def_readwrite("pause_on_card_reward", &search::ScumSearchAgent2::pauseOnCardReward, "causes the agent to pause so as to cede control to the user when it encounters a card reward choice")
+        .def_readwrite("pause_on_noncombat", &search::ScumSearchAgent2::pauseOnNonCombatAction, "sts-agent: pause at every non-combat decision point so Python can decide")
         .def_readwrite("print_logs", &search::ScumSearchAgent2::printLogs, "when set to true, the agent prints state information as it makes actions")
         .def("playout", &search::ScumSearchAgent2::playout);
+
+    // sts-agent: expose the full non-combat action space so Python can drive macro decisions
+    pybind11::class_<search::GameAction> gameAction(m, "GameAction");
+    gameAction.def(pybind11::init<std::uint32_t>())
+        .def_readwrite("bits", &search::GameAction::bits)
+        .def("is_valid", &search::GameAction::isValidAction)
+        .def("execute", &search::GameAction::execute)
+        .def("describe", [](const search::GameAction &a, const GameContext &gc) {
+            std::ostringstream oss;
+            a.printDesc(oss, gc);
+            return oss.str();
+        });
+
+    m.def("get_all_actions", &search::GameAction::getAllActionsInState,
+          "return all valid non-combat GameActions for the current state");
 
     pybind11::class_<GameContext> gameContext(m, "GameContext");
     gameContext.def(pybind11::init<CharacterClass, std::uint64_t, int>())
