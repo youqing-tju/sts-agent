@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <array>
+#include <nlohmann/json.hpp>
 
 #include "sts_common.h"
 
@@ -100,6 +101,14 @@ namespace sts {
 
         void init(const GameContext &gc);
         void init(const GameContext &gc, MonsterEncounter encounterToInit);
+
+        // initialize from a Communication Mod STATE json containing combat_state
+        // (accepts the full STATE response, the game_state subobject, or a bare combat_state)
+        void initFromJson(const GameContext &gc, const nlohmann::json &json);
+        void initRelicsFromJson(const GameContext &gc);
+        void initPowersFromJson(const nlohmann::json &powers);
+        void initCardsFromJson(const nlohmann::json &jsonCombatState, int &uniqueCardId);
+        void initMonstersFromJson(const nlohmann::json &jsonMonsters, int &uniqueCardId);
 
         void initRelics(const GameContext &gc);
 

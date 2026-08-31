@@ -2,7 +2,12 @@
 // Created by gamerpuppy on 7/4/2021.
 //
 
+#include <string>
+#include <algorithm>
+#include <iostream>
+
 #include "combat/BattleContext.h"
+#include "constants/MonsterMoveConvert.h"
 #include "game/GameContext.h"
 #include "game/Game.h"
 
@@ -12,6 +17,403 @@ namespace sts {
     thread_local BattleContext *g_debug_bc;
 }
 
+namespace {
+
+    int countMonsterOccurrences(const nlohmann::json &monsters, const MonsterId id) {
+        int count = 0;
+        for (int i = 0; i < static_cast<int>(monsters.size()); ++i) {
+            // only consider the monsters that are not gone
+            if (!monsters[i]["is_gone"].get<bool>() && getMonsterIdFromId(monsters[i]["id"].get<std::string>()) == id) {
+                count += 1;
+            }
+        }
+        return count;
+    }
+
+    int computePreplacedIdx(const nlohmann::json &monsters) {
+        // the simulator special cases bronze automaton, collector, gremlin leader, and reptomancer with their summons
+        // as such I can't just place every monster at an arbitrary position since these monsters must be positioned in specific locations
+        // so assert that there is at most one of these (since multiple cannot be placed correctly)
+        int countBronzeAutomaton = countMonsterOccurrences(monsters, MonsterId::BRONZE_AUTOMATON);
+        int countTheCollector = countMonsterOccurrences(monsters, MonsterId::THE_COLLECTOR);
+        int countGremlinLeader = countMonsterOccurrences(monsters, MonsterId::GREMLIN_LEADER);
+        int countReptomancer = countMonsterOccurrences(monsters, MonsterId::REPTOMANCER);
+        int countSpikeSlimeL = countMonsterOccurrences(monsters, MonsterId::SPIKE_SLIME_L);
+        int countAcidSlimeL = countMonsterOccurrences(monsters, MonsterId::ACID_SLIME_L);
+#ifdef sts_asserts
+        assert(countBronzeAutomaton + countTheCollector + countGremlinLeader + countReptomancer <= 1);
+        assert(countSpikeSlimeL <= 1);
+        assert(countAcidSlimeL <= 1);
+#endif
+
+        if (countBronzeAutomaton >= 1) {
+            return 1;
+        } else if (countTheCollector >= 1) {
+            return 2;
+        } else if (countGremlinLeader >= 1) {
+            return 3;
+        } else if (countReptomancer >= 1) {
+            return 2;
+        } else if (countSpikeSlimeL + countAcidSlimeL >= 2) {
+            return 2; // according to the simulator slime boss needs the second slime to be positioned at idx 2
+        } else {
+            return -1;
+        }
+    }
+
+    bool isSpecialCase(const MonsterId id) {
+        return id == MonsterId::BRONZE_AUTOMATON || id == MonsterId::THE_COLLECTOR || id == MonsterId::GREMLIN_LEADER || id == MonsterId::REPTOMANCER
+            || id == MonsterId::ACID_SLIME_L; // only the acid slime needs to be special-cased
+                                            // note that in reality any L slime that has another monster after it needs to have the following monster special-cased
+                                            // to an idx 1 further over but in vanilla this only matters during slime boss so we can just move the following monster
+                                            // ACID_SLIME_L to position 2 always
+    }
+
+}
+
+// initialize from a Communication Mod combat_state (mid-combat or at combat start)
+void BattleContext::initFromJson(const GameContext &gc, const nlohmann::json &json) {
+    undefinedBehaviorEvoked = false;
+    haveUsedDiscoveryAction = false;
+    seed = gc.seed;
+    floorNum = gc.floorNum;
+    encounter = gc.info.encounter;
+
+    auto startRandom = Random(gc.seed+gc.floorNum);
+    aiRng = startRandom;
+    monsterHpRng = startRandom;
+    shuffleRng = startRandom;
+    cardRandomRng = startRandom;
+    miscRng = gc.miscRng;
+    potionRng = gc.potionRng;
+
+    ascension = gc.ascension;
+    outcome = Outcome::UNDECIDED;
+    inputState = InputState::EXECUTING_ACTIONS;
+    miscBits.reset();
+
+    monsterTurnIdx = 6;
+    skipMonsterTurn = false;
+    turnHasEnded = false;
+    isBattleOver = false;
+
+    actionQueue.clear();
+    cardQueue.clear();
+
+    potionCount = gc.potionCount;
+    potionCapacity = gc.potionCapacity;
+    potions = gc.potions;
+
+    player.curHp = gc.curHp;
+    player.maxHp = gc.maxHp;
+    player.gold = gc.gold;
+    player.cc = gc.cc;
+
+    int uniqueCardId = 0;
+
+    auto jsonGame = json;
+    if (json.contains("game_state")) {
+        jsonGame = json["game_state"];
+    }
+    auto jsonCombatState = jsonGame.contains("combat_state") ? jsonGame["combat_state"] : jsonGame;
+    auto jsonMonsters = jsonCombatState["monsters"];
+    initMonstersFromJson(jsonMonsters, uniqueCardId);
+
+    player.cardDrawPerTurn = 5;
+    if (gc.hasRelic(R::SNECKO_EYE)) {
+        player.cardDrawPerTurn += 2;
+    }
+    if (gc.relics.has(R::RING_OF_THE_SERPENT)) {
+        player.cardDrawPerTurn += 1;
+    }
+
+    // do not call cards.init(gc, *this) here: it would fill the draw pile with the whole deck
+    // and queue innate draw actions, which is invalid for a state loaded mid-combat
+    cards.drawPile.clear();
+    cards.discardPile.clear();
+    cards.exhaustPile.clear();
+    cards.cardsInHand = 0;
+    cards.stasisCards = { CardId::INVALID, CardId::INVALID };
+    cards.handNormalityCount = 0;
+    cards.handPainCount = 0;
+    cards.strikeCount = 0;
+    cards.handBloodCardCount = 0;
+    cards.drawPileBloodCardCount = 0;
+    cards.discardPileBloodCardCount = 0;
+
+    player.energy = jsonCombatState["player"]["energy"].get<int>();
+    if (jsonCombatState["player"].contains("block")) {
+        player.block = jsonCombatState["player"]["block"].get<int>();
+    }
+
+    initCardsFromJson(jsonCombatState, uniqueCardId);
+
+    auto powers = jsonCombatState["player"]["powers"];
+    initPowersFromJson(powers);
+    initRelicsFromJson(gc);
+
+    // TODO: have communication mod provide the cardsPlayedThisTurn, attacksPlayedThisTurn,
+    // skillsPlayedThisTurn, orangePelletsCardTypesPlayed, cardsDiscardedThisTurn
+
+    executeActions();
+
+    // card discovery screen open on top of the combat (e.g. Discovery)
+    if (jsonGame.contains("screen_type") && jsonGame["screen_type"].get<std::string>() == "CARD_REWARD"
+            && jsonGame.contains("screen_state") && jsonGame["screen_state"].contains("cards")) {
+        auto cardsJson = jsonGame["screen_state"]["cards"];
+        CardSelectTask taskToOpen = CardSelectTask::DISCOVERY;
+        for (int j = 0; j < static_cast<int>(cardsJson.size()) && j < 3; ++j) {
+            auto c = cardsJson[j];
+            cardSelectInfo.cards[j] = getCardIdFromName(c.at("id").get<std::string>());
+        }
+        if (jsonGame["screen_state"].contains("skip_available")) {
+            cardSelectInfo.canPickZero = jsonGame["screen_state"]["skip_available"].get<bool>();
+        }
+        openSimpleCardSelectScreen(taskToOpen, 1);
+    }
+}
+
+void BattleContext::initMonstersFromJson(const nlohmann::json &jsonMonsters, int &uniqueCardId) {
+    int monstersIdx = 0;
+    int preplacedIdx = computePreplacedIdx(jsonMonsters);
+    for (int i = 0; i < static_cast<int>(jsonMonsters.size()); ++i) {
+        auto m = jsonMonsters[i];
+        MonsterId monsterId = getMonsterIdFromId(m["id"].get<std::string>());
+        // any monster that has been defeated can be removed from consideration entirely
+        // this is necessary because the simulator expects at most 5 monsters to exist
+        // and during some fights (ex. slime boss) there exist more than 5 monsters if
+        // we consider the "gone" ones (which communication mod does)
+        if (m["is_gone"].get<bool>()) {
+            continue;
+        }
+        if (monsterId == MonsterId::INVALID) {
+            std::cerr << "initMonstersFromJson: unknown monster id " << m["id"].get<std::string>() << ", skipping" << std::endl;
+            continue;
+        }
+
+        Monster *monster;
+
+        // ensure that monstersIdx and the MonsterGroup always skips past the preplaced position
+        if (monstersIdx == preplacedIdx) {
+            monstersIdx += 1;
+            monsters.monsterCount += 1;
+        }
+
+        if (preplacedIdx >= 0 && isSpecialCase(monsterId)) {
+            // preplaced monster gets put into its position
+            int cachedCount = monsters.monsterCount;
+            monsters.monsterCount = preplacedIdx;
+
+            monsters.createMonster(*this, monsterId);
+            monster = &monsters.arr[preplacedIdx];
+            // restore the previous position in the MonsterGroup
+            monsters.monsterCount = cachedCount;
+        } else {
+            monsters.createMonster(*this, monsterId);
+            monster = &monsters.arr[monstersIdx++];
+        }
+
+        monster->curHp = m["current_hp"].get<int>();
+        monster->maxHp = m["max_hp"].get<int>();
+        monster->block = m["block"].get<int>();
+
+        monster->isEscapingB = m.contains("is_escaping") && m["is_escaping"].get<bool>();
+        monster->halfDead = m["half_dead"].get<bool>();
+
+        // createMonster increments monstersAlive,
+        // which gets decremented when a monster leaves battle
+        // in a typical fashion (hp goes to 0 or escapes)
+        // but that has to be explicitly done during this conversion process
+        if (monster->curHp <= 0 || monster->isEscapingB) {
+            monsters.monstersAlive--;
+        }
+
+        // with Runic Dome the move id is not sent by the communication mod
+        if (m.contains("move_id") && !m["move_id"].is_null()) {
+            monster->moveHistory[0] = sts::getMonsterMoveIdFromGameId(monster->id, m["move_id"].get<int>());
+        }
+        if (m.contains("last_move_id") && !m["last_move_id"].is_null()) {
+            monster->moveHistory[1] = sts::getMonsterMoveIdFromGameId(monster->id, m["last_move_id"].get<int>());
+        }
+        if (m.contains("miscInt")) {
+            monster->miscInfo = m["miscInt"].get<int>();
+        } else if (m.contains("miscBool")) {
+            monster->miscInfo = m["miscBool"].get<bool>() ? 1 : 0;
+        }
+
+        // some monster specific information
+        // TODO: still missing Shield Gremlin target *and* bronze automaton lastBoostWasFlail
+        if (m.contains("active_orbs")) {
+            monster->uniquePower0 = m["active_orbs"].get<int>();
+        }
+
+        // monster powers
+        auto powers = m["powers"];
+        for (int j = 0; j < static_cast<int>(powers.size()); ++j) {
+            auto p = powers[j];
+            MonsterStatus monsterStatus = monsterStatusFromString(p.at("id").get<std::string>());
+            if (monsterStatus == MonsterStatus::INVALID) {
+                continue;
+            }
+            int amount = p.at("amount").get<int>();
+
+            // the numeric status setters do not touch the hasStatus bit, set it explicitly
+            monster->setHasStatus(monsterStatus, amount != 0);
+            monster->setStatus(monsterStatus, amount);
+            if (p.contains("just_applied")) {
+                monster->setJustApplied(monsterStatus, p["just_applied"].get<bool>());
+            }
+            // handle the stasis power since it keeps track of a card
+            if (p.contains("card") && monsterStatus == MonsterStatus::STASIS) {
+                auto c = p["card"];
+                CardId cardId = getCardIdFromName(c.at("id").get<std::string>());
+                CardInstance cardInstance(cardId, c["upgrades"].get<int>() > 0);
+                cardInstance.costForTurn = static_cast<int8_t>(c["cost"].get<int>());
+                cardInstance.uniqueId = static_cast<std::int16_t>(uniqueCardId++);
+                cards.stasisCards[std::min(1, monster->idx)] = cardInstance;
+            }
+        }
+    }
+
+    // ensure the MonsterGroup position includes the preplacedIdx
+    monsters.monsterCount = std::max(preplacedIdx + 1, monsters.monsterCount);
+
+    // special case for bronze automaton, ensure monsterCount is at least preplacedIdx + 2
+    if (countMonsterOccurrences(jsonMonsters, MonsterId::BRONZE_AUTOMATON) >= 1) {
+        monsters.monsterCount = std::max(preplacedIdx + 2, monsters.monsterCount);
+    }
+}
+
+void BattleContext::initPowersFromJson(const nlohmann::json &powers) {
+    for (int j = 0; j < static_cast<int>(powers.size()); ++j) {
+        auto p = powers[j];
+        PlayerStatus playerStatus = playerStatusFromString(p.at("id").get<std::string>());
+        if (playerStatus == PlayerStatus::INVALID) {
+            continue;
+        }
+
+        player.setHasStatus(playerStatus, true);
+        player.setStatusValueNoChecks(playerStatus, p["amount"].get<int>());
+        if (p.contains("just_applied")) {
+            player.setJustApplied(playerStatus, p["just_applied"].get<bool>());
+        }
+
+        // special case powers that need extra info
+        switch (playerStatus) {
+            case PlayerStatus::COMBUST:
+                if (p.contains("misc")) {
+                    player.combustHpLoss = p["misc"].get<int>();
+                }
+                break;
+            case PlayerStatus::DEVA:
+                if (p.contains("misc")) {
+                    player.devaFormEnergyPerTurn = p["misc"].get<int>();
+                }
+                break;
+            case PlayerStatus::ECHO_FORM:
+                if (p.contains("misc")) {
+                    player.echoFormCardsDoubled = p["misc"].get<int>();
+                }
+                break;
+            case PlayerStatus::PANACHE:
+                player.panacheCounter = p["amount"].get<int>();
+                if (p.contains("damage")) {
+                    // override original status value since it needs to be the damage not the amount
+                    player.setStatusValueNoChecks(playerStatus, p["damage"].get<int>());
+                }
+                break;
+            case PlayerStatus::THE_BOMB:
+                if (p["amount"] == 1) {
+                    player.bomb1 = p["amount"].get<int>();
+                } else if (p["amount"] == 2) {
+                    player.bomb2 = p["amount"].get<int>();
+                } else if (p["amount"] == 3) {
+                    player.bomb3 = p["amount"].get<int>();
+                }
+                // status value is unused for the bomb
+                player.setStatusValueNoChecks(playerStatus, 0);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void BattleContext::initCardsFromJson(const nlohmann::json &jsonCombatState, int &uniqueCardId) {
+    auto loadCard = [](const nlohmann::json &c, int &uid, CardInstance &out) {
+        CardId cardId = getCardIdFromName(c.at("id").get<std::string>());
+        if (cardId == CardId::INVALID) {
+            return false;
+        }
+        out = CardInstance(cardId, c["upgrades"].get<int>() > 0);
+        if (c.contains("cost") && !c["cost"].is_null()) {
+            out.costForTurn = static_cast<int8_t>(c["cost"].get<int>());
+        }
+        out.uniqueId = static_cast<std::int16_t>(uid++);
+        return true;
+    };
+
+    auto drawPileJson = jsonCombatState["draw_pile"];
+    for (int i = 0; i < static_cast<int>(drawPileJson.size()); ++i) {
+        CardInstance cardInstance;
+        if (loadCard(drawPileJson[i], uniqueCardId, cardInstance)) {
+            cards.moveToDrawPileTop(cardInstance);
+            cards.notifyAddCardToCombat(cardInstance);
+        }
+    }
+
+    auto discardPileJson = jsonCombatState["discard_pile"];
+    for (int i = 0; i < static_cast<int>(discardPileJson.size()); ++i) {
+        CardInstance cardInstance;
+        if (loadCard(discardPileJson[i], uniqueCardId, cardInstance)) {
+            cards.moveToDiscardPile(cardInstance);
+            cards.notifyAddCardToCombat(cardInstance);
+        }
+    }
+
+    auto handJson = jsonCombatState["hand"];
+    for (int i = 0; i < static_cast<int>(handJson.size()); ++i) {
+        CardInstance cardInstance;
+        if (loadCard(handJson[i], uniqueCardId, cardInstance)) {
+            cards.moveToHand(cardInstance);
+            cards.notifyAddCardToCombat(cardInstance);
+        }
+    }
+
+    // the fork did not load the exhaust pile; exhausted cards matter (exhume, feel no pain, ...)
+    if (jsonCombatState.contains("exhaust_pile")) {
+        auto exhaustPileJson = jsonCombatState["exhaust_pile"];
+        for (int i = 0; i < static_cast<int>(exhaustPileJson.size()); ++i) {
+            CardInstance cardInstance;
+            if (loadCard(exhaustPileJson[i], uniqueCardId, cardInstance)) {
+                cards.exhaustPile.push_back(cardInstance);
+            }
+        }
+    }
+
+    cards.nextUniqueCardId = uniqueCardId;
+}
+
+void BattleContext::initRelicsFromJson(const GameContext &gc) {
+    // these would typically be initialized in BattleContext::initRelics
+    // but that performs additional initialization that only occurs at the start of battle
+    // which would be invalid for loading a state that is already in the middle of combat
+    auto counterOf = [&gc](RelicId r) {
+        return gc.relics.has(r) ? gc.relics.getRelicValue(r) : 0;
+    };
+    player.happyFlowerCounter = counterOf(RelicId::HAPPY_FLOWER);
+    player.incenseBurnerCounter = counterOf(RelicId::INCENSE_BURNER);
+    player.inkBottleCounter = counterOf(RelicId::INK_BOTTLE);
+    player.inserterCounter = counterOf(RelicId::INSERTER);
+    player.nunchakuCounter = counterOf(RelicId::NUNCHAKU);
+    player.penNibCounter = counterOf(RelicId::PEN_NIB);
+    player.sundialCounter = counterOf(RelicId::SUNDIAL);
+
+    player.relicBits0 = gc.relics.relicBits0;
+    player.relicBits1 = gc.relics.relicBits1;
+
+    // TODO: have communication mod provide the "activated" state of the necronomicon
+}
 
 // assume all bc fields have just been initialized by in class member initializers
 void BattleContext::init(const GameContext &gc) {
