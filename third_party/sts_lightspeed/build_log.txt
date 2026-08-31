@@ -1,0 +1,358 @@
+﻿-- The CXX compiler identification is MSVC 19.42.34435.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/2022/Professional/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+build_bindings.bat : CMake Deprecation Warning at json/CMakeLists.txt:1 (cmake_minimum_required):
+所在位置 行:445 字符: 95
++ ... nt\third_party\sts_lightspeed"; & ".\build_bindings.bat" 2>&1 | Out-F ...
++                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CMake Deprecati...imum_required)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- Using the single-header code from C:/Youqing-Vault/Embodied-AI/07-projects/sts-agent/third_party/sts_lightspeed/json/single_include/
+-- pybind11 v2.13.6 
+-- Found PythonInterp: C:/Youqing-Vault/Embodied-AI/07-projects/sts-agent/.venv/Scripts/python.exe (found suitable version "3.13.14", minimum required is "3.7")
+-- Found PythonLibs: C:/Users/22757/.workbuddy/binaries/python/versions/3.13.12/libs/python313.lib
+-- Performing Test HAS_MSVC_GL_LTCG
+-- Performing Test HAS_MSVC_GL_LTCG - Success
+-- Configuring done (14.0s)
+-- Generating done (0.3s)
+CMake Warning:
+  Manually-specified variables were not used by the project:
+
+    Python_EXECUTABLE
+
+
+-- Build files have been written to: C:/Youqing-Vault/Embodied-AI/07-projects/sts-agent/third_party/sts_lightspeed/build
+[0/2] Re-checking globbed directories...
+[1/33] Building CXX object CMakeFiles\slaythespire.dir\bindings\bindings-util.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(787): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(787): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\bindings\bindings-util.cpp(25): note: 查看对正在编译的函数 模板 实例化“std::basic_ostream<char,std::char_traits<char>> &std::operator <<<std::char_traits<char>>(std::basic_ostream<char,std::char_traits<char>> &,const char *)”的引用
+[2/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\CardInstance.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(298): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(298): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(283): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(int)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\CardInstance.cpp(356): note: 请参阅 "sts::operator <<" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\CardInstance.cpp(323): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::BLUE_CANDLE>(void) const”的引用
+[3/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\CardQueue.cpp.obj
+[4/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\CardManager.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(382): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(unsigned __int64)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\CardManager.cpp(603): note: 请参阅 "sts::operator <<" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+[5/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\MonsterMoveDamage.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+[6/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\MonsterGroup.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(298): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(298): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(283): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(int)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\MonsterGroup.cpp(56): note: 请参阅 "sts::MonsterGroup::getRandomMonsterIdx" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+[7/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\Neow.cpp.obj
+[8/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\Card.cpp.obj
+[9/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\search\ExpertKnowledge.cpp.obj
+[10/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\Map.cpp.obj
+[11/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\BattleContext.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(382): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(unsigned __int64)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\BattleContext.cpp(735): note: 请参阅 "sts::BattleContext::executeActions" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(450): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(450): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\BattleContext.cpp(178): note: 查看对正在编译的函数 模板 实例化“void sts::Player::setHasRelic<sts::RelicId::LIZARD_TAIL>(bool)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(456): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\BattleContext.cpp(463): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::OMAMORI>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(464): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(464): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\BattleContext.cpp(710): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::VELVET_CHOKER>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(161): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(161): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\BattleContext.cpp(123): note: 查看对正在编译的函数 模板 实例化“void sts::Player::buff<PlayerStatus::VIGOR>(int)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(346): note: 查看对正在编译的函数 模板 实例化“void sts::Player::setJustApplied<PlayerStatus::VIGOR>(bool)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(163): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+[12/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\Shop.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\game\Shop.cpp(210): warning C4834: 放弃具有 [[nodiscard]] 属性的函数的返回值
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\game\Shop.cpp(213): warning C4834: 放弃具有 [[nodiscard]] 属性的函数的返回值
+[13/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\Actions.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Actions.cpp(488): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::PHILOSOPHERS_STONE>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(161): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(161): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Actions.cpp(534): note: 查看对正在编译的函数 模板 实例化“void sts::Player::debuff<PlayerStatus::STRENGTH>(int,bool)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(382): note: 查看对正在编译的函数 模板 实例化“void sts::Player::setJustApplied<PlayerStatus::STRENGTH>(bool)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(163): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(829): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(829): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/CardManager.h(39): note: 查看对正在编译的 类 模板 实例化“std::vector<sts::CardInstance,std::allocator<sts::CardInstance>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(866): note: 在编译 类 模板 成员函数“void std::vector<sts::CardInstance,std::allocator<sts::CardInstance>>::push_back(const _Ty &)”时
+        with
+        [
+            _Ty=sts::CardInstance
+        ]
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Actions.cpp(604): note: 请参阅 "sts::Actions::TransmutationAction::<lambda_6f8cdf945a8863714bdbfd9776735ec7>::operator ()" 中对 "std::vector<sts::CardInstance,std::allocator<sts::CardInstance>>::push_back" 的第一个引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(867): note: 查看对正在编译的函数 模板 实例化“_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_one_at_back<const _Ty&>(const _Ty &)”的引用
+        with
+        [
+            _Ty=sts::CardInstance
+        ]
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(779): note: 查看对正在编译的函数 模板 实例化“sts::CardInstance *std::vector<sts::CardInstance,std::allocator<sts::CardInstance>>::_Emplace_reallocate<const _Ty&>(sts::CardInstance *const ,const _Ty &)”的引用
+        with
+        [
+            _Ty=sts::CardInstance
+        ]
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+[14/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\Game.cpp.obj
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(829): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(829): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\game/RelicContainer.h(25): note: 查看对正在编译的 类 模板 实例化“std::vector<sts::RelicInstance,std::allocator<sts::RelicInstance>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(866): note: 在编译 类 模板 成员函数“void std::vector<sts::RelicInstance,std::allocator<sts::RelicInstance>>::push_back(const _Ty &)”时
+        with
+        [
+            _Ty=sts::RelicInstance
+        ]
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\game\Game.cpp(16): note: 请参阅 "sts::RelicContainer::add" 中对 "std::vector<sts::RelicInstance,std::allocator<sts::RelicInstance>>::push_back" 的第一个引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(867): note: 查看对正在编译的函数 模板 实例化“_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_one_at_back<const _Ty&>(const _Ty &)”的引用
+        with
+        [
+            _Ty=sts::RelicInstance
+        ]
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\vector(779): note: 查看对正在编译的函数 模板 实例化“sts::RelicInstance *std::vector<sts::RelicInstance,std::allocator<sts::RelicInstance>>::_Emplace_reallocate<const _Ty&>(sts::RelicInstance *const ,const _Ty &)”的引用
+        with
+        [
+            _Ty=sts::RelicInstance
+        ]
+[15/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\CombatReward.cpp.obj
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(787): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(787): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\game\CombatReward.cpp(77): note: 查看对正在编译的函数 模板 实例化“std::basic_ostream<char,std::char_traits<char>> &std::operator <<<std::char_traits<char>>(std::basic_ostream<char,std::char_traits<char>> &,const char *)”的引用
+[16/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\Monster.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(382): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(unsigned __int64)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Monster.cpp(409): note: 请参阅 "sts::Monster::attacked" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Monster.cpp(317): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::GREMLIN_HORN>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(464): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(464): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Monster.cpp(322): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::THE_SPECIMEN>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+[17/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\search\GameAction.cpp.obj
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(316): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(316): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(309): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(unsigned int)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\search\GameAction.cpp(420): note: 请参阅 "sts::search::GameAction::execute" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+[18/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\SimHelpers.cpp.obj
+[19/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\Deck.cpp.obj
+[20/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\ConsoleSimulator.cpp.obj
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(575): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(575): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(568): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::flush(void)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\ConsoleSimulator.cpp(170): note: 请参阅 "sts::ConsoleSimulator::doPrintCommand" 中对 "std::basic_ostream<char,std::char_traits<char>>::flush" 的第一个引用
+[21/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\search\Action.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(382): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(unsigned __int64)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\search\Action.cpp(424): note: 请参阅 "sts::search::Action::execute" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+[22/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\PrintHelpers.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(382): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(unsigned __int64)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\PrintHelpers.cpp(142): note: 请参阅 "sts::operator <<" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+[23/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\Player.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(298): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(298): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(283): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(int)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Player.cpp(745): note: 请参阅 "printIfHaveStatus" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Player.cpp(87): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::ECTOPLASM>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(464): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(464): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Player.cpp(201): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::TUNGSTEN_ROD>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(450): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(450): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Player.cpp(295): note: 查看对正在编译的函数 模板 实例化“void sts::Player::setHasRelic<sts::RelicId::CENTENNIAL_PUZZLE>(bool)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(456): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(161): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(161): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\Player.cpp(170): note: 查看对正在编译的函数 模板 实例化“void sts::Player::debuff<PlayerStatus::STRENGTH>(int,bool)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(382): note: 查看对正在编译的函数 模板 实例化“void sts::Player::setJustApplied<PlayerStatus::STRENGTH>(bool)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(163): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+[24/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\search\ScumSearchAgent2.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(425): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(425): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(418): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(double)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\search\ScumSearchAgent2.cpp(306): note: 请参阅 "sts::search::ScumSearchAgent2::weightedCardRewardPolicy" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+[25/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\search\BattleScumSearcher2.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(575): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(575): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(568): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::flush(void)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\search\BattleScumSearcher2.cpp(500): note: 请参阅 "sts::search::BattleScumSearcher2::printSearchStack" 中对 "std::basic_ostream<char,std::char_traits<char>>::flush" 的第一个引用
+[26/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\BattleSimulator.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(575): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(575): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(568): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::flush(void)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\BattleSimulator.cpp(104): note: 请参阅 "sts::BattleSimulator::printActions" 中对 "std::basic_ostream<char,std::char_traits<char>>::flush" 的第一个引用
+[27/33] Building CXX object CMakeFiles\slaythespire.dir\src\sim\search\SimpleAgent.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(425): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(425): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(418): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(double)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\search\SimpleAgent.cpp(1234): note: 请参阅 "sts::search::SimpleAgent::runAgentsMt" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\sim\search\SimpleAgent.cpp(157): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::RUNIC_DOME>(void) const”的引用
+[28/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\GameContext.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(298): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(298): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(283): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(int)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\game\GameContext.cpp(2651): note: 请参阅 "sts::GameContext::chooseEventOption" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+[29/33] Building CXX object CMakeFiles\slaythespire.dir\src\combat\MonsterSpecific.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(389): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(382): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(unsigned __int64)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\MonsterSpecific.cpp(1868): note: 请参阅 "sts::Monster::takeTurn" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(466): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\combat\MonsterSpecific.cpp(1472): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::PHILOSOPHERS_STONE>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(464): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(464): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(371): note: 查看对正在编译的函数 模板 实例化“bool sts::Player::hasRelic<sts::RelicId::TURNIP>(void) const”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(161): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(161): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(382): note: 查看对正在编译的函数 模板 实例化“void sts::Player::setJustApplied<PlayerStatus::DEXTERITY>(bool)”的引用
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Player.h(163): warning C4293: “<<”: Shift 计数为负或过大，其行为未定义
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat\Monster.h(387) : warning C4700: 使用了未初始化的局部变量“mask”
+[30/33] Building CXX object CMakeFiles\slaythespire.dir\src\game\SaveFile.cpp.obj
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(493): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(493): note: 模板实例化上下文(最早的实例化上下文)为
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(684): note: 查看对正在编译的 类 模板 实例化“std::basic_ostream<char,std::char_traits<char>>”的引用
+C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Tools\MSVC\14.42.34433\include\ostream(486): note: 在编译 类 模板 成员函数“std::basic_ostream<char,std::char_traits<char>> &std::basic_ostream<char,std::char_traits<char>>::operator <<(std::basic_streambuf<char,std::char_traits<char>> *)”时
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\src\game\SaveFile.cpp(29): note: 请参阅 "sts::SaveFile::readFileToStringHelper" 中对 "std::basic_ostream<char,std::char_traits<char>>::operator <<" 的第一个引用
+[31/33] Building CXX object CMakeFiles\slaythespire.dir\bindings\slaythespire.cpp.obj
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(191): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(192): warning C4068: 未知的杂注“ide”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\include\combat/Monster.h(284): warning C4068: 未知的杂注“clang”
+C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\third_party\sts_lightspeed\bindings\slaythespire.cpp(24): warning C4530: 使用了 C++ 异常处理程序，但未启用展开语义。请指定 /EHsc
+[32/33] Linking CXX shared module slaythespire.cp313-win_amd64.pyd

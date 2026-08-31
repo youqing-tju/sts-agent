@@ -1,0 +1,5 @@
+﻿1BCC 00000000 SECT912 notype ()    External    | ?MakeTempCardInDrawPile@Actions@sts@@SA?AUAction@2@AEBVCardInstance@2@H_N@Z (public: static struct sts::Action __cdecl sts::Actions::MakeTempCardInDrawPile(class sts::CardInstance const &,int,bool))
+250A 00000000 SECTBEE notype       Static      | $unwind$?MakeTempCardInDrawPile@Actions@sts@@SA?AUAction@2@AEBVCardInstance@2@H_N@Z
+250D 00000000 SECTBEF notype       Static      | $pdata$?MakeTempCardInDrawPile@Actions@sts@@SA?AUAction@2@AEBVCardInstance@2@H_N@Z
+===
+File Type: COFF OBJECT
