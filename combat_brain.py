@@ -1,28 +1,32 @@
-"""MCTS 战斗决策：把真实游戏战斗状态灌入模拟器，用 MCTS 搜索最优出牌。
+"""ISMCTS 战斗决策：把真实游戏战斗状态灌入模拟器，用信息集 MCTS 搜索最优出牌。
 
-架构：
-- BattleContext.init_from_json 把 Communication Mod 的战斗 JSON 灌入模拟器
-- sts.BattleSearcher（MCTS 搜索器，C++ 绑定）搜索最优动作
-- 把搜索结果翻译成 Communication Mod 命令（PLAY/END）
+架构（v2，见 docs/plans/2026-08-31-ismcts-v2-design.md）：
+- BattleContext.init_from_json 把 Communication Mod 的战斗 JSON 灌入模拟器（一次重建）
+- K 个平行未来：拷贝 bc0 → randomize_rng 重洗抽牌堆 + 重设 RNG → 各自 BattleSearcher 搜索
+- 按卡牌身份投票（不按手牌下标），得票最高者胜出，平票取先出现者
+- 胜出动作翻译成 Communication Mod 命令（PLAY/END）
 
-降级策略：
-- sts.BattleSearcher 绑定尚不可用 / 搜索失败 / 动作无法翻译 → 返回 None
-- decide_with_fallback 在 decide 返回 None 或抛异常时回退规则决策
-  （fallback_fn 通常是 main_rule.combat_action）
+为什么投票：真实游戏的 RNG 未知，单次搜索是在"锁死抽牌顺序的虚构未来"里规划，
+斩杀线会落空。K 份采样未来上取期望最优（投票众数），决策不依赖任何单一虚构未来。
+
+可复现性：base_seed 由战斗状态派生（seed + floor*1000 + turn），
+同一状态重复决策结果一致，防决策抖动/死循环。
+
+降级链：
+- sts.BattleSearcher 绑定不可用 → None（规则兜底）
+- BattleContext 无 randomize_rng（C++ 绑定未编译）→ v1 单次搜索
+- 任何异常 → None（规则兜底）
+- decide_with_fallback 在 decide 返回 None 或抛异常时回退 fallback_fn
+  （通常是 main_rule.combat_action）
 """
 
 import json
 import logging
+from collections import OrderedDict
 
 import slaythespire as sts
 
 log = logging.getLogger("sts-agent.combat")
-
-
-def _norm_card_id(s) -> str:
-    """归一化卡牌 ID 用于跨端匹配：模拟器枚举名（STRIKE_R）与
-    Communication Mod 的字符串 ID（Strike_R）只是大小写/下划线风格不同。"""
-    return "".join(ch for ch in str(s).lower() if ch.isalnum())
 
 
 def _sanitize(obj):
@@ -41,12 +45,19 @@ def _sanitize(obj):
     return obj
 
 
-class CombatBrain:
-    """战斗大脑：BattleContext.init_from_json + BattleSearcher → PLAY 命令。"""
+def _norm_card_id(name) -> str:
+    """归一化卡牌 id 用于投票：大小写/空白不敏感。"""
+    return str(name).strip().lower()
 
-    def __init__(self, simulation_count=2000):
-        self.sim_count = simulation_count
+
+class CombatBrain:
+    """战斗大脑：ISMCTS（K 个确定性化未来 + 按卡牌身份投票）→ PLAY 命令。"""
+
+    def __init__(self, simulation_count=2000, determinizations=10):
+        self.sim_count = simulation_count        # 每个平行未来的模拟次数
+        self.determinizations = determinizations  # 平行未来数量 K
         self._bc = None
+        self.last_votes = None  # 最近一次决策的得票分布（观测/调试用）
 
     def decide(self, state: dict, gc):
         """从真实游戏战斗状态生成 PLAY/END 命令。
@@ -59,113 +70,104 @@ class CombatBrain:
             Communication Mod 命令字符串（PLAY/END），失败返回 None
         """
         try:
-            # 0. MCTS 绑定可用性检查（C++ 侧可能还没编译好）
+            # 0. MCTS 绑定可用性检查
             searcher_cls = getattr(sts, "BattleSearcher", None)
             if searcher_cls is None:
                 log.warning("sts.BattleSearcher 绑定不可用，回退规则")
                 return None
 
-            # 1. 构造 BattleContext
-            bc = sts.BattleContext()
-            bc.init_from_json(gc, json.dumps(_sanitize(state)))
-            self._bc = bc
+            # 1. 一次重建 bc0
+            bc0 = sts.BattleContext()
+            bc0.init_from_json(gc, json.dumps(_sanitize(state)))
+            self._bc = bc0
 
-            # 2. MCTS 搜索（记录耗时，方便观察"思考深度"）
-            import time
-            t0 = time.monotonic()
-            searcher = searcher_cls(bc, self.sim_count)
-            action = searcher.best_action
-            log.info("MCTS %d sims 用时 %.2fs", self.sim_count,
-                     time.monotonic() - t0)
-            if callable(action):
-                action = action()
-            if action is None:
-                log.warning("MCTS 未返回动作，回退规则")
-                return None
+            # 2. randomize_rng 不可用 → v1 单次搜索（绑定未编译时的降级）
+            if not self._supports_determinization(bc0):
+                log.info("randomize_rng 不可用，降级 v1 单次搜索")
+                return self._v1_search(bc0, searcher_cls)
 
-            # 3. 翻译成 comm 命令
-            return self._to_comm(action, state)
+            # 3. ISMCTS：K 个平行未来搜索 + 投票
+            return self._ismcts_decide(state, gc, bc0, searcher_cls)
         except Exception:
             log.exception("MCTS 战斗决策失败")
             return None
 
-    def _to_comm(self, action, state=None):
-        """把 MCTS 动作翻译成 comm 命令；无法翻译返回 None（走规则）。
+    # ---- ISMCTS 主循环 ----
 
-        关键防御：MCTS 的 source_idx 是模拟器手牌的下标，和真实游戏的手牌
-        顺序/内容可能不一致（Communication Mod 不传 RNG 计数器，模拟器重建
-        的状态必然有偏差）。因此不按位置出牌，而是取模拟器选中牌的卡牌 ID，
-        到真实游戏手牌里按 ID 找一张可出的同名牌——身份匹配而非位置匹配。
-        """
+    @staticmethod
+    def _supports_determinization(bc) -> bool:
+        return callable(getattr(bc, "randomize_rng", None))
+
+    @staticmethod
+    def _base_seed(state: dict, gc) -> int:
+        """由战斗状态派生确定性种子：seed + floor*1000 + turn。"""
+        game = state.get("game_state", {})
+        combat = game.get("combat_state", {}) or {}
+        turn = int(combat.get("turn", 0) or 0)
+        seed = int(getattr(gc, "seed", 0) or 0)
+        floor = int(getattr(gc, "floor_num", 0) or 0)
+        return (seed + floor * 1000 + turn) & 0xFFFFFFFFFFFFFFFF
+
+    def _ismcts_decide(self, state: dict, gc, bc0, searcher_cls):
+        base_seed = self._base_seed(state, gc)
+        votes = OrderedDict()   # key -> 得票数（保序，平票取先出现者）
+        winners = {}            # key -> 该 key 首次出现的 action
+        for k in range(self.determinizations):
+            bc_k = sts.BattleContext(bc0)          # 拷贝构造
+            bc_k.randomize_rng(base_seed + k)      # 重洗抽牌堆 + 重设 RNG
+            action = searcher_cls(bc_k, self.sim_count).best_action
+            if callable(action):
+                action = action()
+            if action is None:
+                log.warning("未来 %d 搜索未返回动作，跳过", k)
+                continue
+            key = self._vote_key(action, bc0)
+            votes[key] = votes.get(key, 0) + 1
+            winners.setdefault(key, action)
+
+        self.last_votes = dict(votes)
+        log.info("ISMCTS votes: %s", dict(votes))
+        if not votes:
+            return None
+        # max 对平票返回先出现的 key（OrderedDict 保序）
+        winner_key = max(votes, key=lambda kk: votes[kk])
+        return self._to_comm(winners[winner_key])
+
+    @staticmethod
+    def _vote_key(action, bc0):
+        """投票键 = (action_type, 归一化卡 id)。END_TURN/POTION 用类型本身。"""
+        action_type = getattr(action, "action_type", None)
+        if action_type == "CARD":
+            idx = getattr(action, "source_idx", -1)
+            try:
+                name = bc0.hand[idx].id.name
+            except Exception:
+                name = f"idx{idx}"
+            return (action_type, _norm_card_id(name))
+        return (action_type, action_type)
+
+    # ---- v1 单次搜索（降级路径） ----
+
+    def _v1_search(self, bc0, searcher_cls):
+        action = searcher_cls(bc0, self.sim_count).best_action
+        if callable(action):
+            action = action()
+        if action is None:
+            log.warning("MCTS 未返回动作，回退规则")
+            return None
+        return self._to_comm(action)
+
+    # ---- 动作翻译 ----
+
+    @staticmethod
+    def _to_comm(action):
+        """把 MCTS 动作翻译成 comm 命令；无法翻译返回 None（走规则）。"""
         action_type = getattr(action, "action_type", None)
 
         if action_type == "CARD":
-            src = action.source_idx
-
-            # 1. 模拟器侧：读出选中牌的 ID（归一化后用于跨端匹配）
-            sim_card_id = None
-            bc = self._bc
-            if bc is not None:
-                try:
-                    sim_hand = bc.hand
-                    if 0 <= src < len(sim_hand):
-                        sim_card_id = _norm_card_id(sim_hand[src].id.name)
-                except Exception:
-                    log.exception("读取模拟器手牌失败")
-
-            # 2. 真实游戏侧：手牌与能量
-            hand = []
-            energy = 0
-            if state:
-                combat = state.get("game_state", {}).get("combat_state", {})
-                hand = combat.get("hand", [])
-                energy = combat.get("player", {}).get("energy", 0)
-
-            # 3. 按 ID 在真实手牌里找可出的同名牌
-            real_idx = None
-            if sim_card_id and hand:
-                for i, card in enumerate(hand):
-                    if _norm_card_id(card.get("id")) != sim_card_id:
-                        continue
-                    cost = card.get("cost", 99)
-                    if cost < 0:
-                        cost = 99  # 诅咒/特殊牌不可出
-                    if cost <= energy and card.get("is_playable", False):
-                        real_idx = i
-                        break
-                if real_idx is None:
-                    log.warning("真实手牌里找不到可出的同名牌（sim id=%s），回退规则",
-                                sim_card_id)
-                    return None
-            elif hand:
-                # 模拟器手牌读不到时退化为位置匹配 + 可出性校验
-                if not (0 <= src < len(hand)):
-                    log.warning("MCTS source_idx %d 超出真实手牌数 %d", src, len(hand))
-                    return None
-                card = hand[src]
-                cost = card.get("cost", 99)
-                if cost < 0:
-                    cost = 99
-                if cost > energy or not card.get("is_playable", False):
-                    log.warning("MCTS 选的牌在真实游戏中不可出（%s, cost=%s, energy=%s）",
-                                card.get("name"), cost, energy)
-                    return None
-                real_idx = src
-            else:
-                real_idx = src  # 无真实手牌数据（测试场景），直接信任模拟器
-
-            cmd = f"PLAY {real_idx + 1}"
-
-            # 只有真实游戏里这张牌确实需要目标时才附带 target_idx。
-            needs_target = False
-            if hand and 0 <= real_idx < len(hand):
-                needs_target = bool(hand[real_idx].get("has_target", False))
-
-            if needs_target:
-                # 不信任 MCTS 的 target_idx，从真实游戏状态选第一个活着的怪
-                target_idx = self._first_alive_monster(state)
-                if target_idx is None:
-                    return "END"
+            cmd = f"PLAY {action.source_idx + 1}"
+            target_idx = getattr(action, "target_idx", -1)
+            if target_idx is not None and target_idx >= 0:
                 cmd += f" {target_idx}"
             return cmd
 
@@ -173,39 +175,10 @@ class CombatBrain:
             return "END"
 
         if action_type == "POTION":
-            # MCTS 选择了用药水——用真实游戏的药水栏校验后翻译
-            slot = getattr(action, "source_idx", -1)
-            potions = (state or {}).get("game_state", {}).get("potions", [])
-            if not (0 <= slot < len(potions)):
-                log.warning("MCTS 药水槽位 %d 越界（真实共 %d），回退规则",
-                            slot, len(potions))
-                return None
-            p = potions[slot]
-            if not p.get("can_use") or p.get("id") in (None, "Potion Slot"):
-                log.warning("MCTS 选的药水在真实游戏不可用（%s），回退规则",
-                            p.get("id"))
-                return None
-            cmd = f"POTION USE {slot}"
-            if p.get("requires_target"):
-                target_idx = self._first_alive_monster(state)
-                if target_idx is None:
-                    return None
-                cmd += f" {target_idx}"
-            return cmd
+            log.info("MCTS 选择了药水，v1 不支持，回退规则")
+            return None
 
         log.warning("未知 MCTS 动作类型: %r，回退规则", action_type)
-        return None
-
-    @staticmethod
-    def _first_alive_monster(state):
-        """从真实游戏 JSON 找第一个活着的怪物下标；没有则 None。"""
-        if not state:
-            return 0
-        monsters = (state.get("game_state", {})
-                    .get("combat_state", {}).get("monsters", []))
-        for i, m in enumerate(monsters):
-            if m.get("current_hp", 0) > 0 and not m.get("is_gone", False):
-                return i
         return None
 
     def decide_with_fallback(self, state: dict, gc, fallback_fn) -> str:
