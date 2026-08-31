@@ -123,6 +123,16 @@ class SimBrain:
     def decide(self, state: dict) -> str:
         if state.get("error"):
             log.warning("game error: %s", state["error"])
+            # 熔断：PLAY 被拒后游戏报错帧可能没有 play 命令，必须在分支前拦截
+            if self._last_cmd.startswith("PLAY"):
+                self._error_count += 1
+                if self._error_count >= 3:
+                    log.warning("PLAY 连续被拒 %d 次，强制 END 回合", self._error_count)
+                    self._error_count = 0
+                    self._last_cmd = "END"
+                    return "END"
+        else:
+            self._error_count = 0
 
         if _is_victory(state):
             log.info("VICTORY — 通关")
@@ -136,17 +146,6 @@ class SimBrain:
 
         # 战斗：MCTS 优先（灌状态进模拟器搜索最优出牌），失败回退规则
         if "play" in cmds:
-            # 熔断：同一命令被游戏连续拒绝 ≥3 次，直接 END 回合
-            if state.get("error") and self._last_cmd.startswith("PLAY"):
-                self._error_count += 1
-                if self._error_count >= 3:
-                    log.warning("PLAY 连续被拒 %d 次，强制 END 回合", self._error_count)
-                    self._error_count = 0
-                    self._last_cmd = "END"
-                    return "END"
-            else:
-                self._error_count = 0
-
             try:
                 # 先把整局状态灌入 GameContext（combat brain 需要它初始化 BattleContext）
                 self.gc.init_from_json(json.dumps(_sanitize(state)))

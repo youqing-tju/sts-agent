@@ -79,29 +79,52 @@ class CombatBrain:
             log.exception("MCTS 战斗决策失败")
             return None
 
-    @staticmethod
-    def _to_comm(action, state=None):
-        """把 MCTS 动作翻译成 comm 命令；无法翻译返回 None（走规则）。"""
+    def _to_comm(self, action, state=None):
+        """把 MCTS 动作翻译成 comm 命令；无法翻译返回 None（走规则）。
+
+        关键防御：MCTS 的 source_idx 是模拟器手牌的下标，真实游戏手牌顺序
+        可能不同（洗牌顺序、状态同步偏差）。用真实游戏的 hand 校验：
+        若该下标的牌在真实游戏中不可出（费用不够/不可播放），返回 None 回退规则。
+        """
         action_type = getattr(action, "action_type", None)
 
         if action_type == "CARD":
             src = action.source_idx
-            cmd = f"PLAY {src + 1}"
 
-            # 只有真实游戏里这张牌确实需要目标时才附带 target_idx。
-            # 模拟器对不需要目标的牌也会编码 target=0，直接发会被真实游戏拒绝
-            # （"Selected card cannot be played with the selected target"）。
-            needs_target = False
+            # 用真实游戏的手牌校验可出性
+            hand = []
+            energy = 0
             if state:
                 combat = state.get("game_state", {}).get("combat_state", {})
                 hand = combat.get("hand", [])
-                if 0 <= src < len(hand):
-                    needs_target = bool(hand[src].get("has_target", False))
+                energy = combat.get("player", {}).get("energy", 0)
+
+            if hand:
+                if not (0 <= src < len(hand)):
+                    log.warning("MCTS source_idx %d 超出真实手牌数 %d", src, len(hand))
+                    return None
+                card = hand[src]
+                cost = card.get("cost", 99)
+                if cost < 0:
+                    cost = 99  # 诅咒/特殊牌不可出
+                if cost > energy or not card.get("is_playable", False):
+                    log.warning("MCTS 选的牌在真实游戏中不可出（%s, cost=%s, energy=%s）",
+                                card.get("name"), cost, energy)
+                    return None
+
+            cmd = f"PLAY {src + 1}"
+
+            # 只有真实游戏里这张牌确实需要目标时才附带 target_idx。
+            needs_target = False
+            if hand and 0 <= src < len(hand):
+                needs_target = bool(hand[src].get("has_target", False))
 
             if needs_target:
-                target_idx = getattr(action, "target_idx", -1)
-                if target_idx is not None and target_idx >= 0:
-                    cmd += f" {target_idx}"
+                # 不信任 MCTS 的 target_idx，从真实游戏状态选第一个活着的怪
+                target_idx = self._first_alive_monster(state)
+                if target_idx is None:
+                    return "END"
+                cmd += f" {target_idx}"
             return cmd
 
         if action_type == "END_TURN":
@@ -112,6 +135,18 @@ class CombatBrain:
             return None
 
         log.warning("未知 MCTS 动作类型: %r，回退规则", action_type)
+        return None
+
+    @staticmethod
+    def _first_alive_monster(state):
+        """从真实游戏 JSON 找第一个活着的怪物下标；没有则 None。"""
+        if not state:
+            return 0
+        monsters = (state.get("game_state", {})
+                    .get("combat_state", {}).get("monsters", []))
+        for i, m in enumerate(monsters):
+            if m.get("current_hp", 0) > 0 and not m.get("is_gone", False):
+                return i
         return None
 
     def decide_with_fallback(self, state: dict, gc, fallback_fn) -> str:
