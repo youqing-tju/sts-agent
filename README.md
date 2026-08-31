@@ -22,8 +22,13 @@ python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
 .venv/Scripts/python -m evaluation.evaluate --policy rule --seeds 100 --workers 8
 ```
 
-## Baseline 成绩（M1 验收后填写）
+## Baseline 成绩（M1 ✅ 2026-08-31）
 
-| 策略 | 平均楼层 | 通关率 | 备注 |
+100 个留出种子（master=20260831），MCTS@5000，8 进程并行（实测 100 局约 45 秒）：
+
+| 策略 | 平均楼层 | 标准差 | 通关率 |
 |---|---|---|---|
-| rule v1 | — | — | 待实测 |
+| rule v1 | **28.3** | 10.1 | 1.0% |
+| random | 19.8 | 7.1 | 0.0% |
+
+RL 及格线：平均楼层 > 28.3 且通关率 > 1%。
