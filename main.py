@@ -69,7 +69,7 @@ _SINGING_BOWL_IDX2 = 5
 def _sanitize(obj):
     """递归清洗 Communication Mod JSON 里的残缺 UTF-16 代理对。
 
-    CJK 版游戏用 GBK 编码中文，转换时产生 lone surrogate（如 \udc80），
+    CJK 版游戏用 GBK 编码中文，转换时产生 lone surrogate，
     json.dumps 会因此抛异常导致 RL 路径每次都回退规则。全部替换为 U+FFFD。
     """
     if isinstance(obj, str):
