@@ -29,19 +29,25 @@ log = logging.getLogger("sts-agent")
 # ---------- 战斗启发式 ----------
 
 def combat_action(state: dict) -> str:
-    """极简战斗策略：按顺序出能出的牌，不能出了就 END。"""
+    """极简战斗策略：按顺序出能出的牌，不能出了就 END。
+
+    Communication Mod 的战斗数据在 game_state.combat_state 里。
+    """
     game = state.get("game_state", {})
-    hand = game.get("hand", [])
-    energy = game.get("player", {}).get("energy", 0)
+    combat = game.get("combat_state", game)  # 兼容两种结构
+    hand = combat.get("hand", [])
+    energy = combat.get("player", {}).get("energy", 0)
 
     for i, card in enumerate(hand):
-        if card.get("cost", 99) <= energy and card.get("is_playable", False):
-            # 攻击牌需要指定目标
-            if card.get("type") == "ATTACK":
-                monsters = game.get("monsters", [])
+        cost = card.get("cost", 99)
+        if cost < 0:
+            cost = 0  # 诅咒/特殊牌 cost=-1
+        if cost <= energy and card.get("is_playable", True):
+            if card.get("type", "").upper() == "ATTACK":
+                monsters = combat.get("monsters", [])
                 target = 0
                 for j, m in enumerate(monsters):
-                    if m.get("current_hp", 0) > 0:
+                    if m.get("current_hp", 0) > 0 and not m.get("is_gone", False):
                         target = j
                         break
                 return f"PLAY {i + 1} {target}"
@@ -52,7 +58,7 @@ def combat_action(state: dict) -> str:
 # ---------- 宏观决策 ----------
 
 def macro_action(state: dict) -> str:
-    """宏观决策：用可用命令列表做简单规则。注意 cmds 全是小写。"""
+    """宏观决策：只用 available_commands 里实际存在的命令（小写）。"""
     cmds = [c.lower() for c in state.get("available_commands", [])]
     game = state.get("game_state", {})
     screen_type = (game.get("screen_type") or "").upper()
@@ -65,19 +71,21 @@ def macro_action(state: dict) -> str:
                 return f"CHOOSE {i}"
         return "CHOOSE 0"
 
-    # 卡牌奖励：拿第一张或跳过
+    # 卡牌奖励
     if screen_type == "CARD_REWARD":
-        cards = game.get("cards", [])
-        if cards:
-            return "CHOOSE 0"
-        return "SKIP"
+        if "choose" in cmds:
+            return "CHOOSE 0"      # 拿第一张牌
+        if "skip" in cmds:
+            return "SKIP"
+        if "proceed" in cmds:
+            return "PROCEED"
 
-    # 篝火：血量低睡觉，否则升牌
-    if screen_type == "REST":
-        options = game.get("options", [])
+    # 篝火（注意：只有 choose 在可用命令里时才发 CHOOSE）
+    if screen_type == "REST" and "choose" in cmds:
+        options = game.get("choice_list", [])
         cur = game.get("current_hp", 80)
         maxhp = game.get("max_hp", 80)
-        if cur / maxhp < 0.4:
+        if maxhp and cur / maxhp < 0.4:
             for i, o in enumerate(options):
                 if "rest" in str(o).lower():
                     return f"CHOOSE {i}"
@@ -86,7 +94,7 @@ def macro_action(state: dict) -> str:
                 return f"CHOOSE {i}"
         return "CHOOSE 0"
 
-    # 通用兜底
+    # 通用兜底——只从实际可用的命令里选
     for cmd in ("proceed", "confirm", "continue", "leave"):
         if cmd in cmds:
             return cmd.upper()
@@ -110,8 +118,8 @@ def decide(state: dict) -> str:
     game = state.get("game_state", {})
     screen = (game.get("screen_type") or "").upper()
 
-    # 战斗
-    if screen == "COMBAT" or ("play" in cmds and game.get("hand")):
+    # 战斗：Communication Mod 在战斗中 screen_type 是 NONE，靠 "play" 命令判断
+    if "play" in cmds:
         return combat_action(state)
 
     # 游戏未开始（主菜单）
@@ -135,6 +143,13 @@ def main():
         except json.JSONDecodeError:
             log.error("bad json: %s", line[:200])
             continue
+
+        # 把最近一次状态原样写盘，方便我们检查真实 JSON 结构
+        try:
+            with open("last_state.json", "w", encoding="utf-8") as f:
+                json.dump(state, f, ensure_ascii=False, indent=1)
+        except Exception:
+            pass
 
         cmd = decide(state)
         log.debug("screen=%s -> %s",
