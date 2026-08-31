@@ -52,14 +52,13 @@ def combat_action(state: dict) -> str:
 # ---------- 宏观决策 ----------
 
 def macro_action(state: dict) -> str:
-    """宏观决策：用可用命令列表做简单规则。"""
-    cmds = state.get("available_commands", [])
+    """宏观决策：用可用命令列表做简单规则。注意 cmds 全是小写。"""
+    cmds = [c.lower() for c in state.get("available_commands", [])]
     game = state.get("game_state", {})
-    screen_type = game.get("screen_type", "")
+    screen_type = (game.get("screen_type") or "").upper()
 
     # 选路
-    if "CHOOSE" in cmds and screen_type == "MAP":
-        # 优先精英（血够）或问号，否则第一个
+    if "choose" in cmds and screen_type == "MAP":
         choices = game.get("choice_list", [])
         for i, ch in enumerate(choices):
             if "elite" in str(ch).lower():
@@ -88,14 +87,14 @@ def macro_action(state: dict) -> str:
         return "CHOOSE 0"
 
     # 通用兜底
-    for cmd in ("PROCEED", "CONFIRM", "CONTINUE", "LEAVE"):
+    for cmd in ("proceed", "confirm", "continue", "leave"):
         if cmd in cmds:
-            return cmd
-    if "CHOOSE" in cmds:
+            return cmd.upper()
+    if "choose" in cmds:
         return "CHOOSE 0"
-    if "SKIP" in cmds:
+    if "skip" in cmds:
         return "SKIP"
-    if "END" in cmds:
+    if "end" in cmds:
         return "END"
     return "STATE"
 
@@ -106,16 +105,17 @@ def decide(state: dict) -> str:
     if not state.get("ready_for_command"):
         return "STATE"
 
-    cmds = state.get("available_commands", [])
+    # Communication Mod 的 available_commands 全是小写
+    cmds = [c.lower() for c in state.get("available_commands", [])]
     game = state.get("game_state", {})
-    screen = game.get("screen_type", "")
+    screen = (game.get("screen_type") or "").upper()
 
     # 战斗
-    if screen == "COMBAT" or ("PLAY" in cmds and game.get("hand")):
+    if screen == "COMBAT" or ("play" in cmds and game.get("hand")):
         return combat_action(state)
 
-    # 游戏未开始
-    if "START" in cmds:
+    # 游戏未开始（主菜单）
+    if "start" in cmds:
         return "START IRONCLAD"
 
     return macro_action(state)
@@ -139,6 +139,9 @@ def main():
         cmd = decide(state)
         log.debug("screen=%s -> %s",
                   state.get("game_state", {}).get("screen_type"), cmd)
+        if cmd == "STATE":
+            import time
+            time.sleep(0.1)  # 避免在主菜单等无操作状态下疯狂自旋
         sys.stdout.write(cmd + "\n")
         sys.stdout.flush()
 
