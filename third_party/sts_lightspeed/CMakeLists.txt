@@ -9,7 +9,7 @@ file (GLOB_RECURSE sts_lightspeed_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 
 set(CMAKE_CXX_STANDARD 17)
 if(MSVC)
-set(CMAKE_CXX_FLAGS  "/O2")
+set(CMAKE_CXX_FLAGS  "/O2 /EHsc")
 else()
 set(CMAKE_CXX_FLAGS  "-Wno-shift-count-overflow -O3")
 endif()

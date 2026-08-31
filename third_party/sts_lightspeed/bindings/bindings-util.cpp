@@ -3,6 +3,7 @@
 //
 #include <sstream>
 #include <algorithm>
+#include <stdexcept>
 
 #include <nlohmann/json.hpp>
 
@@ -146,13 +147,25 @@ namespace sts {
 namespace sts::py {
 
     void initGameContextFromJsonString(GameContext &gc, const std::string &json) {
-        nlohmann::json j = nlohmann::json::parse(json);
-        gc.initFromJson(j);
+        try {
+            nlohmann::json j = nlohmann::json::parse(json);
+            gc.initFromJson(j);
+        } catch (const std::exception &e) {
+            throw std::runtime_error(std::string("init_from_json failed: ") + e.what());
+        } catch (...) {
+            throw std::runtime_error("init_from_json failed: unknown error");
+        }
     }
 
     void initBattleContextFromJsonString(BattleContext &bc, GameContext &gc, const std::string &json) {
-        nlohmann::json j = nlohmann::json::parse(json);
-        bc.initFromJson(gc, j);
+        try {
+            nlohmann::json j = nlohmann::json::parse(json);
+            bc.initFromJson(gc, j);
+        } catch (const std::exception &e) {
+            throw std::runtime_error(std::string("init_from_json failed: ") + e.what());
+        } catch (...) {
+            throw std::runtime_error("init_from_json failed: unknown error");
+        }
     }
 
     void play() {
