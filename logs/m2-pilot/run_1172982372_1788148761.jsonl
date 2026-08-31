@@ -1,0 +1,79 @@
+{"type": "decision", "floor": 0, "screen": "EVENT_SCREEN", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002", "action_0x00000003"], "chosen": "action_0x00000000", "hp": 80}
+{"type": "decision", "floor": 0, "screen": "MAP_SCREEN", "candidates": ["action_0x00000000", "action_0x00000002", "action_0x00000003", "action_0x00000004", "action_0x00000006"], "chosen": "action_0x00000002", "hp": 80}
+{"type": "decision", "floor": 1, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x30000000"], "chosen": "action_0x00000000", "hp": 75}
+{"type": "decision", "floor": 1, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 75}
+{"type": "decision", "floor": 1, "screen": "REWARDS", "candidates": ["action_0x30000000"], "chosen": "action_0x30000000", "hp": 75}
+{"type": "decision", "floor": 1, "screen": "MAP_SCREEN", "candidates": ["action_0x00000001"], "chosen": "action_0x00000001", "hp": 75}
+{"type": "decision", "floor": 2, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x30000000"], "chosen": "action_0x00000200", "hp": 78}
+{"type": "decision", "floor": 2, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x30000000"], "chosen": "action_0x30000000", "hp": 78}
+{"type": "decision", "floor": 2, "screen": "MAP_SCREEN", "candidates": ["action_0x00000000"], "chosen": "action_0x00000000", "hp": 78}
+{"type": "decision", "floor": 3, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x00000000", "hp": 80}
+{"type": "decision", "floor": 3, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x18000000", "hp": 80}
+{"type": "decision", "floor": 3, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x30000000"], "chosen": "action_0x30000000", "hp": 80}
+{"type": "decision", "floor": 3, "screen": "MAP_SCREEN", "candidates": ["action_0x00000001"], "chosen": "action_0x00000001", "hp": 80}
+{"type": "decision", "floor": 4, "screen": "EVENT_SCREEN", "candidates": ["action_0x00000000", "action_0x00000002"], "chosen": "action_0x00000002", "hp": 80}
+{"type": "decision", "floor": 4, "screen": "MAP_SCREEN", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002"], "chosen": "action_0x00000002", "hp": 80}
+{"type": "decision", "floor": 5, "screen": "SHOP_ROOM", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002", "action_0x00000003", "action_0x00000004", "action_0x00000005", "action_0x18000000", "action_0x18000001", "action_0x18000002", "action_0x28000000", "action_0x30000000"], "chosen": "action_0x00000003", "hp": 80}
+{"type": "decision", "floor": 5, "screen": "SHOP_ROOM", "candidates": ["action_0x00000000", "action_0x00000002", "action_0x00000004", "action_0x18000002", "action_0x30000000"], "chosen": "action_0x18000002", "hp": 80}
+{"type": "decision", "floor": 5, "screen": "SHOP_ROOM", "candidates": ["action_0x30000000"], "chosen": "action_0x30000000", "hp": 80}
+{"type": "decision", "floor": 5, "screen": "MAP_SCREEN", "candidates": ["action_0x00000002"], "chosen": "action_0x00000002", "hp": 80}
+{"type": "decision", "floor": 6, "screen": "REST_ROOM", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002"], "chosen": "action_0x00000000", "hp": 80}
+{"type": "decision", "floor": 6, "screen": "MAP_SCREEN", "candidates": ["action_0x00000002"], "chosen": "action_0x00000002", "hp": 80}
+{"type": "decision", "floor": 7, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x20000000", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x00000000", "hp": 60}
+{"type": "decision", "floor": 7, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x20000000", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x30000000", "hp": 60}
+{"type": "decision", "floor": 7, "screen": "MAP_SCREEN", "candidates": ["action_0x00000001"], "chosen": "action_0x00000001", "hp": 60}
+{"type": "decision", "floor": 8, "screen": "EVENT_SCREEN", "candidates": ["action_0x00000000", "action_0x00000001"], "chosen": "action_0x00000001", "hp": 60}
+{"type": "decision", "floor": 8, "screen": "MAP_SCREEN", "candidates": ["action_0x00000000", "action_0x00000002"], "chosen": "action_0x00000002", "hp": 60}
+{"type": "decision", "floor": 9, "screen": "TREASURE_ROOM", "candidates": ["action_0x00000000", "action_0x00000001"], "chosen": "action_0x00000000", "hp": 60}
+{"type": "decision", "floor": 9, "screen": "REWARDS", "candidates": ["action_0x20000000", "action_0x10000000", "action_0x30000000"], "chosen": "action_0x30000000", "hp": 60}
+{"type": "decision", "floor": 9, "screen": "MAP_SCREEN", "candidates": ["action_0x00000001"], "chosen": "action_0x00000001", "hp": 60}
+{"type": "decision", "floor": 10, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x00000100", "hp": 56}
+{"type": "decision", "floor": 10, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 56}
+{"type": "decision", "floor": 10, "screen": "REWARDS", "candidates": ["action_0x18000000", "action_0x30000000"], "chosen": "action_0x30000000", "hp": 56}
+{"type": "decision", "floor": 10, "screen": "MAP_SCREEN", "candidates": ["action_0x00000002"], "chosen": "action_0x00000002", "hp": 56}
+{"type": "decision", "floor": 11, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x00000000", "hp": 52}
+{"type": "decision", "floor": 11, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x08000000", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x18000000", "hp": 52}
+{"type": "decision", "floor": 11, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x08000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 52}
+{"type": "decision", "floor": 11, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 52}
+{"type": "decision", "floor": 11, "screen": "REWARDS", "candidates": ["action_0x30000000"], "chosen": "action_0x30000000", "hp": 52}
+{"type": "decision", "floor": 11, "screen": "MAP_SCREEN", "candidates": ["action_0x00000001"], "chosen": "action_0x00000001", "hp": 52}
+{"type": "decision", "floor": 12, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x30000000"], "chosen": "action_0x00000000", "hp": 58}
+{"type": "decision", "floor": 12, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 58}
+{"type": "decision", "floor": 12, "screen": "REWARDS", "candidates": ["action_0x30000000"], "chosen": "action_0x30000000", "hp": 58}
+{"type": "decision", "floor": 12, "screen": "MAP_SCREEN", "candidates": ["action_0x00000002"], "chosen": "action_0x00000002", "hp": 58}
+{"type": "decision", "floor": 13, "screen": "REST_ROOM", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002"], "chosen": "action_0x00000001", "hp": 58}
+{"type": "decision", "floor": 13, "screen": "CARD_SELECT", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002", "action_0x00000003", "action_0x00000004", "action_0x00000005", "action_0x00000006", "action_0x00000007", "action_0x00000008", "action_0x00000009", "action_0x0000000a", "action_0x0000000b", "action_0x0000000c", "action_0x0000000d", "action_0x0000000e", "action_0x0000000f", "action_0x00000010", "action_0x00000011", "action_0x00000012"], "chosen": "action_0x0000000d", "hp": 58}
+{"type": "decision", "floor": 13, "screen": "MAP_SCREEN", "candidates": ["action_0x00000002", "action_0x00000003"], "chosen": "action_0x00000003", "hp": 58}
+{"type": "decision", "floor": 14, "screen": "SHOP_ROOM", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000004", "action_0x00000005", "action_0x18000000", "action_0x18000001", "action_0x18000002", "action_0x28000000", "action_0x30000000"], "chosen": "action_0x00000004", "hp": 58}
+{"type": "decision", "floor": 14, "screen": "SHOP_ROOM", "candidates": ["action_0x00000001", "action_0x18000001", "action_0x18000002", "action_0x30000000"], "chosen": "action_0x18000001", "hp": 58}
+{"type": "decision", "floor": 14, "screen": "SHOP_ROOM", "candidates": ["action_0x30000000"], "chosen": "action_0x30000000", "hp": 58}
+{"type": "decision", "floor": 14, "screen": "MAP_SCREEN", "candidates": ["action_0x00000004"], "chosen": "action_0x00000004", "hp": 58}
+{"type": "decision", "floor": 15, "screen": "REST_ROOM", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002"], "chosen": "action_0x00000001", "hp": 58}
+{"type": "decision", "floor": 15, "screen": "CARD_SELECT", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002", "action_0x00000003", "action_0x00000004", "action_0x00000005", "action_0x00000006", "action_0x00000007", "action_0x00000008", "action_0x00000009", "action_0x0000000a", "action_0x0000000b", "action_0x0000000c", "action_0x0000000d", "action_0x0000000e", "action_0x0000000f", "action_0x00000010", "action_0x00000011", "action_0x00000012"], "chosen": "action_0x0000000c", "hp": 58}
+{"type": "decision", "floor": 15, "screen": "MAP_SCREEN", "candidates": ["action_0x00000000"], "chosen": "action_0x00000000", "hp": 58}
+{"type": "decision", "floor": 16, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x30000000"], "chosen": "action_0x00000000", "hp": 60}
+{"type": "decision", "floor": 16, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x30000000"], "chosen": "action_0x30000000", "hp": 60}
+{"type": "decision", "floor": 17, "screen": "BOSS_RELIC_REWARDS", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002", "action_0x00000003"], "chosen": "action_0x00000001", "hp": 60}
+{"type": "decision", "floor": 17, "screen": "MAP_SCREEN", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002", "action_0x00000006"], "chosen": "action_0x00000006", "hp": 80}
+{"type": "decision", "floor": 18, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x30000000"], "chosen": "action_0x00000100", "hp": 69}
+{"type": "decision", "floor": 18, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 69}
+{"type": "decision", "floor": 18, "screen": "REWARDS", "candidates": ["action_0x30000000"], "chosen": "action_0x30000000", "hp": 69}
+{"type": "decision", "floor": 18, "screen": "MAP_SCREEN", "candidates": ["action_0x00000006"], "chosen": "action_0x00000006", "hp": 69}
+{"type": "decision", "floor": 19, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 68}
+{"type": "decision", "floor": 19, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 68}
+{"type": "decision", "floor": 19, "screen": "REWARDS", "candidates": ["action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x00000000", "hp": 68}
+{"type": "decision", "floor": 19, "screen": "REWARDS", "candidates": ["action_0x18000000", "action_0x30000000"], "chosen": "action_0x30000000", "hp": 68}
+{"type": "decision", "floor": 19, "screen": "MAP_SCREEN", "candidates": ["action_0x00000006"], "chosen": "action_0x00000006", "hp": 68}
+{"type": "decision", "floor": 20, "screen": "EVENT_SCREEN", "candidates": ["action_0x00000000", "action_0x00000001", "action_0x00000002"], "chosen": "action_0x00000002", "hp": 68}
+{"type": "decision", "floor": 20, "screen": "MAP_SCREEN", "candidates": ["action_0x00000005"], "chosen": "action_0x00000005", "hp": 68}
+{"type": "decision", "floor": 21, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x00000100", "hp": 20}
+{"type": "decision", "floor": 21, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x18000000", "action_0x30000000"], "chosen": "action_0x08000000", "hp": 20}
+{"type": "decision", "floor": 21, "screen": "REWARDS", "candidates": ["action_0x18000000", "action_0x30000000"], "chosen": "action_0x18000000", "hp": 20}
+{"type": "decision", "floor": 21, "screen": "REWARDS", "candidates": ["action_0x30000000"], "chosen": "action_0x30000000", "hp": 20}
+{"type": "decision", "floor": 21, "screen": "MAP_SCREEN", "candidates": ["action_0x00000004"], "chosen": "action_0x00000004", "hp": 20}
+{"type": "decision", "floor": 22, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x00000000", "action_0x00000100", "action_0x00000200", "action_0x30000000"], "chosen": "action_0x00000000", "hp": 37}
+{"type": "decision", "floor": 22, "screen": "REWARDS", "candidates": ["action_0x08000000", "action_0x30000000"], "chosen": "action_0x30000000", "hp": 37}
+{"type": "decision", "floor": 22, "screen": "MAP_SCREEN", "candidates": ["action_0x00000004"], "chosen": "action_0x00000004", "hp": 37}
+{"type": "decision", "floor": 23, "screen": "REST_ROOM", "candidates": ["action_0x00000000", "action_0x00000002"], "chosen": "action_0x00000002", "hp": 37}
+{"type": "decision", "floor": 23, "screen": "MAP_SCREEN", "candidates": ["action_0x00000003"], "chosen": "action_0x00000003", "hp": 37}
+{"type": "outcome", "final_floor": 24, "win": false}
