@@ -22,9 +22,15 @@ Python GC 会 delete 单例）。修复后单进程可连续观测多局游戏�
 
 import slaythespire as sts
 
+from models.candidate_encoder import (
+    CardInfo,
+    decode_action_bits,
+    encode_candidate,
+)
+
 from .base_env import Obs, Candidate, StepResult, StsEnv
 
-# 候选动作 desc_vec 占位维度（M2 才接入真实特征编码）
+# 候选动作 desc_vec 维度（与 models.candidate_encoder.DESC_VEC_DIM 一致）
 _DESC_VEC_DIM = 368
 
 # NN 观测维度
@@ -54,10 +60,16 @@ class LightspeedEnv(StsEnv):
         self._agent.pause_on_noncombat = True  # 非战斗决策点交还控制权（核心开关）
         self.gc = None
         self._actions = []  # candidates() 缓存的动作列表，step 按 idx 取用
+        self._ascension = 0
+        self._map_cache = None       # (seed, act) 对应的 SpireMap，供 MAP_NODE 房间类型查询
+        self._map_cache_key = None
 
     def reset(self, seed: int) -> Obs:
         """建新局并推进到第一个宏观决策点。"""
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, seed, 0)
+        self._ascension = 0
+        self._map_cache = None
+        self._map_cache_key = None
         self._advance()
         return self.observe()
 
@@ -85,13 +97,21 @@ class LightspeedEnv(StsEnv):
             return []
         acts = sts.get_all_actions(self.gc)
         self._actions = acts
-        kind = _KIND_BY_SCREEN.get(self.gc.screen_state.name, "ACTION")
+        screen = self.gc.screen_state.name
         cands = []
         for i, a in enumerate(acts):
             label = a.describe(self.gc) or f"action_0x{a.bits:08x}"
+            d = decode_action_bits(a.bits)
+            kind = self._candidate_kind(screen, d)
+            proto = Candidate(idx=i, kind=kind, desc_vec=[], label=label)
             cands.append(Candidate(
                 idx=i, kind=kind,
-                desc_vec=self._placeholder_desc_vec(),
+                desc_vec=encode_candidate(
+                    proto,
+                    card=self._candidate_card(screen, d),
+                    room=self._candidate_room(screen, d),
+                    bits=a.bits,
+                ),
                 label=label,
             ))
         return cands
@@ -142,7 +162,72 @@ class LightspeedEnv(StsEnv):
             _nni_singleton = sts.getNNInterface()
         return list(_nni_singleton.getObservation(self.gc))
 
+    # ---- 候选特征解析（供 candidate_encoder 编码） ----
+
     @staticmethod
-    def _placeholder_desc_vec() -> list:
-        """候选描述向量占位：M1 全零，M2 接真实特征编码。"""
-        return [0.0] * _DESC_VEC_DIM
+    def _candidate_kind(screen: str, d: dict) -> str:
+        """按屏幕 + bits 里的 reward_type 细化 kind。
+
+        REWARDS 屏区分 CARD_REWARD/SKIP/REWARD；SHOP 屏区分 SKIP；
+        TREASURE_ROOM 映射为 TREASURE；其余按屏幕粗映射，兜底 ACTION。
+        """
+        if screen == "REWARDS":
+            rt = d["reward_type"]
+            if rt == 0:
+                return "CARD_REWARD"
+            if rt == 6:
+                return "SKIP"
+            return "REWARD"
+        if screen == "SHOP_ROOM":
+            return "SKIP" if d["reward_type"] == 6 else "SHOP_ITEM"
+        if screen == "TREASURE_ROOM":
+            return "TREASURE"
+        return _KIND_BY_SCREEN.get(screen, "ACTION")
+
+    def _candidate_card(self, screen: str, d: dict):
+        """卡牌奖励候选 → CardInfo；其余 None（编码器卡牌段置零）。
+
+        idx2==5 是唱歌碗特殊动作（不拿牌）。get_card_reward() 返回最后一页
+        卡牌奖励；多页奖励且 idx1 指向非末页时会张冠李戴（v1 简化，罕见）。
+        商店/CARD_SELECT 的卡牌绑定层未暴露，编码为全零。
+        """
+        if screen != "REWARDS" or d["reward_type"] != 0 or d["idx2"] == 5:
+            return None
+        cards = self.gc.get_card_reward()
+        if d["idx2"] >= len(cards):
+            return None
+        c = cards[d["idx2"]]
+        return CardInfo(
+            name=c.id.name, card_type=c.type.name, rarity=c.rarity.name,
+            cost=0.0,  # Card 绑定未暴露费用，置 0
+            upgraded=c.upgraded,
+        )
+
+    def _candidate_room(self, screen: str, d: dict):
+        """MAP_NODE 候选 → 目标节点 Room 类型名；其余 None。
+
+        地图动作 idx1 = 目标节点 x 坐标；目标 y = 当前 y+1（起始 y=-1 → 0；
+        y=14 时唯一动作通往 BOSS）。用 (seed, ascension, act) 重建 SpireMap
+        查询房间类型（burning elite 只标记坐标不改房间类型，重建结果与
+        GameContext 内部地图一致；act>=4 走 act4Map 特例，v1 不编码）。
+        """
+        if screen != "MAP_SCREEN":
+            return None
+        y = self.gc.cur_map_node_y
+        if y == 14:
+            return "BOSS"
+        if self.gc.act >= 4:
+            return None
+        m = self._spire_map()
+        target_y = 0 if y == -1 else y + 1
+        name = m.get_room_type(d["idx1"], target_y).name
+        return None if name in ("INVALID", "NONE") else name
+
+    def _spire_map(self):
+        """按 (seed, act) 缓存重建的 SpireMap（一幕内地图不变）。"""
+        key = (self.gc.seed, self.gc.act)
+        if self._map_cache_key != key:
+            self._map_cache = sts.SpireMap(
+                self.gc.seed, self._ascension, self.gc.act, False)
+            self._map_cache_key = key
+        return self._map_cache
