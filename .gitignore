@@ -7,3 +7,5 @@ logs/*.jsonl
 *.pyd
 third_party/sts_lightspeed/build/
 .pytest_cache/
+checkpoints/
+logs/
