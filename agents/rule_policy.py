@@ -51,7 +51,7 @@ class RulePolicy(Policy):
         elif "REST_OPTION" in kinds:
             chosen = self._choose_rest(obs, candidates)
         elif "SHOP_ITEM" in kinds:
-            chosen = _skip(candidates)          # v1 保守：商店直接跳过
+            chosen = _skip(candidates) or candidates[0]  # v1 保守：商店直接跳过
         elif "CARD_REWARD" in kinds or "REWARD" in kinds:
             chosen = self._choose_card_reward(obs, candidates)
         elif "EVENT_OPTION" in kinds:

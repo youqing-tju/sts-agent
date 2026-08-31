@@ -53,3 +53,19 @@ def test_take_attack_card_when_deck_small():
     class FakeObs: deck=["Strike"]*4; hp=70; max_hp=80; floor=5; gold=0
     chosen = p.choose(FakeObs(), [c(0,"CARD_REWARD","Strike"), c(1,"CARD_REWARD","Clash"), c(2,"SKIP","SKIP")])
     assert chosen != 2                     # 卡组 <15 → 不跳过（拿攻击牌）
+
+
+def test_shop_without_skip_candidate_falls_back():
+    # 回归：商店场景没有 SKIP 候选时不得返回 None（Task 8 实测撞出的 bug）
+    p = RulePolicy()
+    class FakeObs: deck=["Strike"]*4; hp=70; max_hp=80; floor=5; gold=200
+    chosen = p.choose(FakeObs(), [c(0,"SHOP_ITEM","Buy relic"), c(1,"SHOP_ITEM","Buy card")])
+    assert chosen == 0
+
+
+def test_shop_without_skip_candidate_falls_back():
+    # 回归：商店场景没有 SKIP 候选时不得返回 None（Task 8 实测撞出的 bug）
+    p = RulePolicy()
+    class FakeObs: deck=["Strike"]*4; hp=70; max_hp=80; floor=5; gold=200
+    chosen = p.choose(FakeObs(), [c(0,"SHOP_ITEM","Buy relic"), c(1,"SHOP_ITEM","Buy card")])
+    assert chosen == 0

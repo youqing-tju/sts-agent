@@ -110,13 +110,13 @@ def summarize(results):
 
 
 def _make_policy(name):
-    """按名字构造策略。rule 策略由其它任务并行实现，此处不 import agents.rule_policy。"""
+    """按名字构造策略。worker 子进程内惰性 import，保持父进程干净。"""
     if name == "random":
         return RandomPolicy()
-    raise SystemExit(
-        f"未知或暂未接入的策略: {name!r}（v1 内置 random；"
-        f"rule 策略实现完成后由 Task 8 接入）"
-    )
+    if name == "rule":
+        from agents.rule_policy import RulePolicy
+        return RulePolicy()
+    raise SystemExit(f"未知策略: {name!r}（可选: random / rule）")
 
 
 def main(argv=None):
