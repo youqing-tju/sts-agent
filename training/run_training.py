@@ -21,12 +21,17 @@ def main():
     p.add_argument("--eval-every", type=int, default=250)
     p.add_argument("--log-dir", default="logs/m2-training")
     p.add_argument("--checkpoint", default="checkpoints/scorer.pt")
+    p.add_argument("--init-from", default=None, help="从已有 checkpoint 继续训练")
     args = p.parse_args()
 
     os.makedirs(os.path.dirname(args.checkpoint), exist_ok=True)
     os.makedirs(args.log_dir, exist_ok=True)
 
     scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(128, 128))
+    if args.init_from:
+        import torch
+        scorer.load_state_dict(torch.load(args.init_from, weights_only=True))
+        print(f"Warm start from {args.init_from}")
     trainer = ReinforceTrainer(scorer, lr=args.lr, mcts_sim=args.mcts_sim,
                                log_dir=args.log_dir)
 
