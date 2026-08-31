@@ -98,6 +98,8 @@ class SimBrain:
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
         self.won = False  # 首胜即停：检测到通关后锁定，不再开新局
+        self._error_count = 0  # 连续游戏错误计数（熔断用）
+        self._last_cmd = ""    # 上一次发的命令（检测重复拒绝）
         self.scorer = None
         if os.path.exists(checkpoint_path):
             try:
@@ -140,6 +142,17 @@ class SimBrain:
 
         # 战斗：MCTS 优先（灌状态进模拟器搜索最优出牌），失败回退规则
         if "play" in cmds:
+            # 熔断：同一命令被游戏连续拒绝 ≥3 次，直接 END 回合
+            if state.get("error") and self._last_cmd.startswith("PLAY"):
+                self._error_count += 1
+                if self._error_count >= 3:
+                    log.warning("PLAY 连续被拒 %d 次，强制 END 回合", self._error_count)
+                    self._error_count = 0
+                    self._last_cmd = "END"
+                    return "END"
+            else:
+                self._error_count = 0
+
             try:
                 # 先把整局状态灌入 GameContext（combat brain 需要它初始化 BattleContext）
                 self.gc.init_from_json(json.dumps(_sanitize(state)))
@@ -149,6 +162,7 @@ class SimBrain:
                 log.exception("MCTS 战斗异常，回退规则")
                 cmd = combat_action(state)
             log.debug("combat -> %s", cmd)
+            self._last_cmd = cmd
             return cmd
 
         # 战斗奖励：模拟器没有真实奖励内容，RL 会错误跳过——直接走规则（逐个领取）

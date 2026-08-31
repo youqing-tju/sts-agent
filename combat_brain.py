@@ -74,21 +74,34 @@ class CombatBrain:
                 return None
 
             # 3. 翻译成 comm 命令
-            return self._to_comm(action)
+            return self._to_comm(action, state)
         except Exception:
             log.exception("MCTS 战斗决策失败")
             return None
 
     @staticmethod
-    def _to_comm(action):
+    def _to_comm(action, state=None):
         """把 MCTS 动作翻译成 comm 命令；无法翻译返回 None（走规则）。"""
         action_type = getattr(action, "action_type", None)
 
         if action_type == "CARD":
-            cmd = f"PLAY {action.source_idx + 1}"
-            target_idx = getattr(action, "target_idx", -1)
-            if target_idx is not None and target_idx >= 0:
-                cmd += f" {target_idx}"
+            src = action.source_idx
+            cmd = f"PLAY {src + 1}"
+
+            # 只有真实游戏里这张牌确实需要目标时才附带 target_idx。
+            # 模拟器对不需要目标的牌也会编码 target=0，直接发会被真实游戏拒绝
+            # （"Selected card cannot be played with the selected target"）。
+            needs_target = False
+            if state:
+                combat = state.get("game_state", {}).get("combat_state", {})
+                hand = combat.get("hand", [])
+                if 0 <= src < len(hand):
+                    needs_target = bool(hand[src].get("has_target", False))
+
+            if needs_target:
+                target_idx = getattr(action, "target_idx", -1)
+                if target_idx is not None and target_idx >= 0:
+                    cmd += f" {target_idx}"
             return cmd
 
         if action_type == "END_TURN":
