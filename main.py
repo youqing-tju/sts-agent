@@ -116,7 +116,7 @@ class SimBrain:
         self._ascension = 0
         self._map_cache = None       # (seed, act) 对应的 SpireMap
         self._map_cache_key = None
-        self.combat_brain = CombatBrain(simulation_count=20000)  # MCTS 战斗（加深思考）
+        self.combat_brain = CombatBrain(simulation_count=2000)  # ISMCTS：每个平行未来 2000 次模拟（×10 未来）
 
     # ---- 决策入口 ----
 
