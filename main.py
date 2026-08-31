@@ -178,6 +178,14 @@ class SimBrain:
         if self.scorer is None:
             return None
         game = state.get("game_state", {})
+
+        # 前置检查：关键字段为 null 时直接跳过（init_from_json 会崩）
+        _REQUIRED_NUMERIC = ["seed", "floor", "act", "current_hp", "max_hp", "gold"]
+        for field in _REQUIRED_NUMERIC:
+            if game.get(field) is None:
+                log.warning("game_state.%s 为 null，跳过模拟器决策", field)
+                return None
+
         self.gc.init_from_json(json.dumps(_sanitize(state)))
         gc = self.gc
         self._ascension = int(game.get("ascension_level", 0) or 0)
@@ -200,17 +208,37 @@ class SimBrain:
         log.debug("screen=%s n_act=%d best=%d bits=0x%08x logits=%s",
                   screen, len(actions), best, chosen.bits,
                   [round(float(x), 3) for x in logits])
-        return self._to_comm(chosen, actions, screen, cmds)
+        return self._to_comm(chosen, actions, screen, cmds, state)
 
     # ---- bits → Communication Mod 命令翻译 ----
 
-    def _to_comm(self, action, actions: list, screen: str, cmds: list):
+    def _to_comm(self, action, actions: list, screen: str, cmds: list,
+                 state: dict = None):
         """把选中的 GameAction 翻译成 comm 命令；无法翻译返回 None（走规则）。"""
         d = decode_action_bits(action.bits)
 
         # v1 不翻译药水动作（bit31/30）
         if d["is_potion"] or d["is_potion_discard"]:
             return None
+
+        # 真实游戏的选项数量上限（防止模拟器选项多于真实游戏导致越界）
+        real_choice_count = None
+        if state:
+            gs = state.get("game_state", {})
+            cl = gs.get("choice_list") or gs.get("screen_state", {}).get("rest_options")
+            if cl is not None:
+                real_choice_count = len(cl)
+
+        def _safe_choose(idx):
+            """CHOOSE 命令加上界检查：模拟器的选项可能比真实游戏多（比如
+            模拟器篝火有 dig 但真实游戏没有铲子遗物），越界会导致游戏报错卡死。"""
+            if "choose" not in cmds:
+                return None
+            if real_choice_count is not None and idx >= real_choice_count:
+                log.warning("choose idx %d 越界（真实游戏只有 %d 个选项），回退规则",
+                            idx, real_choice_count)
+                return None
+            return f"CHOOSE {idx}"
 
         if screen == "MAP_SCREEN":
             return self._map_to_comm(actions, d, cmds)
@@ -236,10 +264,10 @@ class SimBrain:
             return None
 
         if screen == "REST_ROOM":
-            return f"CHOOSE {d['idx1']}" if "choose" in cmds else None
+            return _safe_choose(d["idx1"])
 
         if screen == "EVENT_SCREEN":
-            return f"CHOOSE {d['idx1']}" if "choose" in cmds else None
+            return _safe_choose(d["idx1"])
 
         if screen == "SHOP_ROOM":
             # v1 直接离开商店（不买）
