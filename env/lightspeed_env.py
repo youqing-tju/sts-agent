@@ -104,6 +104,7 @@ class LightspeedEnv(StsEnv):
         idx < 0 时不执行动作，仅继续推进（防御性保留；正常流程中
         非终局状态必有候选，外部只应传 candidates() 给出的 idx）。
         info.hp_delta = 执行前后 cur_hp 差（含中间所有战斗）。
+        info.outcome = 当前 GameOutcome 名（UNDECIDED / PLAYER_VICTORY / PLAYER_LOSS）。
         """
         hp_before = self.gc.cur_hp
         if idx >= 0:
@@ -113,7 +114,8 @@ class LightspeedEnv(StsEnv):
                 a.execute(self.gc)
         self._advance()
         done = self.gc.outcome != sts.GameOutcome.UNDECIDED
-        info = {"hp_delta": self.gc.cur_hp - hp_before}
+        info = {"hp_delta": self.gc.cur_hp - hp_before,
+                "outcome": self.gc.outcome.name}
         return StepResult(obs=self.observe(), done=done, info=info)
 
     # ---- 内部辅助 ----
