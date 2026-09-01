@@ -1,7 +1,8 @@
-"""Scorer：逐候选打分网络。
+"""Scorer：逐候选打分网络；ValueNet：状态价值网络。
 
 score_i = MLP(obs ⊕ candidate_i)，输出每个候选的 logit，
-外部取 softmax 采样（见 training/reinforce.py）。
+外部取 softmax 采样（见 training/reinforce.py、training/ppo.py）。
+V(s) = MLP(obs)，PPO 的 critic（见 training/ppo.py）。
 """
 import torch
 import torch.nn as nn
@@ -31,3 +32,18 @@ class Scorer(nn.Module):
         cand_e = cands.unsqueeze(0).expand(b, n, cands.shape[-1])
         out = self.mlp(torch.cat([obs_e, cand_e], dim=-1)).squeeze(-1)
         return out.squeeze(0) if single else out
+
+
+class ValueNet(nn.Module):
+    """状态价值网络：V(s) = MLP(obs)，PPO 的 critic。"""
+
+    def __init__(self, obs_dim=412, hidden=256):
+        super().__init__()
+        self.mlp = nn.Sequential(
+            nn.Linear(obs_dim, hidden), nn.ReLU(),
+            nn.Linear(hidden, 1),
+        )
+
+    def forward(self, obs):
+        """obs: (obs_dim,) 或 (batch, obs_dim)。返回标量或 (batch,) 的 V(s)。"""
+        return self.mlp(obs).squeeze(-1)
