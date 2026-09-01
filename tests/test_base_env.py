@@ -6,5 +6,5 @@ def test_obs_dataclass():
     assert o.hp == 70 and len(o.vec) == 412
 
 def test_candidate_dataclass():
-    c = Candidate(idx=0, kind="CARD_REWARD", desc_vec=[0.0]*368, label="Strike")
+    c = Candidate(idx=0, kind="CARD_REWARD", desc_vec=[0.0]*408, label="Strike")
     assert c.kind == "CARD_REWARD"

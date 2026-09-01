@@ -9,7 +9,7 @@ import torch.nn as nn
 
 
 class Scorer(nn.Module):
-    def __init__(self, obs_dim=412, cand_dim=368, hidden=(128, 128)):
+    def __init__(self, obs_dim=412, cand_dim=408, hidden=(128, 128)):
         super().__init__()
         layers = []
         d = obs_dim + cand_dim

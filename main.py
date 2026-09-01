@@ -8,7 +8,7 @@
 决策架构：
 - 宏观决策（选路/卡牌奖励/篝火/事件/商店）：
   真实游戏 JSON → GameContext.init_from_json 灌入模拟器 → get_all_actions
-  枚举动作 → 368 维候选编码 + 412 维观测 → Scorer 打分 argmax →
+  枚举动作 → 408 维候选编码 + 412 维观测 → Scorer 打分 argmax →
   把选中的 GameAction.bits 翻译成 Communication Mod 命令发回真实游戏。
 - 战斗出牌：v1 保持简单启发式（出第一张能出的牌，出不了 END），
   MCTS 战斗接入是后续任务。
@@ -36,6 +36,7 @@ import torch
 
 from models.candidate_encoder import (
     CardInfo,
+    compute_map_lookahead,
     decode_action_bits,
     encode_candidate,
 )
@@ -102,7 +103,7 @@ class SimBrain:
         self.scorer = None
         if os.path.exists(checkpoint_path):
             try:
-                self.scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(128, 128))
+                self.scorer = Scorer(obs_dim=412, cand_dim=408, hidden=(128, 128))
                 self.scorer.load_state_dict(
                     torch.load(checkpoint_path, weights_only=True))
                 self.scorer.eval()
@@ -314,6 +315,7 @@ class SimBrain:
             card=self._candidate_card(screen, d),
             room=self._candidate_room(screen, d),
             bits=action.bits,
+            lookahead_rooms=self._candidate_lookahead(screen, d),
         )
 
     @staticmethod
@@ -340,7 +342,7 @@ class SimBrain:
         c = cards[d["idx2"]]
         return CardInfo(
             name=c.id.name, card_type=c.type.name, rarity=c.rarity.name,
-            cost=0.0,  # Card 绑定未暴露费用，置 0
+            cost=0.0,  # get_card_reward 返回 Card 无 cost；编码时回退查 card_data.base_cost
             upgraded=c.upgraded,
         )
 
@@ -356,6 +358,21 @@ class SimBrain:
         target_y = 0 if y == -1 else y + 1
         name = m.get_room_type(d["idx1"], target_y).name
         return None if name in ("INVALID", "NONE") else name
+
+    def _candidate_lookahead(self, screen: str, d: dict):
+        if screen != "MAP_SCREEN":
+            return None
+        y = self.gc.cur_map_node_y
+        if y == 14 or self.gc.act >= 4:
+            return []
+        m = self._spire_map()
+        target_y = 0 if y == -1 else y + 1
+
+        def room_fn(x, yy):
+            name = m.get_room_type(x, yy).name
+            return None if name in ("INVALID", "NONE") else name
+
+        return compute_map_lookahead(d["idx1"], target_y, room_fn, m.has_edge)
 
     def _spire_map(self):
         key = (self.gc.seed, self.gc.act)

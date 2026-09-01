@@ -24,6 +24,7 @@ import slaythespire as sts
 
 from models.candidate_encoder import (
     CardInfo,
+    compute_map_lookahead,
     decode_action_bits,
     encode_candidate,
 )
@@ -31,7 +32,7 @@ from models.candidate_encoder import (
 from .base_env import Obs, Candidate, StepResult, StsEnv
 
 # 候选动作 desc_vec 维度（与 models.candidate_encoder.DESC_VEC_DIM 一致）
-_DESC_VEC_DIM = 368
+_DESC_VEC_DIM = 408
 
 # NN 观测维度
 _NN_OBS_DIM = 412
@@ -111,6 +112,7 @@ class LightspeedEnv(StsEnv):
                     card=self._candidate_card(screen, d),
                     room=self._candidate_room(screen, d),
                     bits=a.bits,
+                    lookahead_rooms=self._candidate_lookahead(screen, d),
                 ),
                 label=label,
             ))
@@ -199,7 +201,7 @@ class LightspeedEnv(StsEnv):
         c = cards[d["idx2"]]
         return CardInfo(
             name=c.id.name, card_type=c.type.name, rarity=c.rarity.name,
-            cost=0.0,  # Card 绑定未暴露费用，置 0
+            cost=0.0,  # 绑定层 get_card_reward 返回 Card 无 cost；编码时回退查 card_data.base_cost
             upgraded=c.upgraded,
         )
 
@@ -222,6 +224,29 @@ class LightspeedEnv(StsEnv):
         target_y = 0 if y == -1 else y + 1
         name = m.get_room_type(d["idx1"], target_y).name
         return None if name in ("INVALID", "NONE") else name
+
+    def _candidate_lookahead(self, screen: str, d: dict):
+        """MAP_NODE 候选 → 向下 6 层贪婪路径的房间类型名序列（供前瞻段编码）。
+
+        从候选节点 (idx1, target_y) 出发，每层取离当前 x 最近的子节点，
+        返回每层房间类型名列表；越界/无效房间置 None（编码时该层全零）。
+        非 MAP 候选 / boss 节点 / act>=4 返回 None。
+        """
+        if screen != "MAP_SCREEN":
+            return None
+        y = self.gc.cur_map_node_y
+        if y == 14 or self.gc.act >= 4:
+            return []
+        m = self._spire_map()
+        target_y = 0 if y == -1 else y + 1
+
+        def room_fn(x, yy):
+            name = m.get_room_type(x, yy).name
+            return None if name in ("INVALID", "NONE") else name
+
+        rooms = compute_map_lookahead(d["idx1"], target_y, room_fn,
+                                      m.has_edge)
+        return rooms
 
     def _spire_map(self):
         """按 (seed, act) 缓存重建的 SpireMap（一幕内地图不变）。"""

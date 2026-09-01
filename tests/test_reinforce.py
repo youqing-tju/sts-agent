@@ -13,7 +13,7 @@ def _rand_vec(n):
 
 
 def _fake_episode(n_steps=3, n_cands=4, final_floor=10, win=False):
-    traj = [(_rand_vec(412), [_rand_vec(368) for _ in range(n_cands)], 1)
+    traj = [(_rand_vec(412), [_rand_vec(408) for _ in range(n_cands)], 1)
             for _ in range(n_steps)]
     return (traj, final_floor, win)
 
@@ -32,7 +32,7 @@ class FakeEnv:
     def candidates(self):
         if self._left <= 0:
             return []
-        return [Candidate(idx=i, kind="MAP_NODE", desc_vec=_rand_vec(368),
+        return [Candidate(idx=i, kind="MAP_NODE", desc_vec=_rand_vec(408),
                           label=f"node_{i}")
                 for i in range(self._n_cands)]
 
@@ -84,7 +84,7 @@ def test_collect_episode_fake_env():
     assert len(traj) == 3
     for obs_vec, cand_vecs, pos in traj:
         assert len(obs_vec) == 412
-        assert len(cand_vecs) == 3 and len(cand_vecs[0]) == 368
+        assert len(cand_vecs) == 3 and len(cand_vecs[0]) == 408
         assert 0 <= pos < 3
     assert isinstance(final_floor, int)
     assert win is False
