@@ -152,7 +152,7 @@ class PPOTrainer:
             }
         return stats
 
-    def train(self, n_games, log_fn=None, log_dir=None):
+    def train(self, n_games, log_fn=None, log_dir=None, save_fn=None):
         """主循环：攒满 batch_games 局 → update → 清空，直到 n_games。
 
         每局随机种子、每局一个 RunLogger JSONL（log_dir 非空时）；
@@ -160,6 +160,7 @@ class PPOTrainer:
         字段保持 game/loss/mean_floor/win_rate/entropy（另含
         policy_loss/value_loss），与 REINFORCE 曲线分析兼容。
         尾部不足一个 batch 的局也会做最后一次 update。
+        save_fn(i)：每次 update 后回调，用于定期保存 checkpoint（防中断丢进度）。
         """
         from env.lightspeed_env import LightspeedEnv
         from logging.run_logger import RunLogger
@@ -179,4 +180,6 @@ class PPOTrainer:
             history.append(rec)
             if log_fn is not None:
                 log_fn(rec)
+            if save_fn is not None:
+                save_fn(i)
         return history

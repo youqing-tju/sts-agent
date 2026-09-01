@@ -123,6 +123,17 @@ PYBIND11_MODULE(slaythespire, m) {
         .def_readwrite("speedrun_pace", &GameContext::speedrunPace)
         .def_readwrite("note_for_yourself_card", &GameContext::noteForYourselfCard);
 
+    // sts-agent: potion bar (for schema v1 combat_state.consolation / slot availability)
+    gameContext.def_property_readonly("potion_count", [](const GameContext &gc) { return gc.potionCount; })
+        .def_property_readonly("potion_capacity", [](const GameContext &gc) { return gc.potionCapacity; })
+        .def_property_readonly("potion_slots", [](const GameContext &gc) {
+            std::vector<int> v;
+            for (int i = 0; i < gc.potionCount && i < static_cast<int>(gc.potions.size()); ++i) {
+                v.push_back(static_cast<int>(gc.potions[i]));
+            }
+            return v;
+        }, "list of int Potion enum values for filled potion slots");
+
     gameContext.def("init_from_json",
             &sts::py::initGameContextFromJsonString,
             "initialize the GameContext from a Communication Mod STATE json string");
@@ -152,7 +163,11 @@ PYBIND11_MODULE(slaythespire, m) {
         .def_property_readonly("is_escaping", [](const Monster &m) { return m.isEscaping(); })
         .def_property_readonly("is_attacking", [](const Monster &m) { return m.isAttacking(); })
         .def_property_readonly("is_minion", [](const Monster &m) { return m.hasStatus<MS::MINION>() && m.id != MonsterId::INVALID; })
-        .def_property_readonly("move_id", [](const Monster &m) { return static_cast<int>(m.moveHistory[0]); });
+        .def_property_readonly("move_id", [](const Monster &m) { return static_cast<int>(m.moveHistory[0]); })
+        .def("intent_damage", [](const Monster &m, const BattleContext &bc) {
+            DamageInfo di = m.getMoveBaseDamage(bc);
+            return pybind11::make_tuple(di.damage, di.attackCount);
+        }, "sts-agent: (base_damage, attack_count) for the monster's current intent");
 
     pybind11::class_<CardInstance> cardInstance(m, "CardInstance");
     cardInstance.def(pybind11::init<>())
@@ -169,7 +184,11 @@ PYBIND11_MODULE(slaythespire, m) {
         .def_property_readonly("upgraded", &CardInstance::isUpgraded)
         .def_property_readonly("upgradable", &CardInstance::canUpgrade)
         .def_property_readonly("is_strikeCard", &CardInstance::isStrikeCard)
-        .def_property_readonly("type", &CardInstance::getType);
+        .def_property_readonly("type", &CardInstance::getType)
+        .def("is_playable", &CardInstance::canUseOnAnyTarget,
+            "sts-agent: whether the card can be played on at least one target (more accurate than cost<=energy)")
+        .def("requires_target", &CardInstance::requiresTarget,
+            "sts-agent: whether the card requires a target to play");
 
     pybind11::class_<BattleContext> battleContext(m, "BattleContext");
     battleContext.def(pybind11::init<>())
@@ -225,6 +244,18 @@ PYBIND11_MODULE(slaythespire, m) {
             return oss.str();
         }, "returns a string representation of the BattleContext");
 
+    // sts-agent: expose combat entry/exit + card-select sub-state so Python can drive
+    // an in-combat decision loop (used by sts-agent-v2 runner_sim)
+    battleContext.def("init_from_gc",
+        [](BattleContext &bc, const GameContext &gc) { bc.init(gc); },
+        "sts-agent: initialize a BattleContext from a GameContext already in combat")
+        .def("exit_battle",
+            [](BattleContext &bc, GameContext &gc) { bc.exitBattle(gc); },
+            "sts-agent: exit the battle and write results back to the GameContext")
+        .def_property_readonly("input_state",
+            [](const BattleContext &bc) { return static_cast<int>(bc.inputState); },
+            "int InputState: 0 EXECUTING_ACTIONS, 1 PLAYER_NORMAL, 2 CARD_SELECT, 3+ other choice states");
+
     pybind11::enum_<Outcome> battleOutcome(m, "BattleOutcome");
     battleOutcome.value("UNDECIDED", Outcome::UNDECIDED)
         .value("PLAYER_VICTORY", Outcome::PLAYER_VICTORY)
@@ -255,6 +286,20 @@ PYBIND11_MODULE(slaythespire, m) {
             a.printDesc(oss, bc);
             return oss.str();
         }, "human-readable description of the action in the given BattleContext");
+
+    // sts-agent: allow Python to construct & execute battle actions (runner_sim combat loop)
+    pybind11::enum_<search::ActionType>(m, "ActionType")
+        .value("CARD", search::ActionType::CARD)
+        .value("POTION", search::ActionType::POTION)
+        .value("SINGLE_CARD_SELECT", search::ActionType::SINGLE_CARD_SELECT)
+        .value("MULTI_CARD_SELECT", search::ActionType::MULTI_CARD_SELECT)
+        .value("END_TURN", search::ActionType::END_TURN);
+
+    battleAction.def(pybind11::init<search::ActionType, int, int>(),
+            pybind11::arg("action_type"), pybind11::arg("idx1") = 0, pybind11::arg("idx2") = 0,
+            "construct a battle action: Action(action_type, idx1, idx2)")
+        .def("is_valid", &search::Action::isValidAction, "whether this action is valid in the given BattleContext")
+        .def("execute", &search::Action::execute, "execute this action in the given BattleContext");
 
     pybind11::class_<search::BattleScumSearcher2> battleSearcher(m, "BattleSearcher");
     battleSearcher.def(pybind11::init([](const BattleContext &bc, int64_t sims) {

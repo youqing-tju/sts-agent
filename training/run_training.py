@@ -39,8 +39,15 @@ def main():
         scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(512, 256))
         value_net = ValueNet(obs_dim=412)
         lr = args.lr if args.lr is not None else 3e-4
-        if args.init_from:
-            print("警告：PPO 的 (512,256) 结构与旧 checkpoint 不兼容，忽略 --init-from")
+        if args.init_from and os.path.exists(args.init_from):
+            import torch
+            scorer.load_state_dict(torch.load(args.init_from, weights_only=True))
+            value_path = args.init_from + ".value.pt"
+            if os.path.exists(value_path):
+                value_net.load_state_dict(torch.load(value_path, weights_only=True))
+            print(f"Resume from {args.init_from}")
+        elif args.init_from:
+            print("警告：--init-from 指定的 checkpoint 不存在，从零训练")
         trainer = PPOTrainer(scorer, value_net, lr=lr, mcts_sim=args.mcts_sim,
                              log_dir=args.log_dir, win_bonus=args.win_bonus)
     else:
@@ -74,8 +81,13 @@ def main():
     print(f"Training: algo={args.algo} {args.games} games, mcts_sim={args.mcts_sim}, lr={lr}")
     t0 = time.time()
     if args.algo == "ppo":
-        # PPOTrainer.train(n_games, log_fn, log_dir)：批量更新，无中间 eval 钩子
-        hist = trainer.train(n_games=args.games, log_fn=log_fn)
+        # 定期保存 checkpoint（每 ~400 局一次），防止中断丢失进度
+        import torch as _torch
+        def _save_fn(game_idx):
+            _torch.save(scorer.state_dict(), args.checkpoint)
+            _torch.save(value_net.state_dict(), args.checkpoint + ".value.pt")
+        hist = trainer.train(n_games=args.games, log_fn=log_fn,
+                             save_fn=(lambda i: _save_fn(i) if i % 400 == 0 else None))
     else:
         hist = trainer.train(n_games=args.games, eval_every=args.eval_every,
                              eval_fn=eval_fn, log_fn=log_fn)
