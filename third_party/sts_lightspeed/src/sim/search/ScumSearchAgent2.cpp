@@ -35,6 +35,11 @@ void search::ScumSearchAgent2::playout(GameContext &gc) {
 
     while (gc.outcome == GameOutcome::UNDECIDED && !paused) {
         if (gc.screenState == ScreenState::BATTLE) {
+            if (pauseOnCombat) {
+                // sts-agent: cede control to Python at combat entry
+                paused = true;
+                continue;
+            }
             bc = BattleContext();
             bc.init(gc);
 

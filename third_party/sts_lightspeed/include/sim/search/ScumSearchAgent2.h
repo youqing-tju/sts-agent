@@ -24,6 +24,7 @@ namespace sts::search {
         bool paused = false;
         bool pauseOnCardReward = false;
         bool pauseOnNonCombatAction = false;  // sts-agent: pause at every non-combat decision point
+        bool pauseOnCombat = false;           // sts-agent: pause at combat entry so Python can drive battle
 
         bool printActions = false;
         bool printLogs = false;
