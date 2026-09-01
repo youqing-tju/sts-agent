@@ -22,7 +22,7 @@
 
 - 算法：REINFORCE + 滑动平均 baseline + 熵正则。
 - Baseline 用滑动平均，实现简单且在 non-stationary 环境（角色不断变强）下比参数化 critic 更稳。
-- 熵正则防止策略过早坍缩（详见 §4 的熵曲线分析）。
+- 熵正则防止策略过早坍缩（详见 §5 的熵曲线分析）。
 
 ### 2.4 评估
 
@@ -62,31 +62,63 @@
 
 > 注：M3/M4 之后的最新训练结果 [TODO: 待补充]。
 
-## 4. 关键发现
+## 4. M3 真实游戏验证
+
+M3 把 Agent 从纯模拟器环境接到了真实游戏上，验证整套架构在"脏数据"下是否成立。
+
+### 4.1 Communication Mod 桥接
+
+整体管线：**真实游戏 JSON（Communication Mod）→ `init_from_json` 灌入模拟器 → RL 做宏观决策 + MCTS 做战斗决策 → 决策翻译回游戏命令发给真实游戏执行**。
+
+- `init_from_json` 移植自 SimoneBarbaro/sts_lightspeed fork 的 Communication Mod 兼容层，约 1200 行，80% 是机械抄写，真正的工作量在理解协议和防御性处理。
+- 含异常防御：非法/不完整的 JSON 抛 `RuntimeError` 而不是直接崩溃，保证桥接循环不被单帧坏数据打死。
+
+### 4.2 真实游戏踩的坑
+
+- 命令必须**全小写**，大小写错了游戏静默不执行；
+- 战斗进行时顶层 `screen_type` 反而是 `NONE`，不能靠它判断是否在战斗中；
+- Windows 下 GBK 中文乱码产生 lone surrogate，JSON 序列化直接炸——用 `_sanitize` 统一清洗字符串后修复；
+- 模拟器的篝火选项比真实游戏多（模拟器实现了真实游戏里没有的选项），决策索引可能越界，需做防御；
+- 手牌位置会失同步（真实游戏手牌顺序会变），改为**按卡牌身份（identity）匹配出牌**，不再依赖下标。
+
+### 4.3 V2 ISMCTS 战斗大脑
+
+**问题**：v1 是单次 MCTS——从当前局面确定性模拟一次未来。但 Communication Mod 不传 RNG 计数器，模拟器无法还原真实的抽牌堆顺序，等于在一个"锁死抽牌顺序的虚构未来"里规划，模拟器里算出的斩杀线在真实游戏里会落空。
+
+**解法**：信息集 MCTS（ISMCTS，Information Set MCTS），即卡牌游戏 AI 处理隐藏信息的标准方法 determinization：
+
+- 生成 K=10 个平行未来：每个 determinization 调用 `randomize_rng` 重洗抽牌堆并重设 RNG，代表对隐藏信息的一种猜测；
+- 每个 determinization 各搜 2000 次 MCTS；
+- 按卡牌身份（而非手牌下标）对动作投票，取期望最优的出牌。
+
+**实测**：开局场景 10/10 全票选 Bash（先上易伤，符合人类玩家直觉的正确打法）；单决策耗时 0.41 秒；决策结果可复现。
+
+## 5. 关键发现
 
 - **宏观决策确实是瓶颈。** RL 仅训练 500 局就在平均楼层上追平（28.2 vs 28.3）并随后超过规则 baseline，说明规则策略的上限不在战斗微操（两边 MCTS 相同），而在选路/选牌这类宏观判断。
 - **通关率从 0 到 3.4% 是自然演化的，没有手调奖励权重。** 训练奖励只按楼层推进，但当"苟活"的边际收益递减后，策略自然地转向更具进攻性的打法（拿精英、拿火堆升级等），最终涌现出通关行为。这验证了奖励塑形中最简单方案的有效性。
 - **探索在收敛但没坍缩。** 策略熵从初始 ~0.93 降到 0.11 附近后保持稳定，说明策略形成了稳定的偏好，但熵正则仍保住了必要的探索余量，没有坍缩成确定性策略。
 - **模拟器性能是分层架构能成立的前提。** 100 局评估 45 秒（8 进程并行），训练 1.1–1.3 秒/局。没有这个速度，REINFORCE 这种高方差算法需要的上千局样本根本跑不出来。
 
-## 5. 踩坑记录
+## 6. 踩坑记录
 
-### 5.1 Windows MSVC 编译：7 个坑
+### 6.1 Windows MSVC 编译：7 个坑
 
-把 sts_lightspeed 从 GCC/Linux 生态移植到 MSVC 时踩了 7 个编译坑，包括：
+把 sts_lightspeed 从 GCC/Linux 生态移植到 MSVC 时踩了 7 个编译坑：
 
-- pybind11 版本兼容问题（旧版头文件与新版 Python 的 ABI 冲突）；
-- class/struct 前向声明不匹配（GCC 宽松、MSVC 严格）；
-- 变长数组（VLA）——GCC 扩展，MSVC 不支持，需改写；
-- LTO（链接时优化）导致 pybind11 符号解析失败，需要关闭或调整。
+1. **pybind11 版本**：旧版与 Python 3.13 ABI 不兼容，升级到 v2.13.6；
+2. **迭代器当指针用**：`fixed_list.h` 里 `std::array::begin()` 被当裸指针用，GCC 下行得通，MSVC 迭代器不是指针，改为 `.data()`；
+3. **变长数组（VLA）**：`Map.cpp` 用了 GCC 扩展 VLA，MSVC 不支持，改写为 `std::vector`；
+4. **class/struct 前向声明不匹配**：MSVC 的名称修饰（name mangling）严格区分 class 和 struct，21 个头文件的前向声明需要统一改为 struct，否则链接符号不匹配；
+5. **GCC 专属编译选项**：CMakeLists 里的编译 flag 需要加 MSVC 守卫，按编译器分支；
+6. **LTO 导致符号解析失败**：链接时优化下 pybind11 符号无法解析，用 `NO_EXTRAS` 关闭；
+7. **沙箱拦截 VsDevCmd.bat**：官方 MSVC 环境脚本内部调用 reg.exe 被沙箱阻止，只能在 `build_bindings.bat` 里手动设置 INCLUDE/LIB/PATH，绕过官方脚本。
 
-[TODO: 补全剩余 3 个坑的细节]
-
-### 5.2 NNInterface 单例被 Python GC 误删
+### 6.2 NNInterface 单例被 Python GC 误删
 
 pybind11 对裸指针默认 `take_ownership`，导致 Python 侧拿到 C++ 单例指针后，垃圾回收时把它 delete 掉了，后续访问即崩溃。修复方法是绑定返回值策略为 `return_value_policy::reference`，明确所有权归 C++。
 
-### 5.3 Communication Mod 协议反直觉之处
+### 6.3 Communication Mod 协议反直觉之处
 
 移植 `init_from_json`（从真实游戏 JSON 状态恢复局面）时发现 Communication Mod 的 JSON 协议有几个坑：
 
@@ -94,16 +126,17 @@ pybind11 对裸指针默认 `take_ownership`，导致 Python 侧拿到 C++ 单�
 - 战斗进行时顶层 `screen_type` 反而是 `NONE`，判断是否在战斗中不能只看 `screen_type`；
 - 战斗状态嵌套在 `game_state.combat_state` 下，与非战斗状态的字段结构完全不同，需要分别建模。
 
-## 6. 下一步
+## 7. 下一步
 
-- [ ] win bonus 消融实验（50 vs 200，代码与测试已完成，待跑训练）
-- [ ] 真实游戏验证（M3，进行中：init_from_json 已完成 C++ 移植与 Python 绑定，待联调）
+- [ ] win bonus 消融实验（50 vs 200）：50 组已完成 1000 局训练（`checkpoints/win_bonus_50.pt`），200 组训练进行中，评估结果待出 [TODO: 结果出来后补充对比表]
+- [ ] 真实游戏验证（M3）：桥接与 ISMCTS v2 已打通，持续实测中
 - [ ] PPO 对照实验
 - [ ] LLM 宏观决策对照
 
-## 7. 数字速览（简历用）
+## 8. 数字速览（简历用）
 
 - 训练 5500 局后 RL 超过规则 baseline：平均楼层 +3.3 层（31.6 vs 28.3），通关率 3 倍（3.0% vs 1.0%）
-- 模拟器比真实游戏快约 1000 倍 [TODO: 待验证具体倍数口径]
+- 模拟器比真实游戏快约 1000–1500 倍（口径：训练 1 局约 1.1 秒、战斗 MCTS@2000；真实游戏一局至少 20–30 分钟）
+- ISMCTS 战斗大脑：K=10 determinizations × 2000 次模拟，单决策 0.41 秒，开局场景 10/10 全票正确决策
 - 全套 45 个自动化测试，覆盖环境、编码、策略、训练、评估各模块
 - C++/Python 混合架构：pybind11 绑定 C++ 模拟器，PyTorch 实现策略网络
