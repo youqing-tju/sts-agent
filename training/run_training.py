@@ -1,7 +1,8 @@
-"""正式训练入口：REINFORCE on sts_lightspeed。
+"""正式训练入口：REINFORCE / PPO on sts_lightspeed。
 
 用法:
     .venv/Scripts/python -m training.run_training --games 3000 --mcts-sim 8000
+    .venv/Scripts/python -m training.run_training --algo ppo --games 5000 --mcts-sim 2000
 """
 
 import argparse
@@ -15,13 +16,16 @@ from training.reinforce import ReinforceTrainer
 
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument("--algo", choices=["reinforce", "ppo"], default="reinforce")
     p.add_argument("--games", type=int, default=3000)
     p.add_argument("--mcts-sim", type=int, default=8000)
-    p.add_argument("--lr", type=float, default=1e-3)
+    p.add_argument("--lr", type=float, default=None,
+                   help="学习率；默认 reinforce=1e-3, ppo=3e-4")
     p.add_argument("--eval-every", type=int, default=250)
     p.add_argument("--log-dir", default="logs/m2-training")
     p.add_argument("--checkpoint", default="checkpoints/scorer.pt")
-    p.add_argument("--init-from", default=None, help="从已有 checkpoint 继续训练")
+    p.add_argument("--init-from", default=None,
+                   help="从已有 checkpoint 继续训练（仅 reinforce 支持与 (128,128) 兼容的 ckpt）")
     p.add_argument("--win-bonus", type=float, default=50,
                    help="通关奖励：G = final_floor + win_bonus * win")
     args = p.parse_args()
@@ -29,13 +33,25 @@ def main():
     os.makedirs(os.path.dirname(args.checkpoint), exist_ok=True)
     os.makedirs(args.log_dir, exist_ok=True)
 
-    scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(128, 128))
-    if args.init_from:
-        import torch
-        scorer.load_state_dict(torch.load(args.init_from, weights_only=True))
-        print(f"Warm start from {args.init_from}")
-    trainer = ReinforceTrainer(scorer, lr=args.lr, mcts_sim=args.mcts_sim,
-                               log_dir=args.log_dir, win_bonus=args.win_bonus)
+    if args.algo == "ppo":
+        from models.scorer import ValueNet
+        from training.ppo import PPOTrainer
+        scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(512, 256))
+        value_net = ValueNet(obs_dim=412)
+        lr = args.lr if args.lr is not None else 3e-4
+        if args.init_from:
+            print("警告：PPO 的 (512,256) 结构与旧 checkpoint 不兼容，忽略 --init-from")
+        trainer = PPOTrainer(scorer, value_net, lr=lr, mcts_sim=args.mcts_sim,
+                             log_dir=args.log_dir, win_bonus=args.win_bonus)
+    else:
+        scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(128, 128))
+        lr = args.lr if args.lr is not None else 1e-3
+        if args.init_from:
+            import torch
+            scorer.load_state_dict(torch.load(args.init_from, weights_only=True))
+            print(f"Warm start from {args.init_from}")
+        trainer = ReinforceTrainer(scorer, lr=lr, mcts_sim=args.mcts_sim,
+                                   log_dir=args.log_dir, win_bonus=args.win_bonus)
 
     # 训练曲线追加写入 JSONL，供监控/复盘
     curve_path = os.path.join(args.log_dir, "training_curve.jsonl")
@@ -55,15 +71,22 @@ def main():
             floors.append(r["final_floor"])
         return {"eval_games": len(seeds), "eval_avg_floor": sum(floors) / len(floors)}
 
-    print(f"Training: {args.games} games, mcts_sim={args.mcts_sim}, lr={args.lr}")
+    print(f"Training: algo={args.algo} {args.games} games, mcts_sim={args.mcts_sim}, lr={lr}")
     t0 = time.time()
-    hist = trainer.train(n_games=args.games, eval_every=args.eval_every,
-                         eval_fn=eval_fn, log_fn=log_fn)
+    if args.algo == "ppo":
+        # PPOTrainer.train(n_games, log_fn, log_dir)：批量更新，无中间 eval 钩子
+        hist = trainer.train(n_games=args.games, log_fn=log_fn)
+    else:
+        hist = trainer.train(n_games=args.games, eval_every=args.eval_every,
+                             eval_fn=eval_fn, log_fn=log_fn)
     elapsed = time.time() - t0
     print(f"Done in {elapsed:.0f}s ({elapsed / args.games:.1f}s/game)")
 
     import torch
     torch.save(scorer.state_dict(), args.checkpoint)
+    if args.algo == "ppo":
+        # value net 存 sidecar（评估只需要 scorer，保持 checkpoint 格式兼容）
+        torch.save(value_net.state_dict(), args.checkpoint + ".value.pt")
     print(f"Checkpoint saved: {args.checkpoint}")
 
     # 最终汇总
