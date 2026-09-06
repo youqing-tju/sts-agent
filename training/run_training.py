@@ -36,8 +36,8 @@ def main():
     if args.algo == "ppo":
         from models.scorer import ValueNet
         from training.ppo import PPOTrainer
-        scorer = Scorer(obs_dim=412, cand_dim=408, hidden=(512, 256))
-        value_net = ValueNet(obs_dim=412)
+        scorer = Scorer(obs_dim=468, cand_dim=367, hidden=(512, 256))
+        value_net = ValueNet(obs_dim=468)
         lr = args.lr if args.lr is not None else 3e-4
         if args.init_from and os.path.exists(args.init_from):
             import torch
@@ -51,7 +51,7 @@ def main():
         trainer = PPOTrainer(scorer, value_net, lr=lr, mcts_sim=args.mcts_sim,
                              log_dir=args.log_dir, win_bonus=args.win_bonus)
     else:
-        scorer = Scorer(obs_dim=412, cand_dim=408, hidden=(128, 128))
+        scorer = Scorer(obs_dim=468, cand_dim=367, hidden=(128, 128))
         lr = args.lr if args.lr is not None else 1e-3
         if args.init_from:
             import torch

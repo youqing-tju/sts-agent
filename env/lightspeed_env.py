@@ -24,10 +24,14 @@ import slaythespire as sts
 
 from models.candidate_encoder import (
     CardInfo,
+    _LOOKAHEAD_LAYERS,
     compute_map_lookahead,
     decode_action_bits,
     encode_candidate,
 )
+from models.card_data import CARD_ARCHETYPE, CARD_EFFECTS
+from models.card_index import CARD_INDEX
+from models.obs_encoder import encode_deck_stats, enhance_observation
 
 from .base_env import Obs, Candidate, StepResult, StsEnv
 
@@ -35,7 +39,7 @@ from .base_env import Obs, Candidate, StepResult, StsEnv
 _DESC_VEC_DIM = 408
 
 # NN 观测维度
-_NN_OBS_DIM = 412
+_NN_OBS_DIM = 468
 
 # screen_state 枚举名 → Candidate.kind
 _KIND_BY_SCREEN = {
@@ -99,6 +103,9 @@ class LightspeedEnv(StsEnv):
         acts = sts.get_all_actions(self.gc)
         self._actions = acts
         screen = self.gc.screen_state.name
+        # 牌组流派强度每步算一次，供所有候选的交叉项复用（保持编码器纯函数）
+        raw_obs = self._raw_nn_vec()
+        deck_arch = self._deck_arch(raw_obs)
         cands = []
         for i, a in enumerate(acts):
             label = a.describe(self.gc) or f"action_0x{a.bits:08x}"
@@ -113,6 +120,7 @@ class LightspeedEnv(StsEnv):
                     room=self._candidate_room(screen, d),
                     bits=a.bits,
                     lookahead_rooms=self._candidate_lookahead(screen, d),
+                    deck_arch=deck_arch,
                 ),
                 label=label,
             ))
@@ -153,8 +161,8 @@ class LightspeedEnv(StsEnv):
                 return
         raise RuntimeError("_advance 超过迭代上限，状态可能异常")
 
-    def _nn_vec(self) -> list:
-        """取 412 维 NN 观测。
+    def _raw_nn_vec(self) -> list:
+        """取 C++ 原始 412 维 NN 观测。
 
         C++ 侧已修复（return_value_policy::reference）：单例可重复获取，
         且任意 GameContext 都可观测。Python 侧仍缓存单例减少调用开销。
@@ -163,6 +171,26 @@ class LightspeedEnv(StsEnv):
         if _nni_singleton is None:
             _nni_singleton = sts.getNNInterface()
         return list(_nni_singleton.getObservation(self.gc))
+
+    def _nn_vec(self) -> list:
+        """取 468 维观测：C++ 412 维 + Python 侧增强 56 维。
+
+        增强段（药水 24 + 药水数 1 + 地图摘要 4 + Act 4 + 房间 10
+        + 牌组流派强度 5 + 牌组派生统计 8）见 models/obs_encoder.py。
+        """
+        return enhance_observation(
+            self._raw_nn_vec(), self.gc,
+            card_index=CARD_INDEX,
+            arch_table=CARD_ARCHETYPE,
+            card_effects=CARD_EFFECTS,
+        )
+
+    def _deck_arch(self, raw: list) -> list:
+        """牌组五流派强度（5 维），供候选编码器的流派交叉项使用。"""
+        return encode_deck_stats(
+            raw, card_index=CARD_INDEX,
+            arch_table=CARD_ARCHETYPE, card_effects=CARD_EFFECTS,
+        )[:5]
 
     # ---- 候选特征解析（供 candidate_encoder 编码） ----
 
@@ -245,7 +273,7 @@ class LightspeedEnv(StsEnv):
             return None if name in ("INVALID", "NONE") else name
 
         rooms = compute_map_lookahead(d["idx1"], target_y, room_fn,
-                                      m.has_edge)
+                                      m.has_edge, layers=_LOOKAHEAD_LAYERS)
         return rooms
 
     def _spire_map(self):

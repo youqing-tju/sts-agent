@@ -1,31 +1,46 @@
-"""候选动作 408 维描述向量编码。
+"""候选动作 367 维描述向量编码。
 
 把 env.base_env.Candidate 编码成定长特征向量，给打分网络用。
 纯函数：不 import slaythespire，不持有状态；同一输入必然得到同一输出
 （哈希用 zlib.crc32，与 PYTHONHASHSEED 无关，跨进程确定）。
 
-维度布局（总计 408，与 lightspeed_env._DESC_VEC_DIM 一致）：
+维度布局（总计 367）：
   [0,   10)  kind one-hot（KIND_LIST）
-  [10, 110)  卡牌特征：CardType one-hot(5) + CardRarity one-hot(5)
+  [10,  22)  卡牌属性：CardType one-hot(5) + CardRarity one-hot(5)
              + 费用归一化(1, cost/3 截断到 [0,1]，cost=0 时回退查卡牌字典 base_cost)
-             + 是否升级(1) + 卡牌名 crc32 % 88 哈希桶 one-hot(88)；非卡牌候选全零
-  [110, 120) 地图节点 Room 类型 one-hot（ROOM_LIST）；非地图节点全零
-  [120, 128) 数值特征（由 GameAction.bits 解码，见 decode_action_bits）：
+             + 是否升级(1)；非卡牌候选全零
+  [22, 132)  卡牌精确 one-hot(110)：用 CARD_INDEX_MAP[card.name] 定位，
+             与观测里 110 卡牌空间严格对齐；取代原 88 桶 crc32 哈希
+  [132,170)  卡牌语义(38)：从 card_data.EFFECT_KEYS 取 42 字段，剔除
+             铁甲卡池恒为 0 的 4 个死字段（DEAD_FIELDS），按 EFFECT_KEYS
+             原序排列；数值字段归一化，布尔/rarity_score 直接写值
+  [170,205)  流派交叉项(35)：a(5) ⊕ d(5) ⊕ outer(a,d)(25)，
+             a=候选卡五流派归属，d=牌组流派强度（由外部传入 deck_arch），
+             外积让"卡 × 牌组"协同直接成激活特征
+  [205,215)  地图节点 Room 类型 one-hot（ROOM_LIST）；非地图节点全零
+  [215,223)  数值特征（由 GameAction.bits 解码，见 decode_action_bits）：
              idx1/255, idx2/255, idx3/255, reward_type/6,
              is_potion, is_potion_discard, 2 维保留（绑定层拿不到价格，置 0）
-  [128, 368) label 文本哈希：分词后每词 crc32 % 240 的 multi-hot（兜底语义）
-  [368, 392) 地图路径前瞻（map-lookahead）：向下 6 层，每层 4 维 one-hot
+  [223,271)  地图路径前瞻（map-lookahead）：向下 12 层，每层 4 维 one-hot
              ELITE/REST/SHOP/OTHER（由调用方预计算 lookahead_rooms 序列传入）
-  [392, 408) 卡牌效果（card-effects）16 维：按卡名查 models.card_data 字典，
-             base_damage/block/cost ÷20，num_hits/draw ÷5，布尔 0/1
+  [271,367)  label 文本哈希兜底：分词后每词 crc32 % 96 的 multi-hot
+
+注：流派交叉项需要"牌组流派强度" deck_arch，由 env/lightspeed_env.py 每步
+预计算后传入；本模块保持纯函数，deck_arch=None 时交叉项 35 维全零。
 """
 import re
 import zlib
 from dataclasses import dataclass
 
-from .card_data import get_base_cost, get_card_effects
+from .card_data import (
+    EFFECT_KEYS,
+    get_base_cost,
+    get_card_archetype,
+    get_card_effects,
+)
+from .card_index import CARD_INDEX_MAP, CARD_INDEX_SIZE
 
-DESC_VEC_DIM = 408
+DESC_VEC_DIM = 367
 
 KIND_LIST = [
     "MAP_NODE", "CARD_REWARD", "REWARD", "SKIP", "SHOP_ITEM",
@@ -34,24 +49,41 @@ KIND_LIST = [
 
 CARD_TYPE_LIST = ["ATTACK", "SKILL", "POWER", "STATUS", "CURSE"]
 CARD_RARITY_LIST = ["BASIC", "COMMON", "UNCOMMON", "RARE", "SPECIAL"]
-CARD_ID_BUCKETS = 88
 
 ROOM_LIST = [
     "MONSTER", "ELITE", "REST", "SHOP", "TREASURE",
     "EVENT", "BOSS", "BOSS_TREASURE", "NONE", "INVALID",
 ]
 
+# 流派顺序固定：力量 / 格挡 / 消耗 / 自伤 / 状态
+ARCHETYPE_DIM = 5
+
+# 铁甲卡池里没有任何一张卡用到的字段（恒为 0，留着只是噪音），编码时剔除。
+# 顺序保持 EFFECT_KEYS 原序，仅删这 4 项 → 42 - 4 = 38 维语义段。
+DEAD_FIELDS = ("dexterity_gain", "block_efficiency", "discard", "retain")
+SEMANTIC_KEYS = [k for k in EFFECT_KEYS if k not in DEAD_FIELDS]
+SEMANTIC_DIM = len(SEMANTIC_KEYS)  # 38
+
 # 各段偏移
 _OFF_KIND = 0
-_OFF_CARD = 10
-_OFF_ROOM = 110
-_OFF_NUM = 120
-_OFF_LABEL = 128
-_OFF_LOOKAHEAD = 368
-_OFF_EFFECTS = 392
+_OFF_CARD = 10            # 卡牌属性段：12 维
+_OFF_CARD_ONEHOT = 22    # 卡牌精确 one-hot：110 维（= CARD_INDEX_SIZE）
+_OFF_SEMANTIC = 132       # 卡牌语义：38 维
+_OFF_CROSS = 170          # 流派交叉项：35 维
+_OFF_ROOM = 205           # 房间类型 one-hot：10 维
+_OFF_NUM = 215            # 数值特征：8 维
+_OFF_LOOKAHEAD = 223      # 地图前瞻：48 维（12 层 × 4）
+_OFF_LABEL = 271          # label 哈希兜底：96 维
+# 末尾 = 271 + 96 = 367 = DESC_VEC_DIM
 
-_LABEL_BUCKETS = _OFF_LOOKAHEAD - _OFF_LABEL  # 240
-_LOOKAHEAD_LAYERS = (_OFF_EFFECTS - _OFF_LOOKAHEAD) // 4  # 6
+_CARD_ATTR_DIM = 12
+_CARD_ONEHOT_DIM = CARD_INDEX_SIZE          # 110
+_CROSS_DIM = ARCHETYPE_DIM + ARCHETYPE_DIM + ARCHETYPE_DIM * ARCHETYPE_DIM  # 35
+_ROOM_DIM = len(ROOM_LIST)                  # 10
+_NUM_DIM = 8
+_LOOKAHEAD_LAYERS = 12
+_LOOKAHEAD_DIM = _LOOKAHEAD_LAYERS * 4      # 48
+_LABEL_BUCKETS = DESC_VEC_DIM - _OFF_LABEL  # 96
 
 # 前瞻段房间类型 → 4 维 one-hot 下标；其余（MONSTER/TREASURE/EVENT/BOSS 等）归 OTHER
 LOOKAHEAD_ROOM_MAP = {"ELITE": 0, "REST": 1, "SHOP": 2}
@@ -60,9 +92,14 @@ _TOKEN_RE = re.compile(r"[a-z0-9]+")
 
 # 费用归一化分母：普通卡牌费用 0~3，X 费/特殊费截断到 1.0
 _COST_NORM = 3.0
-# 效果段数值归一化分母
-_DMG_NORM = 20.0
-_HITS_NORM = 5.0
+# 语义段数值归一化分母
+_NUMERIC_NORM = {
+    "base_damage": 20.0,
+    "base_block": 20.0,
+    "base_cost": 3.0,
+    "num_hits": 5.0,
+    "draw_count": 5.0,
+}
 
 
 @dataclass
@@ -102,6 +139,7 @@ def compute_map_lookahead(start_x, start_y, room_fn, edge_fn, layers=6) -> list:
     room_fn(x, y) -> str|None：房间类型名，None 表示无效。
     edge_fn(x, y, x2) -> bool：(x,y) 节点是否有通向下一层 x2 的边。
     每层在所有子节点中取离当前 x 最近的；越界/无子节点提前终止。
+    默认 layers=6；新版调用方传 12 取更深的路径前瞻。
     """
     out = []
     cx, cy = start_x, start_y
@@ -131,7 +169,7 @@ def _card_cost(card: CardInfo) -> float:
     return get_base_cost(card.name)
 
 
-def _encode_card(vec: list, card: CardInfo):
+def _encode_card_attrs(vec: list, card: CardInfo):
     base = _OFF_CARD
     if card.card_type in CARD_TYPE_LIST:
         vec[base + CARD_TYPE_LIST.index(card.card_type)] = 1.0
@@ -139,7 +177,55 @@ def _encode_card(vec: list, card: CardInfo):
         vec[base + 5 + CARD_RARITY_LIST.index(card.rarity)] = 1.0
     vec[base + 10] = max(0.0, min(1.0, _card_cost(card) / _COST_NORM))
     vec[base + 11] = 1.0 if card.upgraded else 0.0
-    vec[base + 12 + _hash_bucket(card.name, CARD_ID_BUCKETS)] = 1.0
+
+
+def _encode_card_onehot(vec: list, card: CardInfo):
+    """卡牌精确 one-hot：与 CARD_INDEX 严格对齐，取代原 88 桶 crc32 哈希。"""
+    idx = CARD_INDEX_MAP.get(card.name)
+    if idx is not None:
+        vec[_OFF_CARD_ONEHOT + idx] = 1.0
+    # 不在 110 词表内的卡（如部分状态/诅咒/事件特殊卡）→ 整段保持全零
+
+
+def _encode_semantic(vec: list, name: str):
+    """卡牌语义 38 维：按 SEMANTIC_KEYS（EFFECT_KEYS 剔 4 死字段）。"""
+    e = get_card_effects(name)
+    if not e:
+        return
+    base = _OFF_SEMANTIC
+    for i, k in enumerate(SEMANTIC_KEYS):
+        v = e.get(k)
+        if v is None:
+            val = 0.0
+        elif k in _NUMERIC_NORM:
+            val = float(v) / _NUMERIC_NORM[k]
+        else:
+            # 布尔 0/1、rarity_score 0/0.5/1.0，以及 strength_gain=2 等计数值：直接写值
+            val = float(v)
+        vec[base + i] = val
+
+
+def _encode_cross(vec: list, card: CardInfo, deck_arch):
+    """流派交叉项 35 维：a(5) ⊕ d(5) ⊕ outer(a,d)(25)。
+
+    a = 候选卡五流派归属（get_card_archetype）；
+    d = 牌组流派强度（deck_arch，5 维，由外部传入）；
+    outer[i][j] = a[i]*d[j]（含 i≠j 的有信息量交叉项）。
+    非卡牌候选或 deck_arch=None 时整段保持全零。
+    """
+    if card is None or deck_arch is None:
+        return
+    a = get_card_archetype(card.name)
+    d = deck_arch
+    base = _OFF_CROSS
+    for i in range(ARCHETYPE_DIM):
+        vec[base + i] = float(a[i])
+    for i in range(ARCHETYPE_DIM):
+        vec[base + ARCHETYPE_DIM + i] = float(d[i])
+    for i in range(ARCHETYPE_DIM):
+        ai = float(a[i])
+        for j in range(ARCHETYPE_DIM):
+            vec[base + 2 * ARCHETYPE_DIM + i * ARCHETYPE_DIM + j] = ai * float(d[j])
 
 
 def _encode_room(vec: list, room: str):
@@ -164,52 +250,37 @@ def _encode_label(vec: list, label: str):
 
 
 def _encode_lookahead(vec: list, rooms):
-    """rooms: 预计算的每层房间类型名序列（len<=6）。"""
+    """rooms: 预计算的每层房间类型名序列（len<=12）。"""
     if not rooms:
         return
-    for i, room in enumerate(rooms[: _LOOKAHEAD_LAYERS]):
+    for i, room in enumerate(rooms[:_LOOKAHEAD_LAYERS]):
         if room is None:
             continue
         idx = LOOKAHEAD_ROOM_MAP.get(room, 3)  # 未列出的有效房间 → OTHER
         vec[_OFF_LOOKAHEAD + i * 4 + idx] = 1.0
 
 
-def _encode_card_effects(vec: list, name: str):
-    e = get_card_effects(name)
-    if not e:
-        return
-    base = _OFF_EFFECTS
-    vec[base + 0] = (e["base_damage"] or 0.0) / _DMG_NORM
-    vec[base + 1] = (e["base_block"] or 0.0) / _DMG_NORM
-    vec[base + 2] = (e["base_cost"] or 0.0) / _DMG_NORM
-    vec[base + 3] = 1.0 if e["is_power"] else 0.0
-    vec[base + 4] = 1.0 if e["is_aoe"] else 0.0
-    vec[base + 5] = (e["num_hits"] or 0.0) / _HITS_NORM
-    vec[base + 6] = (e["draw_count"] or 0.0) / _HITS_NORM
-    for i, k in enumerate(("exhausts", "self_damage", "retain",
-                           "scales_strength", "applies_vulnerable",
-                           "applies_weak", "gains_block_scaling",
-                           "is_status", "is_curse"), start=7):
-        vec[base + i] = 1.0 if e[k] else 0.0
-
-
 def encode_candidate(candidate, *, card: CardInfo = None,
                      room: str = None, bits: int = None,
-                     lookahead_rooms=None) -> list:
-    """把 Candidate 编码为 408 维特征向量（纯函数）。
+                     lookahead_rooms=None, deck_arch=None) -> list:
+    """把 Candidate 编码为 367 维特征向量（纯函数）。
 
     candidate: env.base_env.Candidate（读 kind/label）。
-    card: 候选对应的卡牌（卡牌奖励等），None 则卡牌段/效果段全零。
+    card: 候选对应的卡牌（卡牌奖励等），None 则卡牌段/语义段/交叉项全零。
     room: 候选指向的地图节点 Room 类型名，None 则房间段全零。
     bits: GameAction.bits，None 则数值段全零。
     lookahead_rooms: 地图前瞻的房间类型名序列（由调用方用 SpireMap 预计算），
         None/空则前瞻段全零。
+    deck_arch: 牌组五流派强度向量 [力量,格挡,消耗,自伤,状态]（5 维），
+        由 env 每步预计算传入；None 时交叉项段全零。
     """
     vec = [0.0] * DESC_VEC_DIM
     _encode_kind(vec, candidate.kind)
     if card is not None:
-        _encode_card(vec, card)
-        _encode_card_effects(vec, card.name)
+        _encode_card_attrs(vec, card)
+        _encode_card_onehot(vec, card)
+        _encode_semantic(vec, card.name)
+        _encode_cross(vec, card, deck_arch)
     if room is not None:
         _encode_room(vec, room)
     if bits is not None:

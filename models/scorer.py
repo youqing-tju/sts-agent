@@ -9,7 +9,7 @@ import torch.nn as nn
 
 
 class Scorer(nn.Module):
-    def __init__(self, obs_dim=412, cand_dim=408, hidden=(128, 128)):
+    def __init__(self, obs_dim=468, cand_dim=367, hidden=(128, 128)):
         super().__init__()
         layers = []
         d = obs_dim + cand_dim
@@ -37,7 +37,7 @@ class Scorer(nn.Module):
 class ValueNet(nn.Module):
     """状态价值网络：V(s) = MLP(obs)，PPO 的 critic。"""
 
-    def __init__(self, obs_dim=412, hidden=256):
+    def __init__(self, obs_dim=468, hidden=256):
         super().__init__()
         self.mlp = nn.Sequential(
             nn.Linear(obs_dim, hidden), nn.ReLU(),

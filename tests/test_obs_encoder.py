@@ -117,6 +117,35 @@ def test_encode_context_act_clamped_to_four():
         assert out[29:33] == [0, 0, 0, 1]
 
 
+def test_encode_context_map_zero_without_seed():
+    # 没有 seed 属性 -> 地图段全零（不重建 SpireMap）
+    gc = _FakeGC(potion_slots=[], act=1, room_name="MONSTER")
+    out = encode_context(gc)
+    assert out[25:29] == [0, 0, 0, 0]
+
+
+def test_encode_context_map_zero_when_act_ge_4():
+    # act>=4（心脏）-> 地图段全零，即使在 fake gc 上挂了 seed
+    gc = _FakeGC(potion_slots=[], act=4, room_name="MONSTER")
+    gc.seed = 12345
+    out = encode_context(gc)
+    assert out[25:29] == [0, 0, 0, 0]
+
+
+def test_encode_context_map_computed_with_seed():
+    # 有 seed 且 act<4 -> 真实重建 SpireMap，地图段非全零（依赖 slaythespire pyd）
+    slaythespire = pytest.importorskip("slaythespire")
+    gc = _FakeGC(potion_slots=[], act=1, room_name="MONSTER")
+    gc.seed = 12345
+    gc.cur_map_node_y = -1  # 构造时未进入地图
+    out = encode_context(gc)
+    map_summary = out[25:29]
+    assert len(map_summary) == 4
+    # 维度在 [0,1]，且至少一层有 ELITE/REST/SHOP/OTHER -> 非全零
+    assert all(0.0 <= v <= 1.0 for v in map_summary)
+    assert sum(map_summary) > 0
+
+
 # --------------------------------------------------------------------------
 # encode_deck_stats
 # --------------------------------------------------------------------------
@@ -140,7 +169,7 @@ def test_encode_deck_stats_all_none_returns_13_zeros():
 def test_encode_deck_stats_card_effects_none_stats_zero():
     # 给了 arch_table 但没给 card_effects -> 流派段可算（card_index 给了）而统计段全零
     card_index = [f"CARD_{i}" for i in range(110)]
-    arch_table = {"CARD_0": [1, 0, 0, 0, 0]}
+    arch_table = {"card_0": [1, 0, 0, 0, 0]}
     obs = _make_obs412({0: (5, 1)})
     out = encode_deck_stats(obs, card_index=card_index, arch_table=arch_table, card_effects=None)
     assert len(out) == 13
@@ -154,13 +183,13 @@ def test_encode_deck_stats_hand_computed():
     # CARD_0: 未升级2 + 升级1 = 总数3，力量权重1
     # CARD_1: 未升级3 + 升级0 = 总数3，格挡权重1
     arch_table = {
-        "CARD_0": [1, 0, 0, 0, 0],
-        "CARD_1": [0, 1, 0, 0, 0],
+        "card_0": [1, 0, 0, 0, 0],
+        "card_1": [0, 1, 0, 0, 0],
     }
     card_effects = {
-        "CARD_0": {"base_cost": 2, "is_attack": 1, "is_skill": 0,
+        "card_0": {"base_cost": 2, "is_attack": 1, "is_skill": 0,
                    "is_power": 0, "exhausts_self": 0, "is_status": 0},
-        "CARD_1": {"base_cost": 1, "is_attack": 0, "is_skill": 1,
+        "card_1": {"base_cost": 1, "is_attack": 0, "is_skill": 1,
                    "is_power": 0, "exhausts_self": 1, "is_status": 0},
     }
     obs = _make_obs412({0: (2, 1), 1: (3, 0)})
@@ -213,9 +242,9 @@ def test_enhance_observation_shape_and_prefix():
 def test_enhance_observation_with_deps():
     obs412 = [i % 5 for i in range(412)]
     card_index = [f"CARD_{i}" for i in range(110)]
-    arch_table = {"CARD_0": [1, 0, 0, 0, 0]}
+    arch_table = {"card_0": [1, 0, 0, 0, 0]}
     card_effects = {
-        "CARD_0": {"base_cost": 1, "is_attack": 1, "is_skill": 0,
+        "card_0": {"base_cost": 1, "is_attack": 1, "is_skill": 0,
                    "is_power": 0, "exhausts_self": 0, "is_status": 0},
     }
     out = enhance_observation(obs412, gc=None,
@@ -231,3 +260,30 @@ def test_enhance_observation_with_deps():
                                       arch_table=arch_table,
                                       card_effects=card_effects)
     assert out[412 + 43:468] == expected_deck
+
+
+def test_encode_deck_stats_real_starting_deck():
+    """用真实 CARD_INDEX + CARD_EFFECTS 验证归一化查表。
+
+    回归守卫：曾因 CARD_INDEX 的枚举名（"STRIKE_RED"）未归一化就去查
+    CARD_EFFECTS（键为 "strike"），导致 8 维牌组统计里 7 维静默全零。
+    仅用假卡名的测试发现不了这个 bug，必须用真实数据。
+    """
+    import slaythespire as sts
+    from models.card_data import CARD_ARCHETYPE, CARD_EFFECTS
+    from models.card_index import CARD_INDEX
+
+    gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 1, 0)
+    raw = list(sts.getNNInterface().getObservation(gc))
+    out = encode_deck_stats(raw, CARD_INDEX, CARD_ARCHETYPE, CARD_EFFECTS)
+    assert len(out) == 13
+
+    # 铁甲起始牌组 10 张 = 5 打击(攻,1费) + 4 防御(技,1费) + 1 重击(攻,2费)
+    stats = out[5:13]
+    assert stats[0] == pytest.approx(10 / 40)                        # 总牌数/40
+    assert stats[1] == pytest.approx(6 / 10)                         # 攻击占比
+    assert stats[2] == pytest.approx(4 / 10)                         # 技能占比
+    assert stats[4] == pytest.approx((5 * 1 + 4 * 1 + 1 * 2) / 10 / 3)  # 平均费用/3
+
+    # 防御带格挡权重，流派强度不应全零
+    assert any(v > 0 for v in out[0:5])

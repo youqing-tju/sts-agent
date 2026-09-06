@@ -12,7 +12,8 @@
 在本文件之后追加 56 维：
     段1  24  持有药水种类 one-hot（24 种常见药水）
     段2   1  药水数量 /5
-    段3   4  地图摘要：前方 6 层 ELITE/REST/SHOP/OTHER 计数（各 /6）  —— 当前 API 拿不到，永久退化全零
+    段3   4  地图摘要：前方 6 层 ELITE/REST/SHOP/OTHER 计数（各 /6）
+           通过 sts.SpireMap(seed, ascension, act, False) 重建（不挂在 gc.map 上）
     段4   5  牌组流派强度（力量/格挡/消耗/自伤/状态，raw/total 归一化到 [0,1]）
     段5   8  牌组派生统计（总牌数/40、攻击占比、技能占比、能力数/10、平均费用/3、消耗牌数/10、状态牌数/10、升级数/20）
     段6   4  Act one-hot（Act 1-4）
@@ -21,10 +22,8 @@
 依赖注入：card_index / arch_table / card_effects 都是可选参数，由别的 worker
 并行产出。缺失时对应段安静填 0，绝不抛异常。
 
-CARD_INDEX（长度 110）的确定方式见文件底部注释：从 Cards.h 的 cardColors /
-cardEnumStrings 解析出 RED 卡（75 张，按 CardId 枚举序），再追加
-srcColorlessCardPool（35 张，按枚举名排序），并用运行时观测实证核对
-（STRIKE_RED→66、DEFEND_RED→19、BASH→3）。
+CARD_INDEX（长度 110）直接来自 models/card_index.py（同源生成，起始牌组实测
+STRIKE_RED→66、DEFEND_RED→19、BASH→3 与 obs[14:234] 一致，见该模块注释）。
 """
 
 from typing import Dict, List, Optional, Sequence
@@ -55,36 +54,14 @@ assert CTX_DIM + DECK_DIM == OBS_EXTRA_DIM
 # --------------------------------------------------------------------------
 # 卡序（obs[14 + i*2] / obs[14 + i*2 + 1]）
 # --------------------------------------------------------------------------
-# 与 C++ createOneHotCardEncodingMap（bindings-util.cpp:91）的卡序严格一致：
-#   1) 从 CardId::INVALID 到 CardId::ZAP 中 color==RED 的卡，按枚举序
-#   2) srcColorlessCardPool（35 张），按 getCardEnumName 字符串升序
-CARD_INDEX: List[str] = [
-    # --- 75 张 RED 卡（按 CardId 枚举序） ---
-    "ANGER", "ARMAMENTS", "BARRICADE", "BASH", "BATTLE_TRANCE", "BERSERK",
-    "BLOODLETTING", "BLOOD_FOR_BLOOD", "BLUDGEON", "BODY_SLAM", "BULLET_TIME",
-    "BURNING_PACT", "CARNAGE", "CLASH", "CLEAVE", "CLOTHESLINE", "CONCENTRATE",
-    "CORRUPTION", "DARK_EMBRACE", "DEFEND_RED", "DEMON_FORM", "DISARM",
-    "DOUBLE_TAP", "DROPKICK", "DUAL_WIELD", "ENTRENCH", "EVOLVE", "EXHUME",
-    "FEED", "FEEL_NO_PAIN", "FIEND_FIRE", "FIRE_BREATHING", "FLAME_BARRIER",
-    "FLEX", "GHOSTLY_ARMOR", "HAVOC", "HEADBUTT", "HEAVY_BLADE", "HEMOKINESIS",
-    "IMMOLATE", "IMPERVIOUS", "INFERNAL_BLADE", "INFLAME", "INTIMIDATE",
-    "IRON_WAVE", "JUGGERNAUT", "LIMIT_BREAK", "METALLICIZE", "OFFERING",
-    "PERFECTED_STRIKE", "POMMEL_STRIKE", "POWER_THROUGH", "PUMMEL", "RAGE",
-    "RAMPAGE", "REAPER", "RECKLESS_CHARGE", "RUPTURE", "SEARING_BLOW",
-    "SECOND_WIND", "SEEING_RED", "SENTINEL", "SEVER_SOUL", "SHOCKWAVE",
-    "SHRUG_IT_OFF", "SPOT_WEAKNESS", "STRIKE_RED", "SWORD_BOOMERANG",
-    "THUNDERCLAP", "TRUE_GRIT", "TWIN_STRIKE", "UPPERCUT", "WARCRY",
-    "WHIRLWIND", "WILD_STRIKE",
-    # --- 35 张 colorless（按枚举名升序） ---
-    "APOTHEOSIS", "BANDAGE_UP", "BLIND", "CHRYSALIS", "DARK_SHACKLES",
-    "DEEP_BREATH", "DISCOVERY", "DRAMATIC_ENTRANCE", "ENLIGHTENMENT", "FINESSE",
-    "FLASH_OF_STEEL", "FORETHOUGHT", "GOOD_INSTINCTS", "HAND_OF_GREED",
-    "IMPATIENCE", "JACK_OF_ALL_TRADES", "MADNESS", "MAGNETISM", "MASTER_OF_STRATEGY",
-    "MAYHEM", "METAMORPHOSIS", "MIND_BLAST", "PANACEA", "PANACHE", "PANIC_BUTTON",
-    "PURITY", "SADISTIC_NATURE", "SECRET_TECHNIQUE", "SECRET_WEAPON",
-    "SWIFT_STRIKE", "THE_BOMB", "THINKING_AHEAD", "TRANSMUTATION", "TRIP",
-    "VIOLENCE",
-]
+# 直接复用 models/card_index.py 的 CARD_INDEX（与该模块由同一份 C++ 源码生成，
+# 起始牌组实测 STRIKE_RED=66 / DEFEND_RED=19 / BASH=3 与 obs[14:234] 一致）。
+# 不要在本文件再复制一份，避免两处漂移。
+from .card_index import CARD_INDEX  # noqa: E402  (放在模块中部，仅依赖已定义的常量)
+from .card_data import normalize_card_name  # noqa: E402
+
+# CARD_INDEX 里的卡名是 CardId 枚举名（如 "STRIKE_RED"），而 CARD_ARCHETYPE /
+# CARD_EFFECTS 两张表按归一化名（"strike"）做键，查表前必须先归一化，否则查不到。
 
 NUM_CARDS = len(CARD_INDEX)  # 110
 assert NUM_CARDS == 110, NUM_CARDS
@@ -174,10 +151,59 @@ def _encode_potion_count(gc) -> List[float]:
 
 
 def _encode_map_summary(gc) -> List[float]:
-    # 当前 bindings（slaythespire.cpp）未暴露 gc.map，无法取得“前方 6 层”的
-    # 节点类型，因此该段永久为全零。若未来暴露 map 对象，可在此实现
-    # ELITE/REST/SHOP/OTHER 计数（各 /6）。详见发送给 team-lead 的报告。
-    return [0.0] * CTX_MAP_DIM
+    """地图摘要（4 维）：前方 6 层 ELITE/REST/SHOP/OTHER 计数，各 /6。
+
+    地图不挂在 gc.map 上，而是按 (seed, ascension, act) 用 sts.SpireMap
+    重建（一幕内地图不变，等价于读 gc 的 map）。实现参照 env/lightspeed_env.py
+    的 _spire_map() / compute_map_lookahead()。
+
+    - y0 = gc.cur_map_node_y；start = 0 if y0 == -1 else y0 + 1
+    - 遍历 layer in [start, start+6)、x in range(7)，取 m.get_room_type(x, layer).name
+    - 跳过 "INVALID"/"NONE"，分到 ELITE/REST/SHOP/OTHER 四桶，各桶 /6 归一化
+    - gc.act >= 4 或拿不到 seed 时全零；任何异常安静降级为全零
+
+    slaythespire 在模块加载时不做硬依赖（懒导入），保证无 pyd 环境下也能 import。
+    """
+    vec = [0.0] * CTX_MAP_DIM
+    act = getattr(gc, "act", None)
+    # act 缺失 / 非正整数 / 进入第 4 幕（心脏）-> 全零
+    if not isinstance(act, int) or act < 1 or act >= 4:
+        return vec
+    seed = getattr(gc, "seed", None)
+    if seed is None:
+        return vec
+    asc = getattr(gc, "ascension", 0) or 0
+    y0 = getattr(gc, "cur_map_node_y", -1)
+    try:
+        import slaythespire as sts  # 懒导入，避免无 pyd 环境 import 失败
+        m = sts.SpireMap(int(seed), int(asc), int(act), False)
+    except Exception:
+        return vec
+
+    start = 0 if y0 == -1 else y0 + 1
+    buckets = {"ELITE": 0.0, "REST": 0.0, "SHOP": 0.0, "OTHER": 0.0}
+    for layer in range(start, start + 6):
+        for x in range(7):
+            try:
+                name = m.get_room_type(x, layer).name
+            except Exception:
+                continue
+            if name in ("INVALID", "NONE"):
+                continue
+            if name == "ELITE":
+                buckets["ELITE"] += 1
+            elif name == "REST":
+                buckets["REST"] += 1
+            elif name == "SHOP":
+                buckets["SHOP"] += 1
+            else:
+                buckets["OTHER"] += 1
+    return [
+        max(0.0, min(1.0, buckets["ELITE"] / 6.0)),
+        max(0.0, min(1.0, buckets["REST"] / 6.0)),
+        max(0.0, min(1.0, buckets["SHOP"] / 6.0)),
+        max(0.0, min(1.0, buckets["OTHER"] / 6.0)),
+    ]
 
 
 def _encode_act(gc) -> List[float]:
@@ -246,7 +272,7 @@ def encode_deck_stats(
         raw = [0.0] * DECK_ARCH_DIM
         total = 0
         for i in range(min(NUM_CARDS, len(ci))):
-            name = ci[i]
+            name = normalize_card_name(ci[i])
             c = _deck_count(obs412, i)
             if c == 0:
                 continue
@@ -268,7 +294,7 @@ def encode_deck_stats(
         cost_sum = 0.0
         upgraded = 0
         for i in range(min(NUM_CARDS, len(ci))):
-            name = ci[i]
+            name = normalize_card_name(ci[i])
             c = _deck_count(obs412, i)
             total += c
             upgraded += _upgraded_count(obs412, i)
@@ -330,17 +356,14 @@ def enhance_observation(
 
 
 # --------------------------------------------------------------------------
-# CARD_INDEX 确定方式与实证验证（说明用，不执行）
+# 说明（不执行）
 # --------------------------------------------------------------------------
-# 方法：读 C++ 头文件 third_party/sts_lightspeed/include/constants/Cards.h
-#   - cardEnumStrings[]（下标 == CardId 整数值）给出卡名
-#   - cardColors[]       给出每个 CardId 的颜色
-#   RED 卡 = cardColors[i]==CardColor::RED 的那些，按 i 升序（即枚举序）。
-#   colorless 段 = srcColorlessCardPool（35 张，CardPools.h），按
-#   getCardEnumName 字符串升序排序（等价于 Python 枚举成员名排序）。
-# 验证：用 .venv 跑运行时 obs，铁甲战士起始牌组为 5 Strike / 4 Defend / 1 Bash，
-#   核对 obs[14:234] 的非零位与 CARD_INDEX 下标：
-#       STRIKE_RED -> idx 66（obs 偏移 14+66*2=146，计数 5）
-#       DEFEND_RED -> idx 19（obs 偏移 52，计数 4）
-#       BASH       -> idx 3 （obs 偏移 20，计数 1）
-#   三项全部吻合（见 tmp_gen_card_index.py）。
+# CARD_INDEX 现直接 import 自 models/card_index.py（同源：Cards.h 的 cardColors /
+# cardEnumStrings + CardPools.h 的 srcColorlessCardPool，起始牌组实测
+# STRIKE_RED→66 / DEFEND_RED→19 / BASH→3 与 obs[14:234] 一致）。
+#
+# 地图摘要（_encode_map_summary）按 env/lightspeed_env.py:251 _spire_map() 的做法，
+# 用 sts.SpireMap(gc.seed, getattr(gc,'ascension',0), gc.act, False) 重建地图
+# （一幕内地图不变，等价于读 gc 的 map），再对前方 6 层 × 7 列做 ELITE/REST/
+# SHOP/OTHER 桶计数（各 /6）。在沙箱中 gc.ascension 字段经探测不存在，故用
+# getattr(gc,'ascension',0) 缺省为 0；act>=4 或无 seed 时退化全零。
