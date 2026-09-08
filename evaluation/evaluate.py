@@ -158,12 +158,15 @@ def main(argv=None):
                    help="Scorer 权重路径；设定后用该权重的 greedy 策略评估")
     p.add_argument("--obs-dim", type=int, default=468, help="观测维度（对照=412）")
     p.add_argument("--cand-dim", type=int, default=367, help="候选维度（对照=408）")
+    p.add_argument("--hidden", default="512,256",
+                   help="Scorer 隐藏层，逗号分隔。PPO=512,256；REINFORCE=128,128")
     p.add_argument("--log-dir", default=None, help="可选：JSONL 日志目录")
     args = p.parse_args(argv)
 
     if args.checkpoint:
+        hidden = tuple(int(x) for x in args.hidden.split(",") if x.strip())
         policy = GreedyScorerPolicy(args.checkpoint, obs_dim=args.obs_dim,
-                                    cand_dim=args.cand_dim)
+                                    cand_dim=args.cand_dim, hidden=hidden)
         pname = args.checkpoint
     else:
         policy = _make_policy(args.policy)
