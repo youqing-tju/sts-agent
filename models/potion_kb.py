@@ -83,6 +83,14 @@ _POTION_RAW = {
     "Weak Potion":       dict(category="STATUS",  rarity="COMMON",  ci=1, co=1, power=0.40, weak=0.40),
     "Fear Potion":       dict(category="STATUS",  rarity="COMMON",  ci=1, co=1, power=0.45, vuln=0.40),
     "Swift Potion":      dict(category="DRAW",    rarity="COMMON",  ci=1, co=1, power=0.40, draw=0.40),
+    # 以下 7 个为官方 Common 通用药水，首版 KB 遗漏（wiki 42 种全表核验补录）
+    "Attack Potion":     dict(category="ATTACK",  rarity="COMMON",  ci=1, co=1, power=0.45, damage=0.30),  # 选1攻击牌0费打出
+    "Dexterity Potion":  dict(category="DEFENSE", rarity="COMMON",  ci=1, co=1, power=0.50, block=0.40),   # +2敏捷
+    "Speed Potion":      dict(category="DEFENSE", rarity="COMMON",  ci=1, co=1, power=0.45, block=0.50),   # +5临时敏捷
+    "Power Potion":      dict(category="OTHER",   rarity="COMMON",  ci=1, co=1, power=0.50),                # 选1能力牌0费打出
+    "Skill Potion":      dict(category="OTHER",   rarity="COMMON",  ci=1, co=1, power=0.40),                # 选1技能牌0费打出
+    "Colorless Potion":  dict(category="OTHER",   rarity="COMMON",  ci=1, co=1, power=0.40),                # 选1无色牌0费打出
+    "Blessing of the Forge": dict(category="OTHER", rarity="COMMON", ci=1, co=0, power=0.60),               # 升级手牌所有牌(本场战斗)
 
     # ---- 通用药水·罕见（报告 9.3）----
     "Liquid Bronze":     dict(category="DEFENSE", rarity="UNCOMMON",ci=1, co=1, power=0.40, block=0.30, thorns=0.40),
@@ -91,7 +99,10 @@ _POTION_RAW = {
     "Gambler's Brew":    dict(category="DRAW",    rarity="UNCOMMON",ci=1, co=1, power=0.40, draw=0.40),
     "Liquid Memories":   dict(category="DRAW",    rarity="UNCOMMON",ci=1, co=1, power=0.45, draw=0.45),
     "Duplication Potion":dict(category="OTHER",  rarity="UNCOMMON",ci=1, co=1, power=0.50),
-    "Smoke Bomb":        dict(category="OTHER",   rarity="UNCOMMON",ci=1, co=0, power=0.30),
+    # 以下 2 个为官方 Uncommon 通用药水，首版 KB 遗漏
+    "Ancient Potion":    dict(category="DEFENSE", rarity="UNCOMMON",ci=1, co=1, power=0.50, block=0.40),   # +1人工制品
+    "Distilled Chaos":   dict(category="DRAW",    rarity="UNCOMMON",ci=1, co=1, power=0.50, draw=0.60),   # 打出牌堆顶3张
+    "Smoke Bomb":        dict(category="OTHER",   rarity="RARE",    ci=1, co=0, power=0.30),              # 非boss战斗逃离（官方为 Rare，首版误标 Uncommon）
 
     # ---- 通用药水·稀有（报告 9.3，高价值）----
     "Cultist Potion":    dict(category="STRENGTH",rarity="RARE",    ci=1, co=1, power=0.85, strength=0.80),  # 力量流神级（仪式匕首每回合+1力量）

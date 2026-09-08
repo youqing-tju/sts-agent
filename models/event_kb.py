@@ -21,15 +21,15 @@
 （= `event_name`）与 `event_option_idx`（= `bits.idx1`），因此
 `get_event_option_features` 在事件名被本 KB 收录时**会真正非零**。
 
-覆盖率现状（30 种子实测，15 个相异事件名）：
-- 直接命中（display name == 一级 key，经 normalize_event_key）：11 个
-  （The Cleric / Living Wall / Wing Statue / The Ssssserpent / Shining Light /
-   Golden Shrine / Scrap Ooze / Face Trader / The Divine Fountain /
-   We Meet Again! / Wheel of Change）。
-- **未收录、运行时事件 KB 段全零**：4 个——Big Fish、Golden Idol、
-  NEOW、Note For Yourself（均为真实事件但 KB 尚未录入其选项数据）。
-  这些是「数据缺失」而非「命名错配」，故不需要别名映射；是否补齐或
-  砍掉事件 KB 20 维由 team-lead 按覆盖率决定。
+覆盖率现状（30 种子实测 15 个相异事件 + 后续补录）：
+- 已收录：The Cleric / Living Wall / Wing Statue / The Ssssserpent /
+  Shining Light / Golden Shrine / Scrap Ooze / Face Trader / The Divine Fountain /
+  We Meet Again! / Wheel of Change（原 11 个），另补录 NEOW、Big Fish、
+  Golden Idol、Note For Yourself、The Library（5 个，官方 Wiki 核验）。
+- 已知仍未覆盖：World of Goop（Act 1）、Cursed Tome 等较冷门事件——
+  若运行时遇到会返回 20 维全零（合法降级，非命名错配）。
+- NEOW 选项内容动态（祝福池随机 + 选项数 2/4 随上一局是否打到 Boss 变化），
+  仅 Fourth Blessing（替换初始遗物为 Boss 遗物）是确定性 RELIC，其余标 OTHER。
 
 20 维布局（总数严格 20）
 =======================
@@ -128,7 +128,33 @@ def _opt(cat, *, hp_cost=0.0, max_hp_cost=0.0, gold=0.0, curse=0,
 # ---- EVENT_KB：一级 key = 事件规范名（Slay the Spire 事件 id），
 #             value["options"] = 按选项序号(0-based)排列的选项记录列表 ----
 EVENT_KB = {
+    # ===================== 开局事件（每局必现）=====================
+    "NEOW": {
+        # 注：NEOW 祝福选项内容动态（从祝福池随机），且选项数随上一局
+        # 是否打到 Boss 在 2/4 之间变化。此处按最常见的 4 选项模式编码：
+        # 前三个祝福内容随机故标 OTHER，第四个（替换初始遗物为随机
+        # Boss 遗物）是唯一确定性选项。
+        "options": [
+            _opt("OTHER", rating=3),   # First Blessing：牌库祝福（删卡/变化/升级/选卡/无色/稀有，随机）
+            _opt("OTHER", rating=3),   # Second Blessing：奖励（+8最大生命/Neow's Lament/普通遗物/100金/3药水，随机）
+            _opt("OTHER", rating=2),   # Third Blessing：劣势+更大奖励（有随机代价）
+            _opt("RELIC", relic=1, rating=4),  # Fourth Blessing：替换初始遗物为随机 Boss 遗物（确定）
+        ]
+    },
     # ===================== Act 1 =====================
+    "Big Fish": {
+        "options": [
+            _opt("HEAL", rating=3),            # [Banana] 治疗 1/3 最大生命
+            _opt("HEAL", rating=4),            # [Donut] 最大生命 +5
+            _opt("RELIC", relic=1, curse=1, rating=2),  # [Box] 随机遗物 + 诅咒「悔恨」
+        ]
+    },
+    "Golden Idol": {
+        "options": [
+            _opt("RELIC", relic=1, rating=3),  # [Grab] 获得遗物「金神像」（后续选代价）
+            _opt("OTHER", rating=3),           # [Leave] 离开
+        ]
+    },
     "The Cleric": {
         "options": [
             _opt("HEAL", gold=-75, rating=3),          # 治疗 35HP，花费 75 金币
@@ -188,6 +214,12 @@ EVENT_KB = {
         ]
     },
     # ===================== Act 2 =====================
+    "The Library": {
+        "options": [
+            _opt("OTHER", rating=4),           # [Read] 从 20 张卡选 1 张加入牌组
+            _opt("HEAL", rating=3),            # [Sleep] 治疗 33% 最大生命（A15+ 20%）
+        ]
+    },
     "Face Trader": {
         "options": [
             _opt("RELIC", relic=1, rating=4),          # 交易：随机 5 张脸遗物之一
@@ -215,6 +247,12 @@ EVENT_KB = {
         ]
     },
     # ===================== 全 Act 通用神龛 =====================
+    "Note For Yourself": {
+        "options": [
+            _opt("OTHER", rating=3),           # [Take and Give] 取回存储卡 + 存一张卡
+            _opt("OTHER", rating=2),           # [Ignore] 无事发生
+        ]
+    },
     "Purifier": {
         "options": [
             _opt("REMOVE", remove=1, rating=5),        # 祈祷：删除一张卡

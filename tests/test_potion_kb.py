@@ -85,4 +85,4 @@ def test_category_onehot_mutually_exclusive():
 
 
 def test_coverage_count():
-    assert len(POTION_KB) == 24
+    assert len(POTION_KB) == 33

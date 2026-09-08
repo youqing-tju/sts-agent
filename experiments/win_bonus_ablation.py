@@ -29,7 +29,7 @@ from training.run_training import _GreedyPolicy
 
 def run_group(win_bonus, init_state, args):
     """单组：热启动 -> 训练 -> 留出种子评估，返回汇总 dict。"""
-    scorer = Scorer(obs_dim=412, cand_dim=408, hidden=(128, 128))
+    scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(128, 128))
     scorer.load_state_dict(copy.deepcopy(init_state))
 
     log_dir = os.path.join(args.log_dir, f"win_bonus_{win_bonus:g}")

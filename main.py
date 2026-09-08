@@ -8,7 +8,7 @@
 决策架构：
 - 宏观决策（选路/卡牌奖励/篝火/事件/商店）：
   真实游戏 JSON → GameContext.init_from_json 灌入模拟器 → get_all_actions
-  枚举动作 → 408 维候选编码 + 412 维观测 → Scorer 打分 argmax →
+  枚举动作 → 368 维候选编码 + 412 维观测 → Scorer 打分 argmax →
   把选中的 GameAction.bits 翻译成 Communication Mod 命令发回真实游戏。
 - 战斗出牌：v1 保持简单启发式（出第一张能出的牌，出不了 END），
   MCTS 战斗接入是后续任务。
@@ -103,7 +103,7 @@ class SimBrain:
         self.scorer = None
         if os.path.exists(checkpoint_path):
             try:
-                self.scorer = Scorer(obs_dim=412, cand_dim=408, hidden=(128, 128))
+                self.scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(128, 128))
                 self.scorer.load_state_dict(
                     torch.load(checkpoint_path, weights_only=True))
                 self.scorer.eval()

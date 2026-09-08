@@ -134,10 +134,35 @@ def test_rating_out_of_vector_and_separate():
 
 
 def test_kb_coverage_counts():
-    # 报告第七章录入：24 个事件、55 个选项（作为回归基线，改动录入需同步更新）
-    assert event_count() == 24
-    assert option_count() == 55
+    # 报告第七章录入 + 官方 Wiki 补录（NEOW/Big Fish/Golden Idol/Note For Yourself/The Library）
+    assert event_count() == 29
+    assert option_count() == 68
     assert len(CATEGORY_LIST) == 12
+
+
+def test_neow_fourth_blessing_is_relic():
+    # NEOW 第四祝福（替换初始遗物为随机 Boss 遗物）是唯一确定性选项：
+    # A 段 idx6(RELIC)=1，B 段 idx18(relic_gain)=1，其余 0
+    v = get_event_option_features("NEOW", 3)
+    assert v[6] == 1.0                      # RELIC 类别
+    assert v[18] == 1.0                     # relic_gain
+    assert v[15] == 0.0                     # 无诅咒
+    assert sum(v[0:12]) == 1.0              # 类别 one-hot 恰好一个 1
+
+
+def test_big_fish_box_relic_and_curse():
+    # Big Fish [Box]：随机遗物 + 诅咒「悔恨」
+    # A 段 idx6(RELIC)=1，B 段 idx15(curse)=1 + idx18(relic)=1
+    v = get_event_option_features("Big Fish", 2)
+    assert v[6] == 1.0                      # RELIC 类别
+    assert v[15] == 1.0                     # curse
+    assert v[18] == 1.0                     # relic_gain
+
+
+def test_the_library_sleep_heals():
+    # The Library [Sleep]：治疗 33% 最大生命
+    v = get_event_option_features("The Library", 1)
+    assert v[5] == 1.0                      # HEAL 类别
 
 
 # ---- 测试内部工具 ----

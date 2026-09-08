@@ -453,7 +453,7 @@ def test_event_kb_the_cleric_opt1():
 
 def test_event_kb_unknown_event_zero():
     """未收录事件名 → 事件 KB 段全零（不抛异常，供后续补齐）。"""
-    vec = encode_candidate(_cand(), event_key="NEOW", event_option_idx=0)
+    vec = encode_candidate(_cand(), event_key="World of Goop", event_option_idx=0)
     seg = vec[_OFF_KB_EVENT:_OFF_KB_EVENT + _EVENT_KB_DIM]
     assert all(x == 0.0 for x in seg)
 
