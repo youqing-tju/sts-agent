@@ -17,6 +17,9 @@ from models.candidate_encoder import (
     ROOM_LIST,
     SEMANTIC_KEYS,
     SEMANTIC_DIM,
+    _OFF_POTION,
+    _OFF_RELIC,
+    _OFF_EVENT,
     compute_map_lookahead,
     decode_action_bits,
     encode_candidate,
@@ -32,12 +35,20 @@ _OFF_ROOM = 205
 _OFF_NUM = 215
 _OFF_LOOKAHEAD = 223
 _OFF_LABEL = 271
+# 367→443 追加段偏移
+_OFF_KB_POTION = _OFF_POTION      # 367
+_OFF_KB_RELIC = _OFF_RELIC        # 391
+_OFF_KB_EVENT = _OFF_EVENT        # 423
 
 # 卡牌精确 one-hot 维度（= CARD_INDEX_SIZE）
 _CARD_ONEHOT_DIM = 110
 # 流派交叉项维度 = 5 + 5 + 25
 _CROSS_DIM = ARCHETYPE_DIM * ARCHETYPE_DIM + 2 * ARCHETYPE_DIM  # 35
 _LOOKAHEAD_LAYERS = 12
+# KB 三段维度
+_POTION_KB_DIM = 24
+_RELIC_KB_DIM = 32
+_EVENT_KB_DIM = 20
 
 
 def _cand(kind="ACTION", label="action_0x00000000", idx=0):
@@ -46,25 +57,38 @@ def _cand(kind="ACTION", label="action_0x00000000", idx=0):
 
 # ---- 维度 ----
 
-def test_dim_is_367():
+def test_dim_is_443():
     vec = encode_candidate(_cand())
-    assert len(vec) == 367
+    assert len(vec) == 443
     assert len(vec) == DESC_VEC_DIM
-    # 后端：语义段确实是 38 维、交叉项 35 维
+    # 原 0–366 段布局未变：语义段 38 维、交叉项 35 维
     assert SEMANTIC_DIM == 38
     assert _CROSS_DIM == 35
+    # 追加段偏移/维度自检
+    assert _OFF_KB_POTION == 367
+    assert _OFF_KB_RELIC == 391
+    assert _OFF_KB_EVENT == 423
+    assert _POTION_KB_DIM == 24
+    assert _RELIC_KB_DIM == 32
+    assert _EVENT_KB_DIM == 20
 
 
 def test_layout_offsets_sum_to_dim():
-    # 段 1..9 偏移与维度自检，确保总和为 367，无重叠/空洞
+    # 段 1..9（0–366）偏移与维度自检
     assert _OFF_SEMANTIC - _OFF_CARD_ONEHOT == _CARD_ONEHOT_DIM   # 110
     assert _OFF_CROSS - _OFF_SEMANTIC == SEMANTIC_DIM            # 38
     assert _OFF_ROOM - _OFF_CROSS == _CROSS_DIM                 # 35
     assert _OFF_NUM - _OFF_ROOM == len(ROOM_LIST)               # 10
     assert _OFF_LOOKAHEAD - _OFF_NUM == 8                       # 8
-    assert DESC_VEC_DIM - _OFF_LABEL == 96                      # 96
+    assert _OFF_LABEL - _OFF_LOOKAHEAD == _LOOKAHEAD_LAYERS * 4  # 48
+    # label 段宽度固定 96，由新段起点推导，与总维解耦
+    assert _OFF_KB_POTION - _OFF_LABEL == 96                    # 原 0–366 段一字未动
     assert _OFF_LABEL == 271
-    assert DESC_VEC_DIM == 367
+    # 追加三段紧贴，末尾回到总维
+    assert _OFF_KB_RELIC - _OFF_KB_POTION == _POTION_KB_DIM     # 24
+    assert _OFF_KB_EVENT - _OFF_KB_RELIC == _RELIC_KB_DIM       # 32
+    assert DESC_VEC_DIM - _OFF_KB_EVENT == _EVENT_KB_DIM        # 20
+    assert DESC_VEC_DIM == 443
 
 
 # ---- 确定性 ----
@@ -102,9 +126,9 @@ def test_unknown_kind_raises():
 
 def test_zero_input_no_crash():
     vec = encode_candidate(_cand("ACTION", label=""), bits=None)
-    assert len(vec) == 367
+    assert len(vec) == 443
     assert sum(vec[:10]) == 1.0            # kind 仍有 one-hot
-    assert all(x == 0.0 for x in vec[10:])  # 其余全零
+    assert all(x == 0.0 for x in vec[10:])  # 其余（含 KB 三段）全零
 
 
 # ---- 卡牌属性段 [10,22) ----
@@ -321,9 +345,9 @@ def test_no_bits_numeric_zero():
 
 def test_label_hash_96_buckets():
     vec = encode_candidate(_cand(label="Take Strike upgraded"))
-    seg = vec[_OFF_LABEL:DESC_VEC_DIM]
+    seg = vec[_OFF_LABEL:_OFF_KB_POTION]       # label 段固定 96 宽，不受总维变化影响
     assert len(seg) == 96                      # 96 桶兜底哈希
-    assert _OFF_LABEL >= 271 and DESC_VEC_DIM == 367
+    assert _OFF_LABEL == 271
     assert sum(seg) >= 1.0                     # 至少命中一个桶
     assert all(x in (0.0, 1.0) for x in seg)   # multi-hot
 
@@ -331,13 +355,13 @@ def test_label_hash_96_buckets():
 def test_different_labels_differ():
     v1 = encode_candidate(_cand(label="Take Strike"))
     v2 = encode_candidate(_cand(label="Take Bash"))
-    assert v1[_OFF_LABEL:DESC_VEC_DIM] != v2[_OFF_LABEL:DESC_VEC_DIM]
+    assert v1[_OFF_LABEL:_OFF_KB_POTION] != v2[_OFF_LABEL:_OFF_KB_POTION]
 
 
 def test_same_label_same_hash():
     v1 = encode_candidate(_cand("REWARD", "hello world"))
     v2 = encode_candidate(_cand("SHOP_ITEM", "hello world"))
-    assert v1[_OFF_LABEL:DESC_VEC_DIM] == v2[_OFF_LABEL:DESC_VEC_DIM]
+    assert v1[_OFF_LABEL:_OFF_KB_POTION] == v2[_OFF_LABEL:_OFF_KB_POTION]
 
 
 # ---- 地图前瞻段 [223,271)（12 层 × 4）----
@@ -377,3 +401,74 @@ def test_compute_map_lookahead_greedy():
 
     out = compute_map_lookahead(0, 0, room_fn, edge_fn)
     assert out == ["ELITE", "SHOP"]
+
+
+# ---- KB 三段 [367,443)（367→443 追加；手算期望值，None 时全零）----
+
+def test_kb_segments_zero_when_none():
+    """未传 KB 参数时，367+ 三段整段全零（纯函数）。"""
+    vec = encode_candidate(_cand())
+    assert all(x == 0.0 for x in vec[_OFF_KB_POTION:])
+    vec2 = encode_candidate(_cand(), potion_name=None, relic_name=None,
+                            event_key=None, event_option_idx=None)
+    assert all(x == 0.0 for x in vec2[_OFF_KB_POTION:])
+
+
+def test_potion_kb_blood_potion():
+    """Blood Potion：HEAL 类 / 战斗内外可用 / COMMON / 强度0.5 / 治疗0.5。"""
+    vec = encode_candidate(_cand(), potion_name="Blood Potion")
+    seg = vec[_OFF_KB_POTION:_OFF_KB_POTION + _POTION_KB_DIM]
+    assert seg[4] == 1.0                       # 类别 HEAL one-hot
+    assert seg[8] == 1.0 and seg[9] == 1.0     # 战斗内/外可用
+    assert seg[10] == 1.0                      # 稀有度 COMMON one-hot
+    assert seg[13] == pytest.approx(0.50)      # 综合强度
+    assert seg[14] == pytest.approx(0.50)      # 治疗分档
+    nz = [i for i, v in enumerate(seg) if v != 0.0]
+    assert nz == [4, 8, 9, 10, 13, 14]
+
+
+def test_relic_kb_burning_blood():
+    """Burning Blood：COMMON / 铁甲专属 / 强度0.3 / 治疗0.3 / 契合0.5。"""
+    vec = encode_candidate(_cand(), relic_name="Burning Blood")
+    seg = vec[_OFF_KB_RELIC:_OFF_KB_RELIC + _RELIC_KB_DIM]
+    assert seg[5] == 1.0                       # 来源 COMMON one-hot
+    assert seg[11] == 1.0                      # 铁甲战士专属
+    assert seg[18] == pytest.approx(0.30)      # 综合强度
+    assert seg[23] == pytest.approx(0.30)      # 治疗分档
+    assert seg[31] == pytest.approx(0.50)      # 铁甲契合度
+    nz = [i for i, v in enumerate(seg) if v != 0.0]
+    assert nz == [5, 11, 18, 23, 31]
+
+
+def test_event_kb_the_cleric_opt1():
+    """The Cleric 选项1 = 删卡(gold=-50, remove=1)：REMOVE one-hot + 代价段。"""
+    vec = encode_candidate(_cand(), event_key="The Cleric", event_option_idx=1)
+    seg = vec[_OFF_KB_EVENT:_OFF_KB_EVENT + _EVENT_KB_DIM]
+    assert seg[0] == 1.0                       # 类别 REMOVE one-hot
+    assert seg[14] == pytest.approx(-50.0 / 300.0)  # 净金币 -50 → 有符号归一化
+    assert seg[16] == pytest.approx(1.0 / 3.0)       # 删卡 1 张 → /3
+    nz = [i for i, v in enumerate(seg) if v != 0.0]
+    assert nz == [0, 14, 16]
+
+
+def test_event_kb_unknown_event_zero():
+    """未收录事件名 → 事件 KB 段全零（不抛异常，供后续补齐）。"""
+    vec = encode_candidate(_cand(), event_key="NEOW", event_option_idx=0)
+    seg = vec[_OFF_KB_EVENT:_OFF_KB_EVENT + _EVENT_KB_DIM]
+    assert all(x == 0.0 for x in seg)
+
+
+def test_old_0_366_unchanged_with_kb_params():
+    """KB 参数只追加在 367+；0–366 段逐位不变（新旧编码对比）。"""
+    cand = _cand("CARD_REWARD", "Take Strike", idx=3)
+    card = CardInfo(name="STRIKE_RED", card_type="ATTACK", rarity="BASIC", cost=1.0)
+    kwargs = dict(card=card, room="MONSTER", bits=0x12345678,
+                  lookahead_rooms=["MONSTER", "ELITE", "REST"],
+                  deck_arch=[0.5, 0.2, 0.0, 0.3, 0.1])
+    v_base = encode_candidate(cand, **kwargs)
+    v_kb = encode_candidate(cand, **kwargs, potion_name="Blood Potion",
+                            relic_name="Burning Blood",
+                            event_key="The Cleric", event_option_idx=1)
+    assert v_base[:367] == v_kb[:367]          # 0–366 逐位不变
+    assert all(x == 0.0 for x in v_base[367:])  # 无 KB 时后续全零
+    assert any(x != 0.0 for x in v_kb[367:])    # 有 KB 时后续非零

@@ -7,22 +7,29 @@
 
 - `GameAction.describe(gc)` 对 EVENT 类动作**恒返回空串**，因此
   `candidate.label` 必然回退成 ``action_0x<bits>``（见 env/lightspeed_env.py）。
-- `gc` 上**没有任何字段暴露当前是哪个事件**：实测只有
-  ``boss / cur_room / encounter / outcome / screen_state``，
-  其中 ``cur_room`` 在事件屏为 INVALID、``encounter`` 为 INVALID，
-  没有任何 event id / event name 方法（已用 160 个 seed 普查确认）。
-- 一个事件内多个选项的 `bits` 里 **idx1 = 选项序号（0..n-1，连续）**，
-  这是唯一可靠且稳定的每候选信号。
+- 但自 commit f332356 起，绑定**已暴露** `gc.get_event_info()` →
+  ``{'event_id':..., 'event_name':..., 'option_indices':[...]}``，
+  `event_name` 即为当前事件名（**显示名风格**，如 'The Cleric'、
+  'The Ssssserpent'、'Living Wall'，可与本 KB 一级 key 直接对齐，
+  无需枚举名→显示名别名映射）。
+- 一个事件内多个选项的 `bits` 里 **idx1 = 选项序号**，且与
+  `get_event_info().option_indices` 完全对应（已用 30 种子实测确认）。
 
-结论（诚实优先）：**在当前的 C++ 绑定下，候选层面拿不到「当前是哪个事件」，
-也拿不到选项文本**。因此本 KB 只能以「事件规范名」为一级 key、
-「选项序号」为二级 key——这份数据本身正确且完整（源自调研报告第七章），
-但**在现有绑定接入时运行时覆盖率为 0**：除非把绑定/编码器扩展成能传入
-`event_key`（例如暴露 `gc.get_event_name()`），否则 `get_event_option_features`
-只会走「未收录 → 全零」分支。
+结论（诚实优先，实测更新 2026-09）：
+本 KB 以「事件规范名（显示名）」为一级 key、「选项序号」为二级 key，
+数据源自调研报告第七章，正确且完整。新绑定已能传入 `event_key`
+（= `event_name`）与 `event_option_idx`（= `bits.idx1`），因此
+`get_event_option_features` 在事件名被本 KB 收录时**会真正非零**。
 
-这是任务书要求的「诚实告知」，不是偷工：KB 数据已按报告全量录入，
-接入点（event_key 来源）缺失属于环境层限制，由后续绑定扩展补齐。
+覆盖率现状（30 种子实测，15 个相异事件名）：
+- 直接命中（display name == 一级 key，经 normalize_event_key）：11 个
+  （The Cleric / Living Wall / Wing Statue / The Ssssserpent / Shining Light /
+   Golden Shrine / Scrap Ooze / Face Trader / The Divine Fountain /
+   We Meet Again! / Wheel of Change）。
+- **未收录、运行时事件 KB 段全零**：4 个——Big Fish、Golden Idol、
+  NEOW、Note For Yourself（均为真实事件但 KB 尚未录入其选项数据）。
+  这些是「数据缺失」而非「命名错配」，故不需要别名映射；是否补齐或
+  砍掉事件 KB 20 维由 team-lead 按覆盖率决定。
 
 20 维布局（总数严格 20）
 =======================

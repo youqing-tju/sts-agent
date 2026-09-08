@@ -1,7 +1,7 @@
 """遗物知识库（Relic Knowledge Base）。
 
 把"遗物候选"编码成 **32 维**语义特征向量，供 candidate_encoder 拼接进
-367 维候选描述向量（team-lead 稍后接入；本文件只提供纯查询接口）。
+443 维候选描述向量（candidate_encoder 已接入；本文件只提供纯查询接口）。
 
 数据来源：《杀戮尖塔-铁甲战士-深度调研报告》第五章"铁甲战士专属遗物（11 件）"
 + 通用/Boss 遗物（报告 1.3 / 6.x 提及）+ Slay the Spire Wiki。

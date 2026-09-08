@@ -35,8 +35,8 @@ from models.obs_encoder import encode_deck_stats, enhance_observation
 
 from .base_env import Obs, Candidate, StepResult, StsEnv
 
-# 候选动作 desc_vec 维度（与 models.candidate_encoder.DESC_VEC_DIM 一致）
-_DESC_VEC_DIM = 408
+# 候选动作 desc_vec 维度（与 models.candidate_encoder.DESC_VEC_DIM 一致；367→443 追加 KB 段）
+_DESC_VEC_DIM = 443
 
 # NN 观测维度
 _NN_OBS_DIM = 468
@@ -106,11 +106,52 @@ class LightspeedEnv(StsEnv):
         # 牌组流派强度每步算一次，供所有候选的交叉项复用（保持编码器纯函数）
         raw_obs = self._raw_nn_vec()
         deck_arch = self._deck_arch(raw_obs)
+        # KB 内容每屏只取一次（按屏分发，非对应屏为 None 安全跳过）
+        # 实测映射规则见 candidate_encoder 段表注释与项目报告：
+        #   REWARDS:  reward_type 区分类别，idx1 = 该类别子列表下标
+        #             (POTION=3→potions[idx1]，RELIC=4→relics[idx1])，卡牌由 idx2 处理
+        #   SHOP_ROOM: get_shop_contents 扁平元组列表，idx1 = 该类别子列表下标
+        #   BOSS_RELIC_REWARDS: idx1=0..N-1→contents[idx1] 遗物，==len 为跳过项
+        #   EVENT_SCREEN: event_name 作 event_key，bits.idx1 = option_indices 序号
+        reward_contents = self.gc.get_reward_contents() if screen == "REWARDS" else None
+        shop_contents = self.gc.get_shop_contents() if screen == "SHOP_ROOM" else None
+        boss_relic_contents = self.gc.get_boss_relic_contents() if screen == "BOSS_RELIC_REWARDS" else None
+        event_info = self.gc.get_event_info() if screen == "EVENT_SCREEN" else None
+        # REST_ROOM 不在本次 KB 范围（get_rest_options 不产出 KB 特征）
         cands = []
         for i, a in enumerate(acts):
             label = a.describe(self.gc) or f"action_0x{a.bits:08x}"
             d = decode_action_bits(a.bits)
             kind = self._candidate_kind(screen, d)
+            # KB 三段键：按屏 + bits 解析出候选对应的 KB 名/键（None 时对应段全零）
+            potion_name = relic_name = None
+            event_key = event_option_idx = None
+            if screen == "REWARDS" and reward_contents is not None:
+                if d["reward_type"] == 3:
+                    pl = reward_contents.get("potions") or []
+                    if d["idx1"] < len(pl):
+                        potion_name = pl[d["idx1"]]
+                elif d["reward_type"] == 4:
+                    rl = reward_contents.get("relics") or []
+                    if d["idx1"] < len(rl):
+                        relic_name = rl[d["idx1"]]
+            elif screen == "SHOP_ROOM" and shop_contents is not None:
+                if d["reward_type"] == 3:
+                    pl = [t[1] for t in shop_contents if t[0] == "potion"]
+                    if d["idx1"] < len(pl):
+                        potion_name = pl[d["idx1"]]
+                elif d["reward_type"] == 4:
+                    rl = [t[1] for t in shop_contents if t[0] == "relic"]
+                    if d["idx1"] < len(rl):
+                        relic_name = rl[d["idx1"]]
+                # reward_type 0=卡牌(绑定未暴露→段全零)/5=删卡/6=跳过：无 KB
+            elif screen == "BOSS_RELIC_REWARDS" and boss_relic_contents is not None:
+                # 候选 reward_type 固定为 0（绑定怪异），idx1==len(contents) 为跳过项
+                if d["idx1"] < len(boss_relic_contents):
+                    relic_name = boss_relic_contents[d["idx1"]]
+            elif screen == "EVENT_SCREEN" and event_info is not None:
+                event_key = event_info.get("event_name")
+                event_option_idx = d["idx1"]
             proto = Candidate(idx=i, kind=kind, desc_vec=[], label=label)
             cands.append(Candidate(
                 idx=i, kind=kind,
@@ -121,6 +162,10 @@ class LightspeedEnv(StsEnv):
                     bits=a.bits,
                     lookahead_rooms=self._candidate_lookahead(screen, d),
                     deck_arch=deck_arch,
+                    potion_name=potion_name,
+                    relic_name=relic_name,
+                    event_key=event_key,
+                    event_option_idx=event_option_idx,
                 ),
                 label=label,
             ))
