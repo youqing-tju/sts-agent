@@ -119,6 +119,34 @@ def _make_policy(name):
     raise SystemExit(f"未知策略: {name!r}（可选: random / rule）")
 
 
+class GreedyScorerPolicy:
+    """载入训练好的 Scorer 权重，逐候选打分取 argmax（不采样）。
+
+    hidden=(512, 256) 需与训练时一致；obs_dim/cand_dim 因表征版本而异，
+    对照组 412/408、实验组 468/367，故由外部传入。
+    """
+
+    def __init__(self, path, obs_dim=468, cand_dim=367, hidden=(512, 256)):
+        import torch
+        from models.scorer import Scorer
+        self.path = path
+        self.obs_dim = obs_dim
+        self.cand_dim = cand_dim
+        self.hidden = tuple(hidden)
+        self.scorer = Scorer(obs_dim=obs_dim, cand_dim=cand_dim, hidden=self.hidden)
+        self.scorer.load_state_dict(torch.load(path, weights_only=True))
+        self.scorer.eval()
+
+    def choose(self, obs, candidates):
+        import torch
+        with torch.no_grad():
+            obs_t = torch.tensor(obs.vec, dtype=torch.float32)
+            cands_t = torch.tensor([c.desc_vec for c in candidates],
+                                   dtype=torch.float32)
+            scores = self.scorer(obs_t, cands_t)
+        return candidates[int(scores.argmax().item())].idx
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="evaluation.evaluate",
                                 description="在固定留出种子上并行评估策略")
@@ -126,14 +154,24 @@ def main(argv=None):
     p.add_argument("--workers", type=int, default=8, help="并行进程数")
     p.add_argument("--mcts-sim", type=int, default=200, help="战斗 MCTS 预算")
     p.add_argument("--policy", default="random", help="策略名（v1 内置 random）")
+    p.add_argument("--checkpoint", default=None,
+                   help="Scorer 权重路径；设定后用该权重的 greedy 策略评估")
+    p.add_argument("--obs-dim", type=int, default=468, help="观测维度（对照=412）")
+    p.add_argument("--cand-dim", type=int, default=367, help="候选维度（对照=408）")
     p.add_argument("--log-dir", default=None, help="可选：JSONL 日志目录")
     args = p.parse_args(argv)
 
-    policy = _make_policy(args.policy)
+    if args.checkpoint:
+        policy = GreedyScorerPolicy(args.checkpoint, obs_dim=args.obs_dim,
+                                    cand_dim=args.cand_dim)
+        pname = args.checkpoint
+    else:
+        policy = _make_policy(args.policy)
+        pname = args.policy
     results = evaluate(policy, n_seeds=args.seeds, workers=args.workers,
                        mcts_sim=args.mcts_sim, log_dir=args.log_dir)
     s = summarize(results)
-    print(f"policy={args.policy} n={s['n']} mcts_sim={args.mcts_sim}")
+    print(f"policy={pname} n={s['n']} mcts_sim={args.mcts_sim}")
     print(f"avg_floor={s['avg_floor']:.1f} std_floor={s['std_floor']:.1f} "
           f"win_rate={s['win_rate']:.2%}")
     return 0

@@ -28,7 +28,16 @@ def main():
                    help="从已有 checkpoint 继续训练（仅 reinforce 支持与 (128,128) 兼容的 ckpt）")
     p.add_argument("--win-bonus", type=float, default=50,
                    help="通关奖励：G = final_floor + win_bonus * win")
+    p.add_argument("--seed", type=int, default=None,
+                   help="随机种子。设定后 random/torch 同时播种，两次运行会走完全"
+                        "相同的对局序列与网络初始化，可做配对 A/B（唯一变量是表征）")
     args = p.parse_args()
+
+    if args.seed is not None:
+        import random as _random
+        _random.seed(args.seed)
+        import torch as _torch
+        _torch.manual_seed(args.seed)
 
     os.makedirs(os.path.dirname(args.checkpoint), exist_ok=True)
     os.makedirs(args.log_dir, exist_ok=True)
