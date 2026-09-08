@@ -20,6 +20,12 @@
 
 #include "slaythespire.h"
 
+#include "constants/Cards.h"
+#include "constants/Relics.h"
+#include "constants/Potions.h"
+#include "constants/Events.h"
+#include "sim/search/GameAction.h"
+
 
 using namespace sts;
 
@@ -134,6 +140,139 @@ PYBIND11_MODULE(slaythespire, m) {
             }
             return v;
         }, "list of int Potion enum values for filled potion slots");
+
+    // sts-agent: expose the actual content names of each candidate on non-combat screens,
+    // so the Python KB layer can label GameActions instead of falling back to action_0x<bits>.
+    // Each accessor is screen-aware: returns None when gc.screenState is not the expected one.
+
+    // REWARDS: gold amounts, card names (all card-reward slots), potion names, relic names, key
+    gameContext.def("get_reward_contents", [](const GameContext &gc) -> pybind11::object {
+        if (gc.screenState != ScreenState::REWARDS) {
+            return pybind11::none();
+        }
+        const auto &r = gc.info.rewardsContainer;
+        pybind11::dict d;
+
+        pybind11::list gold;
+        for (int i = 0; i < r.goldRewardCount; ++i) {
+            gold.append(r.gold[i]);
+        }
+        d["gold"] = gold;
+
+        pybind11::list cards;
+        for (int slot = 0; slot < r.cardRewardCount; ++slot) {
+            for (const auto &c : r.cardRewards[slot]) {
+                cards.append(getCardName(c.id));
+            }
+        }
+        d["cards"] = cards;
+
+        pybind11::list potions;
+        for (int i = 0; i < r.potionCount; ++i) {
+            potions.append(getPotionName(r.potions[i]));
+        }
+        d["potions"] = potions;
+
+        pybind11::list relics;
+        for (int i = 0; i < r.relicCount; ++i) {
+            relics.append(getRelicName(r.relics[i]));
+        }
+        d["relics"] = relics;
+
+        if (r.emeraldKey) {
+            d["key"] = "emerald";
+        } else if (r.sapphireKey) {
+            d["key"] = "sapphire";
+        } else {
+            d["key"] = pybind11::none();
+        }
+        return d;
+    }, "REWARDS screen: dict with gold(list), cards(list of names), potions(list of names), relics(list of names), key(str|None)");
+
+    // BOSS_RELIC_REWARDS: the up to 3 relic choices offered by the boss
+    gameContext.def("get_boss_relic_contents", [](const GameContext &gc) -> pybind11::object {
+        if (gc.screenState != ScreenState::BOSS_RELIC_REWARDS) {
+            return pybind11::none();
+        }
+        pybind11::list relics;
+        for (int i = 0; i < 3; ++i) {
+            const RelicId rid = gc.info.bossRelics[i];
+            if (rid != RelicId::INVALID) {
+                relics.append(getRelicName(rid));
+            }
+        }
+        return relics;
+    }, "BOSS_RELIC_REWARDS screen: list of relic name strings (the 3 boss relic choices)");
+
+    // SHOP_ROOM: each item's type, display name, and price
+    gameContext.def("get_shop_contents", [](const GameContext &gc) -> pybind11::object {
+        if (gc.screenState != ScreenState::SHOP_ROOM) {
+            return pybind11::none();
+        }
+        const auto &s = gc.info.shop;
+        pybind11::list items;
+        for (int i = 0; i < 7; ++i) {
+            const int p = s.cardPrice(i);
+            if (p != -1) {
+                items.append(pybind11::make_tuple("card", getCardName(s.cards[i].id), p));
+            }
+        }
+        for (int i = 0; i < 3; ++i) {
+            const int p = s.relicPrice(i);
+            if (p != -1) {
+                items.append(pybind11::make_tuple("relic", getRelicName(s.relics[i]), p));
+            }
+        }
+        for (int i = 0; i < 3; ++i) {
+            const int p = s.potionPrice(i);
+            if (p != -1) {
+                items.append(pybind11::make_tuple("potion", getPotionName(s.potions[i]), p));
+            }
+        }
+        if (s.removeCost != -1) {
+            items.append(pybind11::make_tuple("remove", "remove_card", s.removeCost));
+        }
+        return items;
+    }, "SHOP_ROOM screen: list of (type, name, price) tuples for cards/relics/potions/remove");
+
+    // EVENT_SCREEN: the currently displayed event's id/name and its valid option indices.
+    // NOTE: the simulator stores no option *text*; only the valid option indices are available.
+    gameContext.def("get_event_info", [](const GameContext &gc) -> pybind11::object {
+        if (gc.screenState != ScreenState::EVENT_SCREEN) {
+            return pybind11::none();
+        }
+        pybind11::dict d;
+        d["event_id"] = eventIdStrings[static_cast<int>(gc.curEvent)];
+        d["event_name"] = eventGameNames[static_cast<int>(gc.curEvent)];
+
+        pybind11::list opts;
+        int bits = search::GameAction::getValidEventSelectBits(gc);
+        int cur = 0;
+        while (bits) {
+            if (bits & 0x1) {
+                opts.append(cur);
+            }
+            ++cur;
+            bits >>= 1;
+        }
+        d["option_indices"] = opts;
+        return d;
+    }, "EVENT_SCREEN screen: dict with event_id/event_name (strings) and option_indices (list of int). Simulator has no option text.");
+
+    // REST_ROOM: available campfire options (idx + canonical name) based on current relics/keys/deck.
+    gameContext.def("get_rest_options", [](const GameContext &gc) -> pybind11::object {
+        if (gc.screenState != ScreenState::REST_ROOM) {
+            return pybind11::none();
+        }
+        static const char *names[7] = {"rest", "smith", "recall", "lift", "toke", "dig", "skip"};
+        pybind11::list opts;
+        for (int i = 0; i <= 6; ++i) {
+            if (search::GameAction(i).isValidAction(gc)) {
+                opts.append(pybind11::make_tuple(i, names[i]));
+            }
+        }
+        return opts;
+    }, "REST_ROOM screen: list of (idx, name) tuples for the currently available campfire options");
 
     gameContext.def("init_from_json",
             &sts::py::initGameContextFromJsonString,
