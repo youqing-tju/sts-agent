@@ -216,6 +216,2338 @@ _RELIC_CURATED = {
 }
 
 
+# ===== 补全批次：133 条低信息兜底遗物（高置信，数据源 Slay the Spire Wiki）=====
+_RELIC_FILL = {
+  "BLOODY_IDOL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.35,
+    "synergy": 0.4,
+    "rarity_score": 0.3,
+    "is_boss": 0,
+    "heal": 0.3
+  },
+  "BLUE_CANDLE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0.3
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 1,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.3,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "hp_loss": 0.2
+  },
+  "CALIPERS": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.55,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "block": 0.5
+  },
+  "CAPTAINS_WHEEL": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.4,
+    "synergy": 0.55,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "block": 0.6
+  },
+  "CHEMICAL_X": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.65,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "energy": 0.4
+  },
+  "CLOAK_CLASP": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.55,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "block": 0.5
+  },
+  "DARKSTONE_PERIAPT": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0.2
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.25,
+    "synergy": 0.35,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "DEAD_BRANCH": {
+    "arch": [
+      0,
+      0,
+      0.8,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "ON_EXHAUST",
+    "power": 0.7,
+    "synergy": 0.85,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "exhaust": 0.8,
+    "draw": 0.5
+  },
+  "DUALITY": {
+    "arch": [
+      0,
+      0.2,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.15,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "EMOTION_CHIP": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.25,
+    "synergy": 0.15,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "FROZEN_CORE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.25,
+    "synergy": 0.15,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "FROZEN_EYE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.1,
+    "synergy": 0.2,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "GAMBLING_CHIP": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "draw": 0.4
+  },
+  "GINGER": {
+    "arch": [
+      0,
+      0.2,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "GOLDEN_EYE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.2,
+    "synergy": 0.15,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "GREMLIN_HORN": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "energy": 0.4,
+    "draw": 0.4
+  },
+  "HAND_DRILL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "vuln_weak": 0.5
+  },
+  "HORN_CLEAT": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.4,
+    "synergy": 0.55,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "block": 0.5
+  },
+  "HOVERING_KITE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.15,
+    "rarity_score": 1.0,
+    "is_boss": 1,
+    "energy": 0.4
+  },
+  "ICE_CREAM": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "energy": 0.5
+  },
+  "INCENSE_BURNER": {
+    "arch": [
+      0,
+      0.4,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.45,
+    "synergy": 0.55,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "INK_BOTTLE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "draw": 0.3
+  },
+  "INSERTER": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.25,
+    "synergy": 0.15,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "LETTER_OPENER": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "damage": 0.5
+  },
+  "LIZARD_TAIL": {
+    "arch": [
+      0,
+      0.4,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "MARK_OF_THE_BLOOM": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 1,
+    "trigger": None,
+    "power": 0.05,
+    "synergy": 0.1,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "MEDICAL_KIT": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0.4
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.35,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "exhaust": 0.2
+  },
+  "MELANGE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "MERCURY_HOURGLASS": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "damage": 0.4
+  },
+  "MUMMIFIED_HAND": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "energy": 0.4
+  },
+  "NECRONOMICON": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 1,
+    "trigger": "IMMEDIATE",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 0.3,
+    "is_boss": 0,
+    "damage": 0.5
+  },
+  "NILRYS_CODEX": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.3,
+    "is_boss": 0,
+    "draw": 0.4
+  },
+  "NUNCHAKU": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "energy": 0.4
+  },
+  "OMAMORI": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0.3
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "ORANGE_PELLETS": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.35,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "ORICHALCUM": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.55,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "block": 0.5
+  },
+  "ORNAMENTAL_FAN": {
+    "arch": [
+      0,
+      0.4,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "block": 0.4
+  },
+  "PAPER_KRANE": {
+    "arch": [
+      0,
+      0.2,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.2,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "vuln_weak": 0.3
+  },
+  "POCKETWATCH": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "draw": 0.4
+  },
+  "RUNIC_PYRAMID": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "SACRED_BARK": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "SHURIKEN": {
+    "arch": [
+      0.5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.5,
+    "synergy": 0.8,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "strength": 0.5
+  },
+  "SNECKO_EYE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 1,
+    "trigger": "PER_TURN",
+    "power": 0.5,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 1,
+    "draw": 0.5
+  },
+  "SNECKO_SKULL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0.4
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.2,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "STONE_CALENDAR": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.55,
+    "synergy": 0.45,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "damage": 0.8
+  },
+  "STRANGE_SPOON": {
+    "arch": [
+      0,
+      0,
+      0.4,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "STRIKE_DUMMY": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.6,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "damage": 0.4
+  },
+  "SUNDIAL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "energy": 0.4
+  },
+  "THE_ABACUS": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.55,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "block": 0.5
+  },
+  "THE_BOOT": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.5,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "damage": 0.3
+  },
+  "THE_SPECIMEN": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0.4
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.2,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "TINGSHA": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.2,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "damage": 0.4
+  },
+  "TOOLBOX": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "draw": 0.3
+  },
+  "TORII": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "ON_HP_LOSS",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "block": 0.4
+  },
+  "TOUGH_BANDAGES": {
+    "arch": [
+      0,
+      0.4,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.2,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "block": 0.4
+  },
+  "TOY_ORNITHOPTER": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "heal": 0.3
+  },
+  "TUNGSTEN_ROD": {
+    "arch": [
+      0,
+      0.4,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "ON_HP_LOSS",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "TURNIP": {
+    "arch": [
+      0,
+      0.2,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "TWISTED_FUNNEL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0.4
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.3,
+    "synergy": 0.1,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "UNCEASING_TOP": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "draw": 0.4
+  },
+  "WARPED_TONGS": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 1,
+    "trigger": "PER_TURN",
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "WRIST_BLADE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.4,
+    "synergy": 0.2,
+    "rarity_score": 1.0,
+    "is_boss": 1,
+    "damage": 0.4
+  },
+  "FACE_OF_CLERIC": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.3,
+    "is_boss": 0,
+    "energy": 0.3
+  },
+  "BUSTED_CROWN": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 1,
+    "trigger": "PER_TURN",
+    "power": 0.5,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 1,
+    "energy": 0.5
+  },
+  "CLOCKWORK_SOUVENIR": {
+    "arch": [
+      0,
+      0.3,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.4,
+    "synergy": 0.55,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "CRACKED_CORE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "DAMARU": {
+    "arch": [
+      0,
+      0.2,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "DATA_DISK": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "DU_VU_DOLL": {
+    "arch": [
+      0.5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.5,
+    "synergy": 0.65,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "strength": 0.5
+  },
+  "ENCHIRIDION": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.4,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "draw": 0.4
+  },
+  "FOSSILIZED_HELIX": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "ON_HP_LOSS",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "GOLD_PLATED_CABLES": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "IMMEDIATE",
+    "power": 0.25,
+    "synergy": 0.15,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "GREMLIN_VISAGE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 1,
+    "trigger": "COMBAT_START",
+    "power": 0.1,
+    "synergy": 0.1,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "HOLY_WATER": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 1.0,
+    "is_boss": 1,
+    "draw": 0.3
+  },
+  "LANTERN": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "energy": 0.5
+  },
+  "MUTAGENIC_STRENGTH": {
+    "arch": [
+      0.6,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.6,
+    "synergy": 0.8,
+    "rarity_score": 0.3,
+    "is_boss": 0,
+    "strength": 0.6
+  },
+  "NEOWS_LAMENT": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.5,
+    "synergy": 0.3,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "NINJA_SCROLL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "draw": 0.3
+  },
+  "NUCLEAR_BATTERY": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "ODDLY_SMOOTH_STONE": {
+    "arch": [
+      0,
+      0.3,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.4,
+    "synergy": 0.55,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "block": 0.3
+  },
+  "PANTOGRAPH": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "heal": 0.5
+  },
+  "PRESERVED_INSECT": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "PURE_WATER": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.15,
+    "synergy": 0.1,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "draw": 0.2
+  },
+  "RED_MASK": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.5,
+    "synergy": 0.5,
+    "rarity_score": 0.3,
+    "is_boss": 0,
+    "vuln_weak": 0.5
+  },
+  "RING_OF_THE_SERPENT": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.4,
+    "synergy": 0.1,
+    "rarity_score": 1.0,
+    "is_boss": 1,
+    "draw": 0.4
+  },
+  "RING_OF_THE_SNAKE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.4,
+    "synergy": 0.1,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "draw": 0.4
+  },
+  "RUNIC_CAPACITOR": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "SLAVERS_COLLAR": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "PER_TURN",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 1,
+    "energy": 0.5
+  },
+  "SLING_OF_COURAGE": {
+    "arch": [
+      0.4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.5,
+    "synergy": 0.7,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "strength": 0.4
+  },
+  "SYMBIOTIC_VIRUS": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "TEARDROP_LOCKET": {
+    "arch": [
+      0,
+      0.2,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.2,
+    "synergy": 0.1,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "THREAD_AND_NEEDLE": {
+    "arch": [
+      0,
+      0.5,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": "COMBAT_START",
+    "power": 0.5,
+    "synergy": 0.6,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "block": 0.5
+  },
+  "ASTROLABE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "BLACK_STAR": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "CAULDRON": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "DOLLYS_MIRROR": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "DREAM_CATCHER": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "EMPTY_CAGE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "ETERNAL_FEATHER": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "heal": 0.4
+  },
+  "FROZEN_EGG": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "GOLDEN_IDOL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.05,
+    "synergy": 0.1,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "JUZU_BRACELET": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.2,
+    "synergy": 0.3,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "LEES_WAFFLE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.5,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "heal": 0.5
+  },
+  "MANGO": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 0,
+    "heal": 0.4
+  },
+  "MAW_BANK": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.2,
+    "synergy": 0.3,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "MEAL_TICKET": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.4,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "heal": 0.4
+  },
+  "MEMBERSHIP_CARD": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "MOLTEN_EGG": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.5,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "NLOTHS_GIFT": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "NLOTHS_HUNGRY_FACE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 1,
+    "trigger": None,
+    "power": 0.05,
+    "synergy": 0.1,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "OLD_COIN": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.2,
+    "synergy": 0.3,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "ORRERY": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "PANDORAS_BOX": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.5,
+    "rarity_score": 1.0,
+    "is_boss": 1
+  },
+  "PEACE_PIPE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "PEAR": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "heal": 0.3
+  },
+  "PRAYER_WHEEL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "PRISMATIC_SHARD": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "SHOP",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "QUESTION_CARD": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "REGAL_PILLOW": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.4,
+    "rarity_score": 0.0,
+    "is_boss": 0,
+    "heal": 0.4
+  },
+  "SSSERPENT_HEAD": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.2,
+    "synergy": 0.2,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "SHOVEL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "SINGING_BOWL": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0,
+    "heal": 0.4
+  },
+  "SMILING_MASK": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.2,
+    "synergy": 0.3,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "SPIRIT_POOP": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.0,
+    "synergy": 0.0,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "THE_COURIER": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.3,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "TINY_CHEST": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.2,
+    "synergy": 0.3,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "TINY_HOUSE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "BOSS",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.4,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 1,
+    "heal": 0.3
+  },
+  "TOXIC_EGG": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "UNCOMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.5,
+    "is_boss": 0
+  },
+  "WAR_PAINT": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "WHETSTONE": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "COMMON",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 0.0,
+    "is_boss": 0
+  },
+  "WING_BOOTS": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "RARE",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.3,
+    "synergy": 0.4,
+    "rarity_score": 1.0,
+    "is_boss": 0
+  },
+  "CIRCLET": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.2,
+    "synergy": 0.3,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  },
+  "RED_CIRCLET": {
+    "arch": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "rs": "EVENT",
+    "ironclad": 0,
+    "drawback": 0,
+    "trigger": None,
+    "power": 0.1,
+    "synergy": 0.1,
+    "rarity_score": 0.3,
+    "is_boss": 0
+  }
+}
+_RELIC_CURATED.update(_RELIC_FILL)
+
 def _baseline_relic() -> dict:
     """长尾遗物的保守基准画像：低信息量、非负但几乎全 0（仅 power=0.2 表示"已收录"）。"""
     return dict(arch=[0,0,0,0,0], rs="COMMON", ironclad=0, drawback=0, trigger=None,

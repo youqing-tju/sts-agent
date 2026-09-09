@@ -112,6 +112,12 @@ def test_full_table_coverage():
         assert any(x != 0.0 for x in v), f"{rid} 应被收录而非全零"
 
 
+def test_curated_count_threshold():
+    # 策划录入成果锁死：补全后 _RELIC_CURATED 高置信条目应覆盖全表（≥150）
+    from models.relic_kb import _RELIC_CURATED
+    assert len(_RELIC_CURATED) >= 150
+
+
 @pytest.mark.skipif(not _STS_AVAILABLE, reason="slaythespire 不可用")
 def test_coverage_matches_enum():
     import slaythespire as sts
