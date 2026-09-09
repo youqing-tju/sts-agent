@@ -14,6 +14,15 @@ from models.scorer import Scorer
 from training.reinforce import ReinforceTrainer
 
 
+def _auto_device():
+    """自动选择训练设备：有 CUDA 用 cuda，否则 cpu。"""
+    try:
+        import torch
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--algo", choices=["reinforce", "ppo"], default="reinforce")
@@ -31,6 +40,8 @@ def main():
     p.add_argument("--seed", type=int, default=None,
                    help="随机种子。设定后 random/torch 同时播种，两次运行会走完全"
                         "相同的对局序列与网络初始化，可做配对 A/B（唯一变量是表征）")
+    p.add_argument("--device", type=str, default=None,
+                   help="训练设备；默认 auto：有 CUDA 用 cuda，否则 cpu")
     args = p.parse_args()
 
     if args.seed is not None:
@@ -45,7 +56,7 @@ def main():
     if args.algo == "ppo":
         from models.scorer import ValueNet
         from training.ppo import PPOTrainer
-        scorer = Scorer(obs_dim=468, cand_dim=443, hidden=(512, 256))
+        scorer = Scorer(obs_dim=468, cand_dim=443, hidden=(1024, 512))
         value_net = ValueNet(obs_dim=468)
         lr = args.lr if args.lr is not None else 3e-4
         if args.init_from and os.path.exists(args.init_from):
@@ -58,7 +69,8 @@ def main():
         elif args.init_from:
             print("警告：--init-from 指定的 checkpoint 不存在，从零训练")
         trainer = PPOTrainer(scorer, value_net, lr=lr, mcts_sim=args.mcts_sim,
-                             log_dir=args.log_dir, win_bonus=args.win_bonus)
+                             log_dir=args.log_dir, win_bonus=args.win_bonus,
+                             device=args.device or _auto_device())
     else:
         scorer = Scorer(obs_dim=468, cand_dim=443, hidden=(128, 128))
         lr = args.lr if args.lr is not None else 1e-3
