@@ -26,8 +26,18 @@
   Shining Light / Golden Shrine / Scrap Ooze / Face Trader / The Divine Fountain /
   We Meet Again! / Wheel of Change（原 11 个），另补录 NEOW、Big Fish、
   Golden Idol、Note For Yourself、The Library（5 个，官方 Wiki 核验）。
-- 已知仍未覆盖：World of Goop（Act 1）、Cursed Tome 等较冷门事件——
-  若运行时遇到会返回 20 维全零（合法降级，非命名错配）。
+- 已知仍未覆盖：Cursed Tome 等较冷门事件——若运行时遇到会返回 20 维
+  全零（合法降级，非命名错配）。
+- 2026-09 补录批次（官方 Wiki 逐条核验）：补齐 Act1 World of Goop；
+  Act2 The Mausoleum / The Joust / Ancient Writing / Council of Ghosts /
+  Vampires / Forgotten Altar / Pleading Vagrant；Act3 Falling / Sensory Stone /
+  Winding Halls / Mind Bloom / Tomb of Lord Red Mask / Secret Portal。
+  注：「Fountain of Cleansing（净化喷泉）」与已收录的 The Divine Fountain
+  为同一事件（仅翻译/叫法不同：喝下移除全部诅咒卡、仅在持有诅咒时出现），
+  故**不重复建条**，仅在 The Divine Fountain 处注明别名。
+- Ancient Writing 任务清单曾误写为「The Ancient Writing / 获得 N'loth's Gift
+  遗物」；N'loth's Gift 属于独立事件 N'loth，本事件实为 Back to Basics
+  （移除一张卡 / 升级全部 Strike 与 Defend），已按 Wiki 实证编码。
 - NEOW 选项内容动态（祝福池随机 + 选项数 2/4 随上一局是否打到 Boss 变化），
   仅 Fourth Blessing（替换初始遗物为 Boss 遗物）是确定性 RELIC，其余标 OTHER。
 
@@ -213,6 +223,12 @@ EVENT_KB = {
             _opt("OTHER", rating=2),                   # 离开（报告未列，按常规事件补）
         ]
     },
+    "World of Goop": {
+        "options": [
+            _opt("GOLD", gold=75, hp_cost=11, rating=4),   # [Gather Gold] +75 金币，失去 11 HP
+            _opt("OTHER", rating=2),                        # [Leave It] 离开（Wiki：另损失 20-50 随机金币，此处不另编码）
+        ]
+    },
     # ===================== Act 2 =====================
     "The Library": {
         "options": [
@@ -246,6 +262,92 @@ EVENT_KB = {
             _opt("OTHER", rating=3),                   # 离开
         ]
     },
+    "The Mausoleum": {
+        "options": [
+            _opt("RELIC", relic=1, curse=1, rating=3),  # [Open Coffin] 得遗物；50%(A15后100%)获得诅咒「Writhe」
+            _opt("OTHER", rating=3),                    # [Leave] 离开
+        ]
+    },
+    "The Joust": {
+        "options": [
+            _opt("GAMBLE", gold=-50, rating=3),         # [Murderer] 押 50 金，70% 赢 100 金（无离开选项）
+            _opt("GAMBLE", gold=-50, rating=3),         # [Owner] 押 50 金，30% 赢 250 金
+        ]
+    },
+    "Ancient Writing": {
+        "options": [
+            _opt("REMOVE", remove=1, rating=4),         # [Elegance] 从牌组移除一张卡
+            _opt("UPGRADE", upgrade=3, rating=4),       # [Simplicity] 升级全部 Strike 与 Defend（数量截断至 1.0）
+        ]
+    },
+    "Council of Ghosts": {
+        "options": [
+            _opt("OTHER", max_hp_cost=40, rating=3),    # [Accept] 得 5(3) 张 Apparition，失去 50% 最大生命（截断 1.0）
+            _opt("OTHER", rating=2),                    # [Refuse] 拒绝
+        ]
+    },
+    "Vampires": {
+        "options": [
+            _opt("OTHER", rating=4),                    # [Offer: Blood Vial] 交出 Blood Vial：移除全部 Strike，得 5 张 Bite（需持有）
+            _opt("OTHER", max_hp_cost=40, rating=3),    # [Accept] 移除全部 Strike，得 5 张 Bite，失去 30% 最大生命（截断 1.0）
+            _opt("OTHER", rating=3),                    # [Refuse] 拒绝
+        ]
+    },
+    "Forgotten Altar": {
+        "options": [
+            _opt("RELIC", relic=1, rating=4),           # [Offer: Golden Idol] 交出 Golden Idol，得遗物「Bloody Idol」（需持有）
+            _opt("OTHER", hp_cost=20, rating=3),        # [Sacrifice] +5 最大生命，失去 25% 当前生命（约 20）
+            _opt("CURSE", curse=1, rating=1),           # [Desecrate] 获得诅咒「Decay」
+        ]
+    },
+    "Pleading Vagrant": {
+        "options": [
+            _opt("RELIC", relic=1, gold=-85, rating=3),  # [Offer Gold] 花 85 金，得遗物
+            _opt("RELIC", relic=1, curse=1, rating=2),   # [Rob] 得遗物，获得诅咒「Shame」
+            _opt("OTHER", rating=3),                     # [Leave] 离开
+        ]
+    },
+    # ===================== Act 3 =====================
+    "Falling": {
+        "options": [
+            _opt("REMOVE", remove=1, rating=3),         # [Land] 失去一张随机 Skill（强制弃卡）
+            _opt("REMOVE", remove=1, rating=3),         # [Channel] 失去一张随机 Power
+            _opt("REMOVE", remove=1, rating=3),         # [Strike] 失去一张随机 Attack
+        ]
+    },
+    "Sensory Stone": {
+        "options": [
+            _opt("OTHER", rating=3),                    # [Recall] 加 1 张无色卡
+            _opt("OTHER", hp_cost=5, rating=3),         # [Recall] 加 2 张无色卡，失去 5 HP
+            _opt("OTHER", hp_cost=10, rating=4),        # [Recall] 加 3 张无色卡，失去 10 HP
+        ]
+    },
+    "Winding Halls": {
+        "options": [
+            _opt("OTHER", hp_cost=10, rating=3),        # [Embrace Madness] 得 2 张 Madness，失去 12.5% 最大生命（约 10）
+            _opt("HEAL", curse=1, rating=3),            # [Focus] 获得诅咒「Writhe」，治疗 25% 最大生命
+            _opt("OTHER", max_hp_cost=4, rating=2),     # [Retrace Your Steps] 失去 5% 最大生命（约 4）
+        ]
+    },
+    "Mind Bloom": {
+        "options": [
+            _opt("COMBAT", gold=50, relic=1, rating=4),  # [I am War] 与 Act1 Boss 战斗，胜得稀有遗物 + 50 金
+            _opt("UPGRADE", upgrade=3, relic=1, rating=4),  # [I am Awake] 升级全部卡 + 遗物「Mark of the Bloom」（无法再治疗）
+            _opt("GOLD", gold=999, curse=1, rating=3),   # [I am Rich/Healthy] +999 金/2诅咒 或 回满血/1诅咒（按楼层二选一，同占 idx2）
+        ]
+    },
+    "Tomb of Lord Red Mask": {
+        "options": [
+            _opt("RELIC", relic=1, gold=-200, rating=3),  # [Offer: X Gold] 失去全部金币，得遗物「Red Mask」（持有红面具时变为 +222 金，同占 idx0）
+            _opt("OTHER", rating=3),                     # [Leave] 离开
+        ]
+    },
+    "Secret Portal": {
+        "options": [
+            _opt("COMBAT", rating=3),                    # [Enter the Portal] 直接进入 Act3 Boss 战
+            _opt("OTHER", rating=3),                     # [Leave] 离开
+        ]
+    },
     # ===================== 全 Act 通用神龛 =====================
     "Note For Yourself": {
         "options": [
@@ -277,6 +379,8 @@ EVENT_KB = {
         ]
     },
     "The Divine Fountain": {
+        # 别名/翻译：Fountain of Cleansing（净化喷泉）。任务清单中的
+        # "Fountain of Cleansing" 即本事件，故不再另建重复条目。
         "options": [
             _opt("REMOVE", remove=2, rating=5),        # 喝：删除所有可移除诅咒卡（按数量近似置 2）
             _opt("OTHER", rating=3),                   # 离开

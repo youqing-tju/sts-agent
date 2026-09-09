@@ -134,9 +134,12 @@ def test_rating_out_of_vector_and_separate():
 
 
 def test_kb_coverage_counts():
-    # 报告第七章录入 + 官方 Wiki 补录（NEOW/Big Fish/Golden Idol/Note For Yourself/The Library）
-    assert event_count() == 29
-    assert option_count() == 68
+    # 原 29 个 + 2026-09 补录 14 个（Fountain of Cleansing 与已收录的
+    # The Divine Fountain 为同一事件，不重复计）= 43 个事件。
+    # 新增选项数：Act1(2) + Act2(2+2+2+2+3+3+3=17) + Act3(3+3+3+3+2+2=16) = 35
+    # 原 option_count 68 + 35 = 103。
+    assert event_count() == 43
+    assert option_count() == 103
     assert len(CATEGORY_LIST) == 12
 
 
