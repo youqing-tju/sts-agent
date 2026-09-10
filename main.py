@@ -71,6 +71,7 @@ from models.obs_encoder import OBS_DIM, encode_deck_stats, enhance_observation
 from models.scorer import Scorer
 from env.base_env import Candidate
 from combat_brain import CombatBrain
+from shop_brain import ShopBrain, is_shop_state
 
 # 降级路径：规则 bot（战斗启发式 + 宏观规则）
 from main_rule import combat_action, macro_action
@@ -181,7 +182,7 @@ def _alternate_cmd(state: dict, avoid: str = None):
     # 开删除卡牌服务（真机实测金币 110→14、状态在商店/房间/GRID 间死循环）。
     # 守卫的强制换动作也绝不能把"离开商店"改成"购物"。
     _gs2 = state.get("game_state") or {}
-    _is_shop2 = ((_gs2.get("screen_type") or "").upper() == "SHOP_SCREEN"
+    _is_shop2 = ((_gs2.get("screen_type") or "").upper() in ("SHOP_SCREEN", "SHOP_ROOM")
                  or (_gs2.get("screen_name") or "").upper() == "SHOP")
     if "choose" in cmds and not _is_shop2:
         candidates.append("CHOOSE 0")        # 事件/篝火/地图：退到第一个选项
@@ -341,7 +342,8 @@ class SimBrain:
     def __init__(self, checkpoint_path=_DEFAULT_CKPT, obs_dim=OBS_DIM,
                  cand_dim=DESC_VEC_DIM, hidden=(512, 256),
                  combat_sims=2000, determinizations=10, log_dir=None,
-                 min_cmd_interval_ms=300, stuck_grace_ms=600):
+                 min_cmd_interval_ms=300, stuck_grace_ms=600,
+                 shop_mode="smart"):
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
         self._reject_streak = 0  # 连续被拒计数（仅 error 帧自增，真实状态清零）
@@ -368,6 +370,9 @@ class SimBrain:
         self.obs_dim = obs_dim
         self.cand_dim = cand_dim
         self.log = RunLog(log_dir) if log_dir else None
+        # 商店决策器：按价值购买 + 两步退出（SHOP_SCREEN --leave--> SHOP_ROOM
+        # --proceed--> 地图）。机制与真机血案详见 shop_brain.py 顶部注释。
+        self.shop = ShopBrain(allow_buys=(shop_mode == "smart"), log=self.log)
         self.decisions = 0
         self.fallbacks = 0
 
@@ -479,29 +484,38 @@ class SimBrain:
                 self.log.event("run_start", command=cmd)
             return cmd
 
-        # ---- 商店例外（必须在 choose 分支之前）：优先离开，绝不"购物" ----
-        # 真机 2026-09-11 血案：SHOP_SCREEN 的 choice_list 是商品列表
-        # （'purge' + 卡牌/药水名），且 avail 含 choose → 下面的 choose 分支
-        # 永远命中 → 一直 CHOOSE 0 买/开删除卡牌服务，金币 110 → 14，
-        # 状态在 SHOP_SCREEN/SHOP_ROOM/GRID 之间死循环，永远出不了商店。
-        # 模拟器侧不支持购买决策，买了纯浪费金币，所以商店一律先离开。
-        _gs = state.get("game_state") or {}
-        _scr = (_gs.get("screen_type") or "").upper()
-        _nm = (_gs.get("screen_name") or "").upper()
-        if (_scr == "SHOP_SCREEN" or _nm == "SHOP") and "leave" in cmds:
-            # 仍走 _repeat_guard：商店真能关掉时屏幕会变、计数自动清零；
-            # 若 LEAVE 连续 3 次无效则轮换（否则会一直重发 LEAVE 打转过场动画）。
-            cmd = self._repeat_guard(state, "LEAVE")
-            self._log_decision(state, screen=_scr or None, kind="RULE",
-                               cmd=cmd, n_cands=0, degraded=True)
-            self._last_cmd = cmd
-            return cmd
+        # ---- 商店专用决策（必须在「P0 安全网 #1」之前）----
+        # 血案（2026-09-11 真机，原始帧逐帧验证）：
+        #   SHOP_ROOM 的 choice_list 是 ["shop"]（房间里的商人实体），而安全网
+        #   会把任何非空 choice_list 当普通选项屏发 CHOOSE 0 —— 那等于「点击商人」，
+        #   会把刚用 leave 关掉的商店**重新打开**，形成
+        #   SHOP_SCREEN --leave--> SHOP_ROOM --choose 0--> SHOP_SCREEN 逐帧死循环
+        #   （两段卡死合计 29.5 分钟、2797 次 LEAVE；且该路径不写 L2 日志，
+        #   1868 个 SHOP_ROOM 帧在决策日志里完全消失）。
+        #   真正的出口是两步：SHOP_SCREEN --leave--> SHOP_ROOM --proceed--> 地图。
+        #   购买 / 关界面 / 走出房间 / 删卡 GRID 全部由 ShopBrain 负责
+        #   （有记忆、有上限、有兜底；详见 shop_brain.py）。
+        try:
+            shop_cmd = self.shop.decide(state)
+        except Exception:
+            log.exception("ShopBrain 异常，交回常规路径")
+            shop_cmd = None
+        if shop_cmd:
+            gs_shop = state.get("game_state") or {}
+            self._log_decision(state, screen=gs_shop.get("screen_type"),
+                               kind="SHOP", cmd=shop_cmd, n_cands=0,
+                               degraded=True)
+            self._last_cmd = shop_cmd
+            return shop_cmd
 
         # ---- P0 安全网 #1：选项类屏幕（有 choice_list）永远选第一个 ----
         # 优先级最高：确保「缺 seed 等导致模拟器不新鲜」时也给出可执行命令，绝不
         # 回 STATE 空转（本任务要修的新 failure mode）。CHOOSE 0 对事件/篝火/地图/
-        # 选卡永远合法且一定推进游戏。
-        if "choose" in cmds and self._has_choice_list(state):
+        # 选卡永远合法且一定推进游戏。（商店除外：SHOP_ROOM 的 "shop" 选项是
+        # 商人实体，CHOOSE 0 会重开商店；商店帧已由上面的 ShopBrain 接管，
+        # 这里只是防止其它路径漏网的兜底。）
+        if ("choose" in cmds and self._has_choice_list(state)
+                and not is_shop_state(state)):
             return "CHOOSE 0"
 
         # 战斗：ISMCTS（灌状态进模拟器搜索最优出牌），需模拟器新鲜。不新鲜
@@ -681,22 +695,24 @@ class SimBrain:
         """真实状态规则的「自然」命令（未做重复轮换）。"""
         cmds = [c.lower() for c in state.get("available_commands", [])]
 
-        # 商店屏必须**优先离开**：SHOP_SCREEN 的 choice_list 是商品列表
-        # （'purge' + 卡牌/药水名），而 choose 分支排在 leave 前面 → 会一直
-        # CHOOSE 0 去购物/开删除卡牌服务，永远轮不到 LEAVE。真机 2026-09-11
-        # 实测：金币 110 → 14，状态在 SHOP_SCREEN/SHOP_ROOM/GRID 之间循环。
-        # 模拟器侧不支持购买决策，买了纯浪费金币，所以规则一律先离开。
+        # 商店屏（多路径统一兜底；正常由 ShopBrain 接管）：
+        #   SHOP_SCREEN 用 leave 关闭界面、SHOP_ROOM 用 proceed 走出房间——
+        #   绝不在 SHOP_ROOM 发 CHOOSE（choice_list=["shop"] 是商人实体，
+        #   CHOOSE 0 = 点击商人 = 把刚关掉的商店重新打开，真机死循环的引擎）。
         gs0 = state.get("game_state") or {}
         screen0 = (gs0.get("screen_type") or "").upper()
         name0 = (gs0.get("screen_name") or "").upper()
         if screen0 == "SHOP_SCREEN" or name0 == "SHOP":
-            if "leave" in cmds:
-                return "LEAVE"
+            return "LEAVE" if "leave" in cmds else "STATE"
+        if screen0 == "SHOP_ROOM":
+            return "PROCEED" if "proceed" in cmds else "STATE"
 
         if "choose" in cmds and self._has_choice_list(state):
             return "CHOOSE 0"
         if "proceed" in cmds:
             return "PROCEED"
+        if "confirm" in cmds:              # proceed 的等价物（Comm Mod 官方语义）
+            return "CONFIRM"
         if "end" in cmds:
             return "END"
         if "play" in cmds:
@@ -734,7 +750,7 @@ class SimBrain:
         # 商店里绝不轮换到 CHOOSE：SHOP_SCREEN 的 choice_list 是商品列表，
         # CHOOSE 0 = 买东西 / 打开删除卡牌服务（会白花金币、开新屏）。
         gs = state.get("game_state") or {}
-        is_shop = ((gs.get("screen_type") or "").upper() == "SHOP_SCREEN"
+        is_shop = ((gs.get("screen_type") or "").upper() in ("SHOP_SCREEN", "SHOP_ROOM")
                    or (gs.get("screen_name") or "").upper() == "SHOP")
         if "choose" in cmds and not is_shop and (avoid or "").upper() != "CHOOSE 0":
             return "CHOOSE 0"
@@ -1089,6 +1105,10 @@ def main(argv=None):
     p.add_argument("--stuck-grace-ms", type=int, default=600,
                    help="同一状态指纹下同一命令重复时的等待宽限（毫秒）；"
                         "超过后升级到该指纹下还没试过的下一条可用命令")
+    p.add_argument("--shop-mode", choices=["smart", "leave"], default="smart",
+                   help="商店策略：smart=按价值购买+两步退出（LEAVE->PROCEED）；"
+                        "leave=不购买、直接离开。两者都会正确走出商店，"
+                        "修复 SHOP_ROOM 误发 CHOOSE 导致的逐帧死循环。")
     p.add_argument("--dry-run", action="store_true",
                    help="只做编码自检（不读写 stdin/stdout），用于启动前验证")
     args = p.parse_args(argv)
@@ -1099,6 +1119,7 @@ def main(argv=None):
         combat_sims=args.combat_sims,
         determinizations=args.determinizations,
         log_dir=(args.log_dir or None),
+        shop_mode=args.shop_mode,
     )
 
     if args.dry_run:

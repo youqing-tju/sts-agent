@@ -510,8 +510,10 @@ def test_rule_rotate_prevents_infinite_resend(brain):
     可用命令（含 state），绝不无限重发。连续 20 帧里任意单命令连续出现次数 < 8
     （实际 ≤3，因为 ≥3 次就轮换），且确实发生过轮换（不是 20 条全是 LEAVE 空转）。
 
-    用不完整 SHOP 状态（无 seed）→ 走 _real_state_rule 兜底；available_commands
+    用不完整 EVENT 状态（无 seed）→ 走 _real_state_rule 兜底；available_commands
     固定、屏幕不变 → 同命令 LEAVE 触发轮换到 STATE，再回到 LEAVE，如此往复。
+    （商店屏现在由 ShopBrain 接管并确定性离开，不再走通用轮换，见
+     tests/test_shop_brain.py；本用例改为在非商店屏上验证轮换机制本身。）
     """
     brain._sim_fresh = False
     brain._last_cmd = ""
@@ -522,7 +524,7 @@ def test_rule_rotate_prevents_infinite_resend(brain):
         "available_commands": ["leave", "state"],
         "ready_for_command": True,
         "in_game": True,
-        "game_state": {"screen_type": "SHOP_SCREEN", "floor": 2, "gold": 40},
+        "game_state": {"screen_type": "EVENT", "floor": 2, "gold": 40},
     }
     cmds = [brain.decide(shop) for _ in range(20)]
     # 断言 1：没有单命令连续出现 ≥8 次（实际 LEAVE 连续最多 3 次）
@@ -680,3 +682,23 @@ def test_never_emit_bare_arg_requiring_commands(brain):
     st2 = _shop_state(["key", "click", "play", "potion", "state"])
     got2 = brain._rotate_available(st2, avoid="LEAVE")
     assert got2 not in ("KEY", "CLICK", "PLAY", "POTION"), f"实际 {got2}"
+
+
+def test_natural_rule_shop_room_proceeds_never_choose(brain):
+    """兜底规则：SHOP_ROOM 必须 PROCEED（走出房间），绝不能 CHOOSE 0。
+
+    choice_list=["shop"] 是房间里的商人实体：CHOOSE 0 = 点击商人 = 重新打开
+    商店，正是真机 29.5 分钟逐帧死循环的引擎（真实帧 f1427->f1428 实证）。
+    这是 ShopBrain 之外所有「能决定命令」路径的统一兜底。
+    """
+    room = {"ready_for_command": True, "in_game": True,
+            "available_commands": ["choose", "potion", "proceed", "key",
+                                   "click", "wait", "state"],
+            "game_state": {"screen_type": "SHOP_ROOM", "screen_name": "NONE",
+                           "floor": 3, "act": 1, "current_hp": 80, "max_hp": 80,
+                           "gold": 25, "choice_list": ["shop"]}}
+    assert brain._natural_rule_cmd(room) == "PROCEED"
+    # proceed 不可用时回 STATE，也绝不落到 CHOOSE
+    no_proceed = json.loads(json.dumps(room))
+    no_proceed["available_commands"] = ["choose", "key", "click", "wait", "state"]
+    assert brain._natural_rule_cmd(no_proceed) == "STATE"
