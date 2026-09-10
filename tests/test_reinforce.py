@@ -13,7 +13,7 @@ def _rand_vec(n):
 
 
 def _fake_episode(n_steps=3, n_cands=4, final_floor=10, win=False):
-    traj = [(_rand_vec(468), [_rand_vec(443) for _ in range(n_cands)], 1)
+    traj = [(_rand_vec(477), [_rand_vec(443) for _ in range(n_cands)], 1)
             for _ in range(n_steps)]
     return (traj, final_floor, win)
 
@@ -26,7 +26,7 @@ class FakeEnv:
         self._n_cands = n_cands
 
     def observe(self):
-        return Obs(vec=_rand_vec(468), hp=50, max_hp=80, floor=3,
+        return Obs(vec=_rand_vec(477), hp=50, max_hp=80, floor=3,
                    gold=0, deck=[], relics=[], screen="MAP_SCREEN")
 
     def candidates(self):
@@ -83,7 +83,7 @@ def test_collect_episode_fake_env():
     traj, final_floor, win = tr.collect_episode(FakeEnv())
     assert len(traj) == 3
     for obs_vec, cand_vecs, pos in traj:
-        assert len(obs_vec) == 468
+        assert len(obs_vec) == 477
         assert len(cand_vecs) == 3 and len(cand_vecs[0]) == 443
         assert 0 <= pos < 3
     assert isinstance(final_floor, int)

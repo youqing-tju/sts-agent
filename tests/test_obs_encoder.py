@@ -1,13 +1,13 @@
 """models.obs_encoder 单元测试（不依赖 slaythespire pyd）。
 
 覆盖：
-- encode_context(None) -> 43 维全零
+- encode_context(None) -> 52 维全零
 - encode_context(fake_gc) -> 各段按规则填对（药水/数量/Act/房间，地图段退化全零）
 - encode_deck_stats 所有可选依赖为 None -> 13 维全零
 - encode_deck_stats 用假数据（已知 card_index + arch_table + card_effects）-> 手算期望值
-- enhance_observation -> 468 维且前 412 维逐元素相等
+- enhance_observation -> 477 维且前 412 维逐元素相等
 - CARD_INDEX 长度 110、无重复、关键卡位置与运行时观测一致
-- POTION_INDEX 长度 24、无重复
+- POTION_INDEX 长度 33、无重复
 """
 import math
 
@@ -32,8 +32,8 @@ from models.obs_encoder import (
 # --------------------------------------------------------------------------
 def test_dim_constants():
     assert OBS_BASE_DIM == 412
-    assert OBS_EXTRA_DIM == 56
-    assert OBS_DIM == 468
+    assert OBS_EXTRA_DIM == 65
+    assert OBS_DIM == 477
     assert OBS_BASE_DIM + OBS_EXTRA_DIM == OBS_DIM
 
 
@@ -47,9 +47,41 @@ def test_card_index_basic():
     assert CARD_INDEX.index("BASH") == 3
 
 
+def _ironclad_potion_pool_from_cpp():
+    """从 C++ 权威源 Potions.h 的 PotionPool::potionPool[0][33] 解析铁甲药水池。
+
+    直接读取 third_party 头文件，保证 POTION_INDEX 与 C++ 逐项等长、同序——
+    这正是任务要求的“槽位顺序以 C++ 为准”的回归守卫。
+    """
+    import os
+    import re
+
+    here = os.path.dirname(os.path.dirname(__file__))
+    path = os.path.join(here, "third_party", "sts_lightspeed", "include",
+                        "constants", "Potions.h")
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    m = re.search(r"potionPool\[4\]\[33\]\s*\{(.*?)\};", text, re.DOTALL)
+    assert m, "在 Potions.h 中找不到 potionPool[4][33]"
+    rows = re.findall(r"\{([^}]*)\}", m.group(1))
+    assert len(rows) == 4, f"potionPool 应有 4 行，实际 {len(rows)}"
+    names = [n.strip().split("::")[-1] for n in rows[0].split(",") if n.strip()]
+    assert len(names) == 33, f"铁甲药水池应有 33 项，实际 {len(names)}"
+    return names
+
+
 def test_potion_index_basic():
-    assert len(POTION_INDEX) == 24
-    assert len(set(POTION_INDEX)) == 24
+    assert len(POTION_INDEX) == 33
+    assert len(set(POTION_INDEX)) == 33
+    # 铁甲专属 2 件必须在槽位里（旧 24 维漏掉，导致观测信息丢失）
+    assert "ELIXIR_POTION" in POTION_INDEX
+    assert "HEART_OF_IRON" in POTION_INDEX
+    # 异角色药水不应占铁甲槽位：POISON/CUNNING(Silent)、FOCUS(Defect)
+    assert "POISON_POTION" not in POTION_INDEX
+    assert "CUNNING_POTION" not in POTION_INDEX
+    assert "FOCUS_POTION" not in POTION_INDEX
+    # POTION_INDEX 应与 C++ PotionPool[0][33] 等长同序（铁甲全药水池）
+    assert POTION_INDEX == _ironclad_potion_pool_from_cpp()
     # 房间 one-hot 顺序与任务规定一致
     assert ROOM_INDEX == [
         "MONSTER", "ELITE", "REST", "SHOP", "TREASURE",
@@ -64,7 +96,7 @@ def test_potion_index_basic():
 # --------------------------------------------------------------------------
 def test_encode_context_none_is_all_zero():
     out = encode_context(None)
-    assert len(out) == 43
+    assert len(out) == 52
     assert all(v == 0 for v in out)
 
 
@@ -84,20 +116,21 @@ class _FakeGC:
 
 
 def test_encode_context_fake_gc():
-    # POTION_ENUM_NAMES[4] == "ATTACK_POTION"，它在 POTION_INDEX 中位于 0
+    # POTION_ENUM_NAMES[4] == "ATTACK_POTION"，在 POTION_INDEX 中位于动态下标
     # MONSTER 房间在 ROOM_INDEX 中位于 0；act=1 -> Act1 独热
+    attack_idx = POTION_INDEX.index("ATTACK_POTION")
     gc = _FakeGC(potion_slots=[4], act=1, room_name="MONSTER")
     out = encode_context(gc)
-    assert len(out) == 43
+    assert len(out) == 52
 
-    potions = out[0:24]
-    count = out[24]
-    map_summary = out[25:29]
-    act_onehot = out[29:33]
-    room_onehot = out[33:43]
+    potions = out[0:33]
+    count = out[33]
+    map_summary = out[34:38]
+    act_onehot = out[38:42]
+    room_onehot = out[42:52]
 
-    # 药水 one-hot：ATTACK_POTION 在 POTION_INDEX 的第 0 位
-    assert potions[0] == 1
+    # 药水 one-hot：ATTACK_POTION 在 POTION_INDEX 的动态下标处
+    assert potions[attack_idx] == 1
     assert sum(potions) == 1
     # 数量 /5：持有 1 瓶
     assert count == pytest.approx(1 / 5)
@@ -114,14 +147,14 @@ def test_encode_context_act_clamped_to_four():
     for act in (4, 99):
         gc = _FakeGC(potion_slots=[], act=act, room_name="INVALID")
         out = encode_context(gc)
-        assert out[29:33] == [0, 0, 0, 1]
+        assert out[38:42] == [0, 0, 0, 1]
 
 
 def test_encode_context_map_zero_without_seed():
     # 没有 seed 属性 -> 地图段全零（不重建 SpireMap）
     gc = _FakeGC(potion_slots=[], act=1, room_name="MONSTER")
     out = encode_context(gc)
-    assert out[25:29] == [0, 0, 0, 0]
+    assert out[34:38] == [0, 0, 0, 0]
 
 
 def test_encode_context_map_zero_when_act_ge_4():
@@ -129,7 +162,7 @@ def test_encode_context_map_zero_when_act_ge_4():
     gc = _FakeGC(potion_slots=[], act=4, room_name="MONSTER")
     gc.seed = 12345
     out = encode_context(gc)
-    assert out[25:29] == [0, 0, 0, 0]
+    assert out[34:38] == [0, 0, 0, 0]
 
 
 def test_encode_context_map_computed_with_seed():
@@ -139,7 +172,7 @@ def test_encode_context_map_computed_with_seed():
     gc.seed = 12345
     gc.cur_map_node_y = -1  # 构造时未进入地图
     out = encode_context(gc)
-    map_summary = out[25:29]
+    map_summary = out[34:38]
     assert len(map_summary) == 4
     # 维度在 [0,1]，且至少一层有 ELITE/REST/SHOP/OTHER -> 非全零
     assert all(0.0 <= v <= 1.0 for v in map_summary)
@@ -234,9 +267,9 @@ def test_encode_deck_stats_hand_computed():
 def test_enhance_observation_shape_and_prefix():
     obs412 = [i % 7 for i in range(412)]
     out = enhance_observation(obs412)  # 所有可选依赖缺省 None
-    assert len(out) == 468
+    assert len(out) == 477
     assert out[0:412] == obs412  # 前 412 维逐元素相等
-    assert out[412:468] == [0] * 56  # 上下文+牌组段全零
+    assert out[412:477] == [0] * 65  # 上下文+牌组段全零
 
 
 def test_enhance_observation_with_deps():
@@ -251,15 +284,15 @@ def test_enhance_observation_with_deps():
                               card_index=card_index,
                               arch_table=arch_table,
                               card_effects=card_effects)
-    assert len(out) == 468
+    assert len(out) == 477
     assert out[0:412] == obs412
     # 上下文（gc=None）全零
-    assert out[412:412 + 43] == [0] * 43
+    assert out[412:412 + 52] == [0] * 52
     # 牌组段等于 encode_deck_stats 输出
     expected_deck = encode_deck_stats(obs412, card_index=card_index,
                                       arch_table=arch_table,
                                       card_effects=card_effects)
-    assert out[412 + 43:468] == expected_deck
+    assert out[412 + 52:477] == expected_deck
 
 
 def test_encode_deck_stats_real_starting_deck():

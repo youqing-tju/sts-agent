@@ -1,4 +1,4 @@
-"""观测增强：把 C++ 模拟器给的 412 维观测扩展到 468 维。
+"""观测增强：把 C++ 模拟器给的 412 维观测扩展到 477 维。
 
 412 维布局（来自 bindings-util.cpp:40-67）：
     0          当前 HP
@@ -9,8 +9,8 @@
     14-233     220 牌组卡牌计数（110 种卡 × {未升级, 已升级}，每维张数）
     234-411    178 遗物 one-hot（按 RelicId 序号）
 
-在本文件之后追加 56 维：
-    段1  24  持有药水种类 one-hot（24 种常见药水）
+在本文件之后追加 65 维：
+    段1  33  持有药水种类 one-hot（铁甲全 33 种药水，对齐 PotionPool[0][33]）
     段2   1  药水数量 /5
     段3   4  地图摘要：前方 6 层 ELITE/REST/SHOP/OTHER 计数（各 /6）
            通过 sts.SpireMap(seed, ascension, act, False) 重建（不挂在 gc.map 上）
@@ -32,16 +32,16 @@ from typing import Dict, List, Optional, Sequence
 # 维度常量
 # --------------------------------------------------------------------------
 OBS_BASE_DIM = 412
-OBS_EXTRA_DIM = 56
-OBS_DIM = 468
+OBS_EXTRA_DIM = 65
+OBS_DIM = 477
 
-# encode_context 维度分解：24 药水 + 1 数量 + 4 地图 + 4 Act + 10 房间 = 43
-CTX_POTION_DIM = 24
+# encode_context 维度分解：33 药水 + 1 数量 + 4 地图 + 4 Act + 10 房间 = 52
+CTX_POTION_DIM = 33
 CTX_COUNT_DIM = 1
 CTX_MAP_DIM = 4
 CTX_ACT_DIM = 4
 CTX_ROOM_DIM = 10
-CTX_DIM = CTX_POTION_DIM + CTX_COUNT_DIM + CTX_MAP_DIM + CTX_ACT_DIM + CTX_ROOM_DIM  # 43
+CTX_DIM = CTX_POTION_DIM + CTX_COUNT_DIM + CTX_MAP_DIM + CTX_ACT_DIM + CTX_ROOM_DIM  # 52
 
 # encode_deck_stats 维度分解：5 流派强度 + 8 牌组统计 = 13
 DECK_ARCH_DIM = 5
@@ -97,19 +97,30 @@ POTION_ENUM_NAMES: List[str] = [
     "POWER_POTION", "REGEN_POTION", "SKILL_POTION", "SMOKE_BOMB", "SNECKO_OIL",
     "SPEED_POTION", "STANCE_POTION", "STRENGTH_POTION", "SWIFT_POTION", "WEAK_POTION",
 ]
+# 注意：POTION_ENUM_NAMES 是 C++ Potion 枚举的镜像，下标必须与 C++ 完全一致
+# （gc.potion_slots 返回的整数即此下标），故不能删任何项。下列枚举名属于非铁甲
+# 角色，不在 Ironclad 药水池 PotionPool[0][33] 中、也不在 POTION_INDEX 里：
+#   Silent:   POISON_POTION, CUNNING_POTION, GHOST_IN_A_JAR
+#   Defect:   FOCUS_POTION, POTION_OF_CAPACITY, ESSENCE_OF_DARKNESS
+#   Watcher:  BOTTLED_MIRACLE, STANCE_POTION, AMBROSIA
 
-# 24 种常见药水（one-hot 固定顺序）
+# 铁甲全药水池（与 third_party/sts_lightspeed/include/constants/Potions.h 的
+# PotionPool::potionPool[0][33] 逐项等长、同序；覆盖铁甲可达全部 33 种药水）。
 POTION_INDEX: List[str] = [
-    "ATTACK_POTION", "BLOCK_POTION", "BLOOD_POTION", "STRENGTH_POTION",
-    "DEXTERITY_POTION", "ENERGY_POTION", "FIRE_POTION", "POISON_POTION",
-    "WEAK_POTION", "SPEED_POTION", "FLEX_POTION", "FOCUS_POTION",
-    "SKILL_POTION", "POWER_POTION", "REGEN_POTION", "SWIFT_POTION",
-    "EXPLOSIVE_POTION", "CUNNING_POTION", "DUPLICATION_POTION", "FRUIT_JUICE",
-    "LIQUID_MEMORIES", "LIQUID_BRONZE", "SMOKE_BOMB", "ANCIENT_POTION",
+    "BLOOD_POTION", "ELIXIR_POTION", "HEART_OF_IRON", "BLOCK_POTION",
+    "DEXTERITY_POTION", "ENERGY_POTION", "EXPLOSIVE_POTION", "FIRE_POTION",
+    "STRENGTH_POTION", "SWIFT_POTION", "WEAK_POTION", "FEAR_POTION",
+    "ATTACK_POTION", "SKILL_POTION", "POWER_POTION", "COLORLESS_POTION",
+    "FLEX_POTION", "SPEED_POTION", "BLESSING_OF_THE_FORGE", "REGEN_POTION",
+    "ANCIENT_POTION", "LIQUID_BRONZE", "GAMBLERS_BREW", "ESSENCE_OF_STEEL",
+    "DUPLICATION_POTION", "DISTILLED_CHAOS", "LIQUID_MEMORIES", "CULTIST_POTION",
+    "FRUIT_JUICE", "SNECKO_OIL", "FAIRY_POTION", "SMOKE_BOMB", "ENTROPIC_BREW",
 ]
-assert len(POTION_INDEX) == 24
-assert len(set(POTION_INDEX)) == 24
+assert len(POTION_INDEX) == 33
+assert len(set(POTION_INDEX)) == 33
 _POTION_SET = set(POTION_INDEX)
+# 名称 -> 槽位下标：O(1) 查表，保证任何合法 Potion 枚举都绝不 IndexError
+_POTION_INDEX_MAP = {name: i for i, name in enumerate(POTION_INDEX)}
 
 
 # --------------------------------------------------------------------------
@@ -127,7 +138,7 @@ ARCH_NAMES: List[str] = ["strength", "block", "exhaust", "self_damage", "status"
 
 
 # --------------------------------------------------------------------------
-# encode_context：返回 43 维（药水24 + 数量1 + 地图4 + Act4 + 房间10）
+# encode_context：返回 52 维（药水33 + 数量1 + 地图4 + Act4 + 房间10）
 # --------------------------------------------------------------------------
 def _encode_potions(gc) -> List[float]:
     vec = [0.0] * CTX_POTION_DIM
@@ -139,8 +150,9 @@ def _encode_potions(gc) -> List[float]:
             name = POTION_ENUM_NAMES[int(v)]
         except (IndexError, TypeError, ValueError):
             continue
-        if name in _POTION_SET:
-            vec[POTION_INDEX.index(name)] = 1.0
+        idx = _POTION_INDEX_MAP.get(name)
+        if idx is not None:
+            vec[idx] = 1.0
     return vec
 
 
@@ -334,7 +346,7 @@ def _upgraded_count(obs: Sequence, i: int) -> int:
 
 
 # --------------------------------------------------------------------------
-# enhance_observation：412 -> 468
+# enhance_observation：412 -> 477
 # --------------------------------------------------------------------------
 def enhance_observation(
     obs412: Sequence,
@@ -343,7 +355,7 @@ def enhance_observation(
     arch_table: Optional[Dict[str, Sequence[float]]] = None,
     card_effects: Optional[Dict[str, dict]] = None,
 ) -> List[float]:
-    """返回 468 维：list(obs412) + encode_context(gc) + encode_deck_stats(...)。"""
+    """返回 477 维：list(obs412) + encode_context(gc) + encode_deck_stats(...)。"""
     base = list(obs412)
     ctx = encode_context(gc)
     deck = encode_deck_stats(
