@@ -25,6 +25,7 @@ import logging
 from collections import OrderedDict
 
 import slaythespire as sts
+from models.power_alias import alias_power_ids
 from models.card_data import get_card_effects
 
 log = logging.getLogger("sts-agent.combat")
@@ -189,7 +190,11 @@ class CombatBrain:
 
             # 1. 一次重建 bc0
             bc0 = sts.BattleContext()
-            bc0.init_from_json(gc, json.dumps(_sanitize(state)))
+            _clean = _sanitize(state)
+            # F1（2026-09-11）：Weakened→Weak 等——否则玩家虚弱被静默丢弃，
+            # MCTS 的伤害计算全部多算 25%（见 models/power_alias.py）。
+            alias_power_ids(_clean)
+            bc0.init_from_json(gc, json.dumps(_clean))
             self._bc = bc0
 
             # 2. randomize_rng 不可用 → v1 单次搜索（绑定未编译时的降级）
@@ -301,8 +306,33 @@ class CombatBrain:
             return "END"
 
         if action_type == "POTION":
-            log.info("MCTS 选择了药水，v1 不支持，回退规则")
-            return None
+            # F3（2026-09-11）：MCTS 经常给药水投票（2-3 票）却从未被执行。
+            # Comm Mod 官方语法：POTION Use|Discard PotionSlot [TargetIndex]
+            # 插槽暂按 0-based（与游戏 potions 数组一致）；requires_target 的
+            # 目标语义未验证，本版跳过（回退规则）。用真实状态校验 can_use，
+            # 避免喝空槽/错槽。
+            slot = getattr(action, "source_idx", None)
+            if slot is None or int(slot) < 0:
+                log.warning("POTION 动作缺 source_idx，回退规则")
+                return None
+            slot = int(slot)
+            p = None
+            try:
+                pots = ((state or {}).get("game_state") or {}).get("potions") or []
+                if slot < len(pots):
+                    p = pots[slot] or {}
+            except Exception:
+                p = None
+            if isinstance(p, dict):
+                if not p.get("can_use"):
+                    log.warning("POTION 槽 %s 不可用（can_use=false），回退规则", slot)
+                    return None
+                if p.get("requires_target"):
+                    log.warning("POTION %s 需要目标，v1 暂不翻译，回退规则",
+                                p.get("id"))
+                    return None
+            log.info("MCTS 选择药水：POTION Use %d", slot)
+            return f"POTION Use {slot}"
 
         log.warning("未知 MCTS 动作类型: %r，回退规则", action_type)
         return None

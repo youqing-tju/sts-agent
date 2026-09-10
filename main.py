@@ -32,6 +32,7 @@ import os
 import sys
 import threading
 import time
+from collections import Counter
 
 # 真机由 Communication Mod 直接拉起（不经过 shell），拿不到外部环境变量：
 # torch + slaythespire.pyd 各自带一个 OpenMP 运行时，不设这个会报 OMP Error #15。
@@ -71,7 +72,8 @@ from models.obs_encoder import OBS_DIM, encode_deck_stats, enhance_observation
 from models.scorer import Scorer
 from env.base_env import Candidate
 from combat_brain import CombatBrain
-from shop_brain import ShopBrain, is_shop_state
+from shop_brain import ShopBrain, is_shop_state, card_buy_score
+from models.power_alias import alias_power_ids
 
 # 降级路径：规则 bot（战斗启发式 + 宏观规则）
 from main_rule import combat_action, macro_action
@@ -532,6 +534,41 @@ class SimBrain:
             self._last_cmd = shop_cmd
             return shop_cmd
 
+        # ---- F4（2026-09-11）：选牌打分——CARD_REWARD 不再"一律第一张" ----
+        # 用户反馈："选牌从左往右，看不到 RL"。根因：安全网把带选项的屏一律
+        # 短路成 CHOOSE 0。真机 CARD_REWARD 帧的 screen_state.cards 带完整
+        # id/type/rarity → 用与商店购卡**同一把尺子**（card_buy_score）打分选最高。
+        _gs_cr = state.get("game_state") or {}
+        if ((_gs_cr.get("screen_type") or "").upper() == "CARD_REWARD"
+                and "choose" in cmds):
+            _cards = ((_gs_cr.get("screen_state") or {}).get("cards") or [])
+            if _cards:
+                try:
+                    _dc = Counter(str(c.get("id") or "")
+                                  for c in (_gs_cr.get("deck") or [])
+                                  if isinstance(c, dict))
+                    _best, _best_s, _scores = 0, float("-inf"), []
+                    for _i, _c in enumerate(_cards):
+                        _s = float(card_buy_score(_c.get("id"),
+                                                  rarity=_c.get("rarity"),
+                                                  deck_counts=_dc))
+                        _scores.append(round(_s, 4))
+                        if _s > _best_s:
+                            _best, _best_s = _i, _s
+                    log.info("CARD_REWARD 打分: %s → CHOOSE %d", _scores, _best)
+                    if self.log:
+                        self.log.event("card_pick", scores=_scores, chosen=_best,
+                                       cards=[c.get("id") for c in _cards])
+                    cmd = f"CHOOSE {_best}"
+                    self._log_decision(state, screen="CARD_REWARD", kind="CARD",
+                                       cmd=cmd, n_cands=len(_cards),
+                                       scores=_scores, chosen_idx=_best,
+                                       degraded=True)
+                    self._last_cmd = cmd
+                    return cmd
+                except Exception:
+                    log.exception("CARD_REWARD 打分失败，回退安全网")
+
         # ---- P0 安全网 #1：选项类屏幕（有 choice_list）永远选第一个 ----
         # 优先级最高：确保「缺 seed 等导致模拟器不新鲜」时也给出可执行命令，绝不
         # 回 STATE 空转（本任务要修的新 failure mode）。CHOOSE 0 对事件/篝火/地图/
@@ -546,6 +583,21 @@ class SimBrain:
         # （缺 seed 且占位 seed 也灌入失败 / 无真实 game_state）→ P0 真实状态规则
         # 兜底（出牌或 END），绝不用假状态决策、绝不空转。
         if "play" in cmds:
+            # F2b（2026-09-11）：濒死保命优先于 MCTS——≤35% HP 且有可用药水时，
+            # 先喝药再谈输出（真机血案：带着 3 瓶药被打死；本检查在"有牌可打"
+            # 时也能生效，规则路径的同类检查见 _natural_rule_cmd）。
+            if "potion" in cmds:
+                _pot = self._desperate_potion_cmd(state)
+                if _pot:
+                    log.info("濒死保命：发 %s（hp=%s/%s）", _pot,
+                             (state.get("game_state") or {}).get("current_hp"),
+                             (state.get("game_state") or {}).get("max_hp"))
+                    if self.log:
+                        self.log.event("desperate_potion", cmd=_pot)
+                    self._log_decision(state, screen="COMBAT", kind="POTION",
+                                       cmd=_pot, n_cands=0, degraded=True)
+                    self._last_cmd = _pot
+                    return _pot
             if not self._sim_fresh:
                 log.warning("战斗命令但模拟器不新鲜（无真实 game_state/缺 seed 等），"
                             "P0 真实状态规则兜底（绝不用假状态决策，也绝不空转）")
@@ -664,7 +716,12 @@ class SimBrain:
             else:
                 return
         try:
-            self.gc.init_from_json(json.dumps(_sanitize(payload)))
+            clean = _sanitize(payload)
+            # F1（2026-09-11）：Comm Mod 的 power id 与模拟器表不一致
+            # （"Weakened"→"Weak" 等），不匹配的会被静默丢弃——玩家虚弱因此
+            # 从未进过模拟器，MCTS 伤害全多算 25%。灌入前统一别名替换。
+            alias_power_ids(clean)
+            self.gc.init_from_json(json.dumps(clean))
         except Exception:
             log.exception("init_from_json 失败（缺 seed 且占位 seed 也失败/格式异常），"
                           "模拟器不新鲜 → 走 P0 真实状态规则兜底")
@@ -696,6 +753,48 @@ class SimBrain:
                          list(hand[0].keys()), hand[0])
 
     # ---- P0 真实状态规则（安全网，不碰模拟器） ----
+
+    # 保命药水清单（真机实测过的 id 风格：带空格的 "Block Potion" 与
+    # 驼峰的 "LiquidBronze"/"SpeedPotion"/"FearPotion" 并存，照抄游戏原样）。
+    _DEFENSIVE_POTIONS = frozenset({
+        "Block Potion", "LiquidBronze", "EssenceOfSteel", "SpeedPotion",
+        "FearPotion", "Weak Potion", "Regen Potion", "Blood Potion",
+        "Fruit Juice", "Ancient Potion",
+    })
+
+    def _desperate_potion_cmd(self, state: dict):
+        """血线告急（≤35% HP）时喝一瓶可用药水；返回 "POTION Use i" 或 None。
+
+        命令语法（Comm Mod README 逐字）：POTION Use|Discard PotionSlot [TargetIndex]
+        插槽下标暂按 0-based（与游戏内部 potions 数组一致）；若真机被拒
+        （error 帧提到 potion），改成 1-based 只需改这一处。
+        requires_target=true 的药水目标语义未验证，本版跳过（保守）。
+        """
+        gs = state.get("game_state") or {}
+        if not isinstance(gs, dict):
+            return None
+        hp = gs.get("current_hp") or 0
+        mx = gs.get("max_hp") or 1
+        try:
+            if float(hp) / float(mx) > 0.35:
+                return None
+        except Exception:
+            return None
+        potions = gs.get("potions") or []
+        usable = []
+        for i, pt in enumerate(potions):
+            if not isinstance(pt, dict) or not pt.get("can_use"):
+                continue
+            if pt.get("requires_target"):
+                continue
+            usable.append((i, str(pt.get("id"))))
+        if not usable:
+            return None
+        for i, pid in usable:                 # 优先防御/治疗向
+            if pid in self._DEFENSIVE_POTIONS:
+                return f"POTION Use {i}"
+        i, _pid = usable[0]                   # 没有防御向：喝任意可用（进攻也是保命）
+        return f"POTION Use {i}"
 
     def _real_state_rule(self, state: dict, apply_repeat_guard: bool = True) -> str:
         """P0 安全网：真实状态规则，只读 game_state / available_commands。
@@ -730,6 +829,15 @@ class SimBrain:
             return "LEAVE" if "leave" in cmds else "STATE"
         if screen0 == "SHOP_ROOM":
             return "PROCEED" if "proceed" in cmds else "STATE"
+
+        # F2（2026-09-11）：保命优先（≤35% HP 且有可用药水），先喝一瓶再谈其它。
+        # 真机血案：玩家随身 3 瓶药水被打死，avail 里一直有 'potion' 却从未使用
+        # （hp=8/4 时还在发 END）。规则兜底路径（sim 不新鲜 / 没牌可打时）都会
+        # 到这里，药水检查放在 END 之前。
+        if "potion" in cmds:
+            _pot = self._desperate_potion_cmd(state)
+            if _pot:
+                return _pot
 
         if "choose" in cmds and self._has_choice_list(state):
             return "CHOOSE 0"
