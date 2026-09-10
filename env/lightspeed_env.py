@@ -39,7 +39,7 @@ from .base_env import Obs, Candidate, StepResult, StsEnv
 _DESC_VEC_DIM = 443
 
 # NN 观测维度
-_NN_OBS_DIM = 468
+_NN_OBS_DIM = 477
 
 # screen_state 枚举名 → Candidate.kind
 _KIND_BY_SCREEN = {
@@ -218,7 +218,7 @@ class LightspeedEnv(StsEnv):
         return list(_nni_singleton.getObservation(self.gc))
 
     def _nn_vec(self) -> list:
-        """取 468 维观测：C++ 412 维 + Python 侧增强 56 维。
+        """取 477 维观测：C++ 412 维 + Python 侧增强 65 维。
 
         增强段（药水 24 + 药水数 1 + 地图摘要 4 + Act 4 + 房间 10
         + 牌组流派强度 5 + 牌组派生统计 8）见 models/obs_encoder.py。

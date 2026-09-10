@@ -67,8 +67,8 @@ def main():
         from models.scorer import ValueNet
         from training.ppo import PPOTrainer
         hidden = tuple(int(x) for x in args.hidden.split(",") if x.strip())
-        scorer = Scorer(obs_dim=468, cand_dim=443, hidden=hidden)
-        value_net = ValueNet(obs_dim=468)
+        scorer = Scorer(obs_dim=477, cand_dim=443, hidden=hidden)
+        value_net = ValueNet(obs_dim=477)
         lr = args.lr if args.lr is not None else 3e-4
         if args.init_from and os.path.exists(args.init_from):
             import torch
@@ -83,7 +83,7 @@ def main():
                              log_dir=args.log_dir, win_bonus=args.win_bonus,
                              device=args.device or _auto_device())
     else:
-        scorer = Scorer(obs_dim=468, cand_dim=443, hidden=(128, 128))
+        scorer = Scorer(obs_dim=477, cand_dim=443, hidden=(128, 128))
         lr = args.lr if args.lr is not None else 1e-3
         if args.init_from:
             import torch

@@ -123,10 +123,10 @@ class GreedyScorerPolicy:
     """载入训练好的 Scorer 权重，逐候选打分取 argmax（不采样）。
 
     hidden=(512, 256) 需与训练时一致；obs_dim/cand_dim 因表征版本而异，
-    对照组 412/408、实验组 468/367，故由外部传入。
+    对照组 412/408、实验组 477/367，故由外部传入。
     """
 
-    def __init__(self, path, obs_dim=468, cand_dim=367, hidden=(512, 256)):
+    def __init__(self, path, obs_dim=477, cand_dim=367, hidden=(512, 256)):
         import torch
         from models.scorer import Scorer
         self.path = path
@@ -156,7 +156,7 @@ def main(argv=None):
     p.add_argument("--policy", default="random", help="策略名（v1 内置 random）")
     p.add_argument("--checkpoint", default=None,
                    help="Scorer 权重路径；设定后用该权重的 greedy 策略评估")
-    p.add_argument("--obs-dim", type=int, default=468, help="观测维度（对照=412）")
+    p.add_argument("--obs-dim", type=int, default=477, help="观测维度（对照=412）")
     p.add_argument("--cand-dim", type=int, default=367, help="候选维度（对照=408）")
     p.add_argument("--hidden", default="512,256",
                    help="Scorer 隐藏层，逗号分隔。PPO=512,256；REINFORCE=128,128")

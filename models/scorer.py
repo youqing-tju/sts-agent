@@ -11,7 +11,7 @@ from .candidate_encoder import DESC_VEC_DIM
 
 
 class Scorer(nn.Module):
-    def __init__(self, obs_dim=468, cand_dim=DESC_VEC_DIM, hidden=(128, 128)):
+    def __init__(self, obs_dim=477, cand_dim=DESC_VEC_DIM, hidden=(128, 128)):
         # cand_dim 默认跟随候选编码器当前维度（367→443 追加 KB 段后=443）；
         # 旧权重不兼容、需重训，故默认即新维度，避免链路维度错配。
         super().__init__()
@@ -45,7 +45,7 @@ class Scorer(nn.Module):
 class ValueNet(nn.Module):
     """状态价值网络：V(s) = MLP(obs)，PPO 的 critic。"""
 
-    def __init__(self, obs_dim=468, hidden=256):
+    def __init__(self, obs_dim=477, hidden=256):
         super().__init__()
         self.mlp = nn.Sequential(
             nn.Linear(obs_dim, hidden), nn.ReLU(),
