@@ -23,6 +23,7 @@ Python GC 会 delete 单例）。修复后单进程可连续观测多局游戏�
 import slaythespire as sts
 
 from models.candidate_encoder import (
+    DESC_VEC_DIM,
     CardInfo,
     _LOOKAHEAD_LAYERS,
     compute_map_lookahead,
@@ -35,8 +36,8 @@ from models.obs_encoder import encode_deck_stats, enhance_observation
 
 from .base_env import Obs, Candidate, StepResult, StsEnv
 
-# 候选动作 desc_vec 维度（与 models.candidate_encoder.DESC_VEC_DIM 一致；367→443 追加 KB 段）
-_DESC_VEC_DIM = 443
+# 候选动作 desc_vec 维度：直接引用编码器常量，避免两处硬编码漂移
+_DESC_VEC_DIM = DESC_VEC_DIM
 
 # NN 观测维度
 _NN_OBS_DIM = 477

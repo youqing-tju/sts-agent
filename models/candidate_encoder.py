@@ -1,10 +1,9 @@
-"""候选动作 443 维描述向量编码。
+"""候选动作 347 维描述向量编码。
 
 把 env.base_env.Candidate 编码成定长特征向量，给打分网络用。
-纯函数：不 import slaythespire，不持有状态；同一输入必然得到同一输出
-（哈希用 zlib.crc32，与 PYTHONHASHSEED 无关，跨进程确定）。
+纯函数：不 import slaythespire，不持有状态；同一输入必然得到同一输出。
 
-维度布局（总计 443；原 0–366 段布局与 367 维版完全一致，末尾 367–442 为追加 KB 段）：
+维度布局（总计 347；0–270 段布局与 443 维版完全一致，末尾 271–346 为三段 KB 段）：
   [0,   10)  kind one-hot（KIND_LIST）
   [10,  22)  卡牌属性：CardType one-hot(5) + CardRarity one-hot(5)
              + 费用归一化(1, cost/3 截断到 [0,1]，cost=0 时回退查卡牌字典 base_cost)
@@ -23,15 +22,14 @@
              is_potion, is_potion_discard, 2 维保留（绑定层拿不到价格，置 0）
   [223,271)  地图路径前瞻（map-lookahead）：向下 12 层，每层 4 维 one-hot
              ELITE/REST/SHOP/OTHER（由调用方预计算 lookahead_rooms 序列传入）
-  [271,367)  label 文本哈希兜底：分词后每词 crc32 % 96 的 multi-hot
-  ───── 以下为 367→443 追加段（只追加，0–366 段偏移一字未动） ─────
-  [367,391)  药水知识库特征（24 维，models.potion_kb）：
+  ───── 以下为三段知识库段（原 0–270 段偏移一字未动） ─────
+  [271,295)  药水知识库特征（24 维，models.potion_kb）：
              候选对应药水奖励/商品时填充；potion_name→get_potion_features(name)，
              其余候选整段全零
-  [391,423)  遗物知识库特征（32 维，models.relic_kb）：
+  [295,327)  遗物知识库特征（32 维，models.relic_kb）：
              候选对应遗物时填充（含 BOSS_RELIC 屏全部候选），
              relic_name→get_relic_features(name)；其余全零
-  [423,443)  事件知识库特征（20 维，models.event_kb）：
+  [327,347)  事件知识库特征（20 维，models.event_kb）：
              kind=EVENT_OPTION 时，event_key(=event_name)+event_option_idx(=bits.idx1)
              →get_event_option_features；其余全零
 
@@ -40,8 +38,6 @@
 KB 三段均为纯查询（models.potion_kb/relic_kb/event_kb），不持有状态；
 传入的 name/key 为 None 时对应段全零，保持纯函数特性。
 """
-import re
-import zlib
 from dataclasses import dataclass
 
 from .card_data import (
@@ -55,7 +51,7 @@ from .potion_kb import get_potion_features, POTION_FEATURE_DIM
 from .relic_kb import get_relic_features, RELIC_FEATURE_DIM
 from .event_kb import get_event_option_features, EVENT_KB_DIM
 
-DESC_VEC_DIM = 443
+DESC_VEC_DIM = 347
 
 KIND_LIST = [
     "MAP_NODE", "CARD_REWARD", "REWARD", "SKIP", "SHOP_ITEM",
@@ -88,11 +84,10 @@ _OFF_CROSS = 170          # 流派交叉项：35 维
 _OFF_ROOM = 205           # 房间类型 one-hot：10 维
 _OFF_NUM = 215            # 数值特征：8 维
 _OFF_LOOKAHEAD = 223      # 地图前瞻：48 维（12 层 × 4）
-_OFF_LABEL = 271          # label 哈希兜底：96 维
-_OFF_POTION = 367         # 药水 KB：24 维（models.potion_kb）
-_OFF_RELIC = 391          # 遗物 KB：32 维（models.relic_kb）
-_OFF_EVENT = 423          # 事件 KB：20 维（models.event_kb）
-# 末尾 = 423 + 20 = 443 = DESC_VEC_DIM
+_OFF_POTION = 271         # 药水 KB：24 维（models.potion_kb）
+_OFF_RELIC = 295          # 遗物 KB：32 维（models.relic_kb）
+_OFF_EVENT = 327          # 事件 KB：20 维（models.event_kb）
+# 末尾 = 327 + 20 = 347 = DESC_VEC_DIM
 
 _CARD_ATTR_DIM = 12
 _CARD_ONEHOT_DIM = CARD_INDEX_SIZE          # 110
@@ -101,15 +96,12 @@ _ROOM_DIM = len(ROOM_LIST)                  # 10
 _NUM_DIM = 8
 _LOOKAHEAD_LAYERS = 12
 _LOOKAHEAD_DIM = _LOOKAHEAD_LAYERS * 4      # 48
-_LABEL_BUCKETS = _OFF_POTION - _OFF_LABEL   # 96（[271,367)，宽度由新段起点推导，防漂移）
 _POTION_KB_DIM = POTION_FEATURE_DIM        # 24
 _RELIC_KB_DIM = RELIC_FEATURE_DIM          # 32
 _EVENT_KB_DIM = EVENT_KB_DIM                # 20
 
 # 前瞻段房间类型 → 4 维 one-hot 下标；其余（MONSTER/TREASURE/EVENT/BOSS 等）归 OTHER
 LOOKAHEAD_ROOM_MAP = {"ELITE": 0, "REST": 1, "SHOP": 2}
-
-_TOKEN_RE = re.compile(r"[a-z0-9]+")
 
 # 费用归一化分母：普通卡牌费用 0~3，X 费/特殊费截断到 1.0
 _COST_NORM = 3.0
@@ -131,10 +123,6 @@ class CardInfo:
     rarity: str          # CardRarity 名，未知值不置位
     cost: float = 0.0    # 绑定层未暴露费用时保持 0；编码时回退查字典 base_cost
     upgraded: bool = False
-
-
-def _hash_bucket(text: str, buckets: int) -> int:
-    return zlib.crc32(text.encode("utf-8")) % buckets
 
 
 def decode_action_bits(bits: int) -> dict:
@@ -265,11 +253,6 @@ def _encode_numeric(vec: list, bits: int):
     # +6/+7 保留：价格/数量绑定层未暴露，置 0
 
 
-def _encode_label(vec: list, label: str):
-    for tok in _TOKEN_RE.findall(label.lower()):
-        vec[_OFF_LABEL + _hash_bucket(tok, _LABEL_BUCKETS)] = 1.0
-
-
 def _encode_lookahead(vec: list, rooms):
     """rooms: 预计算的每层房间类型名序列（len<=12）。"""
     if not rooms:
@@ -282,7 +265,7 @@ def _encode_lookahead(vec: list, rooms):
 
 
 def _encode_potion_kb(vec: list, name):
-    """药水知识库段 [367,391)：potion_name→get_potion_features（24 维）。
+    """药水知识库段 [271,295)：potion_name→get_potion_features（24 维）。
 
     name 非真值（None/空）时整段保持全零，保持纯函数。
     """
@@ -294,7 +277,7 @@ def _encode_potion_kb(vec: list, name):
 
 
 def _encode_relic_kb(vec: list, name):
-    """遗物知识库段 [391,423)：relic_name→get_relic_features（32 维）。
+    """遗物知识库段 [295,327)：relic_name→get_relic_features（32 维）。
 
     name 非真值（None/空）时整段保持全零，保持纯函数。
     """
@@ -306,7 +289,7 @@ def _encode_relic_kb(vec: list, name):
 
 
 def _encode_event_kb(vec: list, event_key, option_idx):
-    """事件知识库段 [423,443)：event_key+option_idx→get_event_option_features（20 维）。
+    """事件知识库段 [327,347)：event_key+option_idx→get_event_option_features（20 维）。
 
     event_key 或 option_idx 为 None 时整段保持全零，保持纯函数。
     event_key 为 C++ 返回的 event_name（显示名风格），由 event_kb 内部
@@ -324,12 +307,12 @@ def encode_candidate(candidate, *, card: CardInfo = None,
                      lookahead_rooms=None, deck_arch=None,
                      potion_name: str = None, relic_name: str = None,
                      event_key: str = None, event_option_idx: int = None) -> list:
-    """把 Candidate 编码为 443 维特征向量（纯函数）。
+    """把 Candidate 编码为 347 维特征向量（纯函数）。
 
-    原 0–366 段布局不变；末尾 [367,443) 三段知识库特征按需填充：
-      - 药水 KB [367,391)：potion_name 非 None 时填充
-      - 遗物 KB [391,423)：relic_name 非 None 时填充（含 BOSS_RELIC 屏候选）
-      - 事件 KB [423,443)：event_key+event_option_idx 均非 None 时填充
+    原 0–270 段布局不变；末尾 [271,347) 三段知识库特征按需填充：
+      - 药水 KB [271,295)：potion_name 非 None 时填充
+      - 遗物 KB [295,327)：relic_name 非 None 时填充（含 BOSS_RELIC 屏候选）
+      - 事件 KB [327,347)：event_key+event_option_idx 均非 None 时填充
     所有新参数默认 None → 对应段全零，保持纯函数。
 
     candidate: env.base_env.Candidate（读 kind/label）。
@@ -354,8 +337,6 @@ def encode_candidate(candidate, *, card: CardInfo = None,
         _encode_room(vec, room)
     if bits is not None:
         _encode_numeric(vec, bits)
-    if candidate.label:
-        _encode_label(vec, candidate.label)
     if lookahead_rooms is not None:
         _encode_lookahead(vec, lookahead_rooms)
     # KB 三段（末尾追加，None 时全零）

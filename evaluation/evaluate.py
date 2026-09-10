@@ -18,6 +18,11 @@ import statistics
 import sys
 from concurrent.futures import ProcessPoolExecutor
 
+# 维度默认值直接引用编码器常量，避免散落硬编码在改维度时漏改
+# （这两个模块都是纯 Python，不加载 torch/.pyd，不违反上面的懒加载约定）
+from models.candidate_encoder import DESC_VEC_DIM
+from models.obs_encoder import OBS_DIM
+
 # 留出种子母种子：固定，训练侧禁止使用本函数输出的种子
 _MASTER_SEED = 20260831
 
@@ -122,11 +127,11 @@ def _make_policy(name):
 class GreedyScorerPolicy:
     """载入训练好的 Scorer 权重，逐候选打分取 argmax（不采样）。
 
-    hidden=(512, 256) 需与训练时一致；obs_dim/cand_dim 因表征版本而异，
-    对照组 412/408、实验组 477/367，故由外部传入。
+    hidden=(512, 256) 需与训练时一致；obs_dim/cand_dim 因表征版本而异
+    （默认取当前编码器常量，加载旧版本权重时需显式传入）。
     """
 
-    def __init__(self, path, obs_dim=477, cand_dim=367, hidden=(512, 256)):
+    def __init__(self, path, obs_dim=OBS_DIM, cand_dim=DESC_VEC_DIM, hidden=(512, 256)):
         import torch
         from models.scorer import Scorer
         self.path = path
@@ -156,8 +161,8 @@ def main(argv=None):
     p.add_argument("--policy", default="random", help="策略名（v1 内置 random）")
     p.add_argument("--checkpoint", default=None,
                    help="Scorer 权重路径；设定后用该权重的 greedy 策略评估")
-    p.add_argument("--obs-dim", type=int, default=477, help="观测维度（对照=412）")
-    p.add_argument("--cand-dim", type=int, default=367, help="候选维度（对照=408）")
+    p.add_argument("--obs-dim", type=int, default=OBS_DIM, help="观测维度（旧版权重需显式指定）")
+    p.add_argument("--cand-dim", type=int, default=DESC_VEC_DIM, help="候选维度（旧版权重需显式指定）")
     p.add_argument("--hidden", default="512,256",
                    help="Scorer 隐藏层，逗号分隔。PPO=512,256；REINFORCE=128,128")
     p.add_argument("--log-dir", default=None, help="可选：JSONL 日志目录")

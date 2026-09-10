@@ -41,6 +41,16 @@ sys.path.insert(0, ROOT)
 from env.lightspeed_env import LightspeedEnv
 from agents.rule_policy import RulePolicy
 from models.scorer import Scorer
+from models.candidate_encoder import DESC_VEC_DIM
+
+# ⚠️ 本脚本只适用于 **443 维候选向量**（含 [271,367) 的 96 维 label 哈希段）——
+# 即 2026-09-10 删除该段之前的表征版本。改成 347 维后，MASK_B 的区间含义已变
+# （271 起现在是药水 KB 段），重跑会遮蔽错误的段并给出错误结论。
+# 要复现本实验，先把编码器回滚到删段前：git checkout a3472a5 -- models/candidate_encoder.py
+assert DESC_VEC_DIM == 443, (
+    f"dim_ablation 只适用于 443 维候选表征（当前 {DESC_VEC_DIM} 维）。"
+    "该段已被删除，请勿直接重跑；见文件头说明。"
+)
 
 WEIGHTS = os.path.join(ROOT, "checkpoints", "ppo_v6_5000.pt")
 OBS_DIM = 468

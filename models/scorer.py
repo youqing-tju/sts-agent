@@ -12,7 +12,7 @@ from .candidate_encoder import DESC_VEC_DIM
 
 class Scorer(nn.Module):
     def __init__(self, obs_dim=477, cand_dim=DESC_VEC_DIM, hidden=(128, 128)):
-        # cand_dim 默认跟随候选编码器当前维度（367→443 追加 KB 段后=443）；
+        # cand_dim 默认跟随候选编码器当前维度（443→347 删 label 哈希段后=347）；
         # 旧权重不兼容、需重训，故默认即新维度，避免链路维度错配。
         super().__init__()
         # 存下维度元数据：并行训练的 worker 进程需要据此重建同构 scorer

@@ -4,6 +4,8 @@ import random
 import torch
 
 from env.base_env import Candidate, Obs, StepResult
+from models.candidate_encoder import DESC_VEC_DIM
+from models.obs_encoder import OBS_DIM
 from models.scorer import Scorer, ValueNet
 from training.ppo import PPOTrainer
 
@@ -13,7 +15,7 @@ def _rand_vec(n):
 
 
 def _fake_episode(n_steps=3, n_cands=4, final_floor=10, win=False, logp_old=-1.5):
-    traj = [(_rand_vec(477), [_rand_vec(443) for _ in range(n_cands)], 1, logp_old)
+    traj = [(_rand_vec(OBS_DIM), [_rand_vec(DESC_VEC_DIM) for _ in range(n_cands)], 1, logp_old)
             for _ in range(n_steps)]
     return (traj, final_floor, win)
 
@@ -26,13 +28,13 @@ class FakeEnv:
         self._n_cands = n_cands
 
     def observe(self):
-        return Obs(vec=_rand_vec(477), hp=50, max_hp=80, floor=3,
+        return Obs(vec=_rand_vec(OBS_DIM), hp=50, max_hp=80, floor=3,
                    gold=0, deck=[], relics=[], screen="MAP_SCREEN")
 
     def candidates(self):
         if self._left <= 0:
             return []
-        return [Candidate(idx=i, kind="MAP_NODE", desc_vec=_rand_vec(443),
+        return [Candidate(idx=i, kind="MAP_NODE", desc_vec=_rand_vec(DESC_VEC_DIM),
                           label=f"node_{i}")
                 for i in range(self._n_cands)]
 
@@ -65,7 +67,7 @@ def test_collect_episode_stores_logp_old():
     assert len(traj) == 3
     for obs_vec, cand_vecs, pos, logp_old in traj:
         assert len(obs_vec) == 477
-        assert len(cand_vecs) == 3 and len(cand_vecs[0]) == 443
+        assert len(cand_vecs) == 3 and len(cand_vecs[0]) == DESC_VEC_DIM
         assert 0 <= pos < 3
         assert isinstance(logp_old, float)
         assert math.isfinite(logp_old) and logp_old < 0  # log 概率恒负

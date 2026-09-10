@@ -153,7 +153,7 @@ class PPOTrainer:
         if parallel:
             cfg = {
                 "obs_dim": getattr(self.scorer, "obs_dim", 477),
-                "cand_dim": getattr(self.scorer, "cand_dim", 443),
+                "cand_dim": getattr(self.scorer, "cand_dim", DESC_VEC_DIM),
                 "hidden": tuple(getattr(self.scorer, "hidden", (512, 256))),
                 "mcts_sim": self.mcts_sim,
             }
