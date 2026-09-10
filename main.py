@@ -399,6 +399,9 @@ class SimBrain:
         # 商店决策器：按价值购买 + 两步退出（SHOP_SCREEN --leave--> SHOP_ROOM
         # --proceed--> 地图）。机制与真机血案详见 shop_brain.py 顶部注释。
         self.shop = ShopBrain(allow_buys=(shop_mode == "smart"), log=self.log)
+        # 满栏换药流程的状态（见 _reward_potion_flow）
+        self._pot_discard_sent = False   # 本次满栏事件里是否已发过 discard
+        self._pot_full_skip = False      # discard 无效后是否已放弃换药
         self.decisions = 0
         self.fallbacks = 0
 
@@ -568,6 +571,26 @@ class SimBrain:
                     return cmd
                 except Exception:
                     log.exception("CARD_REWARD 打分失败，回退安全网")
+
+        # ---- 满栏换药前置（COMBAT_REWARD）：先丢最差一瓶腾位，再领药水 ----
+        # 真机 01:52 血案：满栏点 potion → 游戏弹"替换界面"→ 不推帧 → 死锁。
+        if ((_gs_cr.get("screen_type") or "").upper() == "COMBAT_REWARD"
+                and "choose" in cmds):
+            try:
+                _pf = self._reward_potion_flow(state)
+            except Exception:
+                log.exception("满栏换药流程异常，交回常规路径")
+                _pf = None
+            if _pf:
+                log.info("满栏换药：%s（choice_list=%s）", _pf,
+                         (_gs_cr.get("choice_list") or []))
+                if self.log:
+                    self.log.event("potion_swap", cmd=_pf,
+                                   choice_list=_gs_cr.get("choice_list"))
+                self._log_decision(state, screen="COMBAT_REWARD", kind="POTION",
+                                   cmd=_pf, n_cands=0, degraded=True)
+                self._last_cmd = _pf
+                return _pf
 
         # ---- P0 安全网 #1：选项类屏幕（有 choice_list）永远选第一个 ----
         # 优先级最高：确保「缺 seed 等导致模拟器不新鲜」时也给出可执行命令，绝不
@@ -754,6 +777,11 @@ class SimBrain:
 
     # ---- P0 真实状态规则（安全网，不碰模拟器） ----
 
+    # 满栏换药时优先丢弃的低价值药水（真机 id 风格；未列的按"保留"处理，
+    # 丢弃顺序按此集合的固定顺序，再退化到"槽位最靠后"）。
+    _LOW_VALUE_POTIONS = ("Fruit Juice", "CultistPotion", "Swift Potion",
+                          "AttackPotion", "Energy Potion", "LiquidMemories")
+
     # 保命药水清单（真机实测过的 id 风格：带空格的 "Block Potion" 与
     # 驼峰的 "LiquidBronze"/"SpeedPotion"/"FearPotion" 并存，照抄游戏原样）。
     _DEFENSIVE_POTIONS = frozenset({
@@ -761,6 +789,52 @@ class SimBrain:
         "FearPotion", "Weak Potion", "Regen Potion", "Blood Potion",
         "Fruit Juice", "Ancient Potion",
     })
+
+    def _reward_potion_flow(self, state: dict):
+        """COMBAT_REWARD 满栏换药前置；返回命令或 None。
+
+        真机 01:52 血案：药水栏 3/3 满时点 "potion" 奖励 → 游戏弹"选择替换哪瓶"
+        界面 → Mod 不再推帧 → agent 干等（表现为"直接卡死"）。
+        正确做法：**先丢一瓶腾位**（POTION Discard <slot>），下一帧再正常领取。
+        防呆：discard 发过一次若栏仍满 → 放弃换药（先领其它、最后 PROCEED），
+        绝不重复发、绝不空转。
+        """
+        gs = state.get("game_state") or {}
+        if not isinstance(gs, dict):
+            return None
+        cl = [str(x) for x in (gs.get("choice_list") or [])]
+        if "potion" not in cl:
+            return None
+        pots = gs.get("potions") or []
+        filled = [(i, p) for i, p in enumerate(pots)
+                  if isinstance(p, dict) and p.get("id") != "Potion Slot"]
+        if len(filled) < 3:
+            # 没满（已腾出位或本来就没满）：清状态，走常规领取
+            self._pot_discard_sent = False
+            self._pot_full_skip = False
+            return None
+        # ---- 满栏：先看要不要放弃换药 ----
+        if self._pot_full_skip or self._pot_discard_sent:
+            # discard 已发过（说明没生效/被拒）或已放弃：先领非药水奖励，
+            # 只剩药水则 PROCEED 跳过（保住 card 奖励，绝不再点 potion）。
+            self._pot_full_skip = True
+            for idx, name in enumerate(cl):
+                if name != "potion":
+                    return f"CHOOSE {idx}"
+            return "PROCEED"
+        # ---- 选最差的一瓶丢弃 ----
+        worst_i = None
+        for low in self._LOW_VALUE_POTIONS:      # 先按低价值清单
+            for i, p in filled:
+                if str(p.get("id")) == low:
+                    worst_i = i
+                    break
+            if worst_i is not None:
+                break
+        if worst_i is None:                      # 退化：槽位最靠后
+            worst_i = filled[-1][0]
+        self._pot_discard_sent = True
+        return f"POTION Discard {worst_i}"
 
     def _desperate_potion_cmd(self, state: dict):
         """血线告急（≤35% HP）时喝一瓶可用药水；返回 "POTION Use i" 或 None。

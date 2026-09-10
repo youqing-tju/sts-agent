@@ -169,3 +169,59 @@ def test_card_reward_fallback_on_empty_cards(brain):
     st = _card_reward_state([])
     cmd = brain.decide(st)
     assert cmd in ("CHOOSE 0", "STATE", "SKIP"), f"空 cards 应退回保守路径，实际 {cmd}"
+
+
+# ---------- 药水栏满换药（真机 01:52 血案） ----------
+
+def _full_bar_reward_state(choice_list, potions):
+    return {"available_commands": ["choose", "potion", "proceed", "key",
+                                   "click", "wait", "state"],
+            "ready_for_command": True, "in_game": True,
+            "game_state": {"screen_type": "COMBAT_REWARD", "screen_name": "NONE",
+                           "floor": 8, "act": 2, "current_hp": 59, "max_hp": 80,
+                           "gold": 100, "seed": 7,
+                           "choice_list": list(choice_list),
+                           "screen_state": {"rewards": []},
+                           "potions": potions}}
+
+
+def test_potion_full_bar_swap_discards_low_value(brain):
+    """满栏 + 奖励含药水 → 先丢【低价值】那瓶腾位（绝不直接点 potion）。
+
+    真机 01:52：满栏点 potion → 游戏弹"替换选择"界面 → Mod 不推帧 → 死锁 27 分钟。
+    """
+    brain._pot_discard_sent = False
+    brain._pot_full_skip = False
+    st = _full_bar_reward_state(["potion", "card"], [
+        {"id": "Block Potion", "can_use": False, "requires_target": False},
+        {"id": "Fruit Juice", "can_use": False, "requires_target": False},
+        {"id": "Fire Potion", "can_use": False, "requires_target": False}])
+    cmd = brain.decide(st)
+    assert cmd == "POTION Discard 1", f"应丢低价值的 Fruit Juice（槽1），实际 {cmd}"
+
+
+def test_potion_full_bar_giveup_after_discard(brain):
+    """discard 发出后栏仍满（被拒/无效）→ 放弃换药：领非药水项，绝不重复发。"""
+    brain._pot_discard_sent = False
+    brain._pot_full_skip = False
+    st = _full_bar_reward_state(["potion", "card"], [
+        {"id": "Block Potion", "can_use": False, "requires_target": False},
+        {"id": "Fire Potion", "can_use": False, "requires_target": False},
+        {"id": "SpeedPotion", "can_use": False, "requires_target": False}])
+    c1 = brain.decide(st)
+    assert c1.startswith("POTION Discard"), f"第一次应先丢一瓶，实际 {c1}"
+    c2 = brain.decide(st)          # 栏仍满（discard 假设无效）
+    assert not c2.startswith("POTION"), f"不该重复发 discard，实际 {c2}"
+    assert c2 == "CHOOSE 1", f"应领非药水奖励（card），实际 {c2}"
+
+
+def test_potion_not_full_no_interception(brain):
+    """栏不满（2/3）→ 不拦截，照常领取（第一次调用后应清状态并返回非 discard 命令）。"""
+    brain._pot_discard_sent = False
+    brain._pot_full_skip = False
+    st = _full_bar_reward_state(["potion", "card"], [
+        {"id": "Block Potion", "can_use": False, "requires_target": False},
+        {"id": "Fire Potion", "can_use": False, "requires_target": False},
+        {"id": "Potion Slot", "can_use": False, "requires_target": False}])
+    cmd = brain.decide(st)
+    assert not str(cmd).startswith("POTION Discard"), f"栏没满不应丢药，实际 {cmd}"
