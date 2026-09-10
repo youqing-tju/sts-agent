@@ -6,6 +6,7 @@
 - 翻译/灌入失败：回退规则决策，不崩
 """
 import json
+import time
 
 import pytest
 
@@ -532,3 +533,36 @@ def test_rule_rotate_prevents_infinite_resend(brain):
     assert max_run < 8, f"出现连续相同命令过长: {cmds} (max_run={max_run})"
     # 断言 2：确实发生过轮换（不是无限重发 LEAVE）
     assert "STATE" in cmds, f"应触发轮换而非无限重发 LEAVE: {cmds}"
+
+
+# ---------- 真机第三轮回归：响应节奏（167ms 刷命令打断商店过场 → 界面闪烁） ----------
+
+def test_command_pacer_enforces_min_interval():
+    """CommandPacer 必须保证两条命令之间的真实间隔 ≥ min_interval。
+
+    真机实测：agent 每 167ms 回一条命令（每秒 6 条），打断游戏"关闭商店"的过场
+    动画，商店永远关不掉、界面反复闪烁。本用例锁住节流行为。
+    """
+    from main import CommandPacer
+
+    pacer = CommandPacer(min_interval_ms=120, stuck_grace_ms=50)
+    stamps = []
+    for _ in range(5):
+        pacer.pace(("SHOP_SCREEN", 2), "LEAVE", ["leave", "state"])
+        pacer.mark_sent()          # 时间戳只在真正写出后记录
+        stamps.append(time.monotonic())
+    gaps = [(stamps[i] - stamps[i - 1]) * 1000 for i in range(1, len(stamps))]
+    assert min(gaps) >= 100, f"节流未生效，间隔 {gaps}"
+    assert pacer.waits >= 3, f"应发生多次等待，实际 waits={pacer.waits}"
+
+
+def test_real_state_rule_accepts_repeat_guard_flag(brain):
+    """签名回归：_real_state_rule 必须接受 apply_repeat_guard。
+
+    真机修复中曾出现「只改调用点、没改函数签名」的半成品，导致 decide() 每帧抛
+    TypeError 并被兜底成 STATE（表现为 agent 呆住不动）。
+    """
+    state = _map_state()
+    brain._real_state_rule(state, True)    # 不得抛 TypeError
+    brain._real_state_rule(state, False)
+    brain._real_state_rule(state)          # 默认参数也要可用

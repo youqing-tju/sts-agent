@@ -332,7 +332,8 @@ class SimBrain:
 
     def __init__(self, checkpoint_path=_DEFAULT_CKPT, obs_dim=OBS_DIM,
                  cand_dim=DESC_VEC_DIM, hidden=(512, 256),
-                 combat_sims=2000, determinizations=10, log_dir=None):
+                 combat_sims=2000, determinizations=10, log_dir=None,
+                 min_cmd_interval_ms=300, stuck_grace_ms=600):
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
         self._reject_streak = 0  # 连续被拒计数（仅 error 帧自增，真实状态清零）
@@ -341,6 +342,15 @@ class SimBrain:
         self._rule_last_cmd = None
         self._rule_repeat = 0
         self._rule_last_screen = None
+        # 命令响应节奏（0910 第三轮真机）：相邻命令最小间隔 + 同指纹不重复发同命令
+        self._min_cmd_interval_ms = min_cmd_interval_ms
+        self._stuck_grace_ms = stuck_grace_ms
+        self._last_cmd_time = 0.0     # 上一条命令写出的时间（节流用）
+        self._cad_fp = None           # 当前已回应的状态指纹
+        self._cad_fp_cmds = set()     # 该指纹下已发过的命令（每条最多一次）
+        self._cad_fp_first = 0.0      # 首次看到该指纹的时间（grace 窗口用）
+        self._cad_fp_exhausted = False  # 该指纹下所有可用命令都试过
+        self._last_interval_ms = 0.0  # 本次与上一条命令的实际间隔（L2 诊断）
         # 模拟器新鲜度：只有本帧带完整真实 game_state 且 init_from_json 成功才为真。
         # 一条真实状态只允许产生一条模拟器命令（发出后置 False）。不新鲜时所有
         # 模拟器分支（ISMCTS / _sim_decide）被禁止，必须回 STATE 请求重发——
@@ -425,7 +435,7 @@ class SimBrain:
             return "END"
         return "STATE"
 
-    def decide(self, state: dict) -> str:
+    def decide(self, state: dict, apply_repeat_guard: bool = True) -> str:
         # --- error 帧处理（先于一切分支，避免被后面「无 game_state → STATE」吞掉） ---
         err = state.get("error")
         if err:
@@ -475,7 +485,7 @@ class SimBrain:
             if not self._sim_fresh:
                 log.warning("战斗命令但模拟器不新鲜（无真实 game_state/缺 seed 等），"
                             "P0 真实状态规则兜底（绝不用假状态决策，也绝不空转）")
-                cmd = self._real_state_rule(state)
+                cmd = self._real_state_rule(state, apply_repeat_guard)
                 self._log_decision(state, screen="COMBAT", kind="RULE",
                                    cmd=cmd, n_cands=0, degraded=True)
                 self._last_cmd = cmd
@@ -490,7 +500,7 @@ class SimBrain:
                 cmd = combat_action(state)
                 self._log_decision(state, screen="COMBAT", kind="COMBAT",
                                    cmd=cmd, n_cands=0, degraded=True)
-            cmd = self._repeat_guard(state, cmd)  # Bug 3：战斗内同命令同屏 ≥3 次→轮换
+            cmd = self._repeat_guard(state, cmd) if apply_repeat_guard else cmd  # Bug 3
             self._sim_fresh = False  # 一条真实状态只允许一条命令
             self._last_cmd = cmd
             return cmd
@@ -508,7 +518,7 @@ class SimBrain:
         if not self._sim_fresh:
             log.warning("宏观命令但模拟器不新鲜（缺 seed 且占位 seed 也失败等），"
                         "P0 真实状态规则兜底（绝不用假状态决策，也绝不空转）")
-            cmd = self._real_state_rule(state)
+            cmd = self._real_state_rule(state, apply_repeat_guard)
             self._log_decision(state, screen=gs.get("screen_type"), kind="RULE",
                                cmd=cmd, n_cands=0, degraded=True)
             self._last_cmd = cmd
@@ -623,7 +633,7 @@ class SimBrain:
 
     # ---- P0 真实状态规则（安全网，不碰模拟器） ----
 
-    def _real_state_rule(self, state: dict) -> str:
+    def _real_state_rule(self, state: dict, apply_repeat_guard: bool = True) -> str:
         """P0 安全网：真实状态规则，只读 game_state / available_commands。
 
         只要有真实状态且 ready_for_command，务必给出一个**可执行**命令，绝不
@@ -639,7 +649,7 @@ class SimBrain:
         以上都不满足（确实没有任何可用命令）→ 才回 STATE（绝不假装行动原地空转）。
         """
         natural = self._natural_rule_cmd(state)
-        return self._repeat_guard(state, natural)
+        return self._repeat_guard(state, natural) if apply_repeat_guard else natural
 
     def _natural_rule_cmd(self, state: dict) -> str:
         """真实状态规则的「自然」命令（未做重复轮换）。"""
@@ -943,6 +953,66 @@ def _parse_hidden(s: str):
     return tuple(int(x) for x in s.split(",") if x.strip())
 
 
+class CommandPacer:
+    """命令节奏与升级控制（真机 2026-09-10 晚实测教训，必须保留）。
+
+    现象：agent 每 **167ms** 回一条命令（每秒 6 条），而游戏"关闭商店"的过场
+    动画需要几百毫秒——命令在过场进行中又到达，动画被打断并重启，商店永远
+    关不掉，界面在开/关之间反复**闪烁**（用户原话）。
+    结论：**命令语义是对的，节奏是错的。**
+
+    本类做两件事：
+      1) **最小命令间隔**：写 stdout 前 sleep 补齐。不能靠"不回"节流——
+         Mod 在等回应，不回会把游戏挂住。
+      2) **同一状态指纹下每条命令最多发一次**：指纹相同说明上一条命令没能
+         推动状态；先等 `stuck_grace_ms`（给过场留时间），仍不变则**升级**到
+         该指纹下还没试过的下一条可用命令；全部试过 → 只回 STATE 并停止对该
+         指纹发命令（事件里体现）。
+    """
+
+    def __init__(self, min_interval_ms=300, stuck_grace_ms=600):
+        self.min_interval = max(0.0, float(min_interval_ms) / 1000.0)
+        self.grace = max(0.0, float(stuck_grace_ms) / 1000.0)
+        self.last_cmd_time = 0.0
+        self.last_interval_ms = None
+        self.waits = 0
+        self.logged_wait = False
+        self._fp = None
+        self._fp_t = 0.0
+        self._tried = set()
+        self._exhausted = False
+
+    def pace(self, fp, cmd, avail=None):
+        """只做**最小命令间隔节流**，返回应写出的命令（内容不变）。
+
+        分工：命令语义与"同屏同命令轮换"由 SimBrain._repeat_guard 负责；
+        本类只管**节奏**——真机实测每条 167ms 会把游戏过场动画反复打断，
+        表现为商店界面闪烁，所以这里强制两条命令之间至少间隔 min_interval。
+        必须 sleep 而不是"不回"：Mod 在等回应，不回会把游戏挂住。
+        """
+        now = time.monotonic()
+        wait = 0.0
+        if self.last_cmd_time and self.min_interval:
+            wait = self.min_interval - (now - self.last_cmd_time)
+        if wait > 0:
+            time.sleep(wait)
+            self.waits += 1
+        self._fp = fp
+        return cmd
+
+    def mark_sent(self):
+        """在**真正写出命令之后**调用：记录时间戳与实际间隔。
+
+        必须在 write 之后调用——主循环在写之前还会为 STATE 额外 sleep 0.1s，
+        若在 pace() 里记时间戳，实际间隔会比 min_interval 少最多 100ms
+        （实测最小值 200ms 而非 300ms，就是这么来的）。
+        """
+        now = time.monotonic()
+        if self.last_cmd_time:
+            self.last_interval_ms = int((now - self.last_cmd_time) * 1000)
+        self.last_cmd_time = now
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="main", description="sts-agent 真实游戏桥接")
     p.add_argument("--checkpoint", default=_DEFAULT_CKPT,
@@ -957,6 +1027,12 @@ def main(argv=None):
                    help="战斗 ISMCTS 平行未来数 K")
     p.add_argument("--log-dir", default=_DEFAULT_LOG_DIR,
                    help="三层日志目录；传空串关闭")
+    p.add_argument("--min-cmd-interval-ms", type=int, default=300,
+                   help="两条命令之间的最小间隔（毫秒）。真机实测：默认节奏约 167ms/条，"
+                        "会打断游戏过场动画导致界面闪烁，故默认节流到 300ms")
+    p.add_argument("--stuck-grace-ms", type=int, default=600,
+                   help="同一状态指纹下同一命令重复时的等待宽限（毫秒）；"
+                        "超过后升级到该指纹下还没试过的下一条可用命令")
     p.add_argument("--dry-run", action="store_true",
                    help="只做编码自检（不读写 stdin/stdout），用于启动前验证")
     args = p.parse_args(argv)
@@ -994,6 +1070,7 @@ def main(argv=None):
     sys.stdout.flush()
     log.info("sts-agent bridge ready (sim brain)")
     guard = LoopDetector()
+    pacer = CommandPacer(args.min_cmd_interval_ms, args.stuck_grace_ms)
 
     for line in sys.stdin:
         raw_line = line.strip()
@@ -1053,17 +1130,32 @@ def main(argv=None):
                       file=sys.stderr, flush=True)
                 break
 
+        # 节奏与去重：真机实测 167ms/条会打断游戏过场 → 界面闪烁；见 CommandPacer
+        avail = state.get("available_commands", []) or []
+        paced = pacer.pace(_fingerprint(state), cmd, avail)
+        if paced != cmd and brain.log:
+            brain.log.event("cmd_paced", wanted=cmd, sent=paced,
+                            interval_ms=pacer.last_interval_ms,
+                            tried=sorted(pacer._tried))
+        if pacer.waits and not pacer.logged_wait and brain.log:
+            brain.log.event("cadence_wait",
+                            min_interval_ms=int(pacer.min_interval * 1000))
+            pacer.logged_wait = True
+        cmd = paced
+
         log.debug("screen=%s -> %s",
                   state.get("game_state", {}).get("screen_type"), cmd)
         if cmd == "STATE":
             time.sleep(0.1)  # 避免在主菜单等无操作状态下疯狂自旋
         sys.stdout.write(cmd + "\n")
         sys.stdout.flush()
+        pacer.mark_sent()
 
     if brain.log:
         brain.log.event("bridge_exit", decisions=brain.decisions,
                         fallbacks=brain.fallbacks,
-                        stalls=guard.total_stalls)
+                        stalls=guard.total_stalls,
+                        cadence_waits=pacer.waits)
         brain.log.close()
     return 0
 
