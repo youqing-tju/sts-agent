@@ -17,6 +17,8 @@ import random
 import torch
 import torch.nn.functional as F
 
+from models.candidate_encoder import DESC_VEC_DIM
+
 # 防御性步数上限：与 evaluation/evaluate.py 一致
 _MAX_STEPS = 500
 
