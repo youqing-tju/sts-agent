@@ -246,3 +246,80 @@ def test_reject_streak_fuse_ignores_interleaved_state_fix3(brain, monkeypatch):
     # 收到真实状态后清零，再被拒不应立即 END
     assert brain.decide(_map_state()).startswith("CHOOSE ")
     assert brain.decide(err) != "END", "真实状态后应已清零熔断计数"
+
+
+# ---------- 22:32 主因回归：禁止用模拟器假状态做决策 ----------
+
+def test_real_sequence_no_simulator_on_fake_state(brain):
+    """复现 22:32 主因序列：菜单 → 错误帧洪流 → 真实战斗 → 错误帧。
+
+    1) 菜单 → START IRONCLAD
+    2) 10 条 error 帧（无 game_state）→ 全 STATE，绝不出现 PLAY/CHOOSE/END
+       （旧版正是在这种帧上拿模拟器假对局状态输出命令，导致死循环）
+    3) 完整真实战斗状态 → 才允许模拟器命令；技能不带目标、攻击带目标
+    4) 紧接错误帧 → 立刻退回 STATE，不重复上一条命令、不重跑模拟器
+    """
+    brain._last_cmd = ""
+    brain._sim_fresh = False
+    brain._reject_streak = 0
+
+    # 1) 主菜单
+    menu = {"available_commands": ["start"], "ready_for_command": True,
+            "in_game": False}
+    assert brain.decide(menu) == "START IRONCLAD"
+
+    # 2) 10 条 error 帧（无 game_state）
+    err = {"ready_for_command": True,
+           "error": "Selected card cannot be played with the selected target."}
+    err_out = [brain.decide(err) for _ in range(10)]
+    assert all(c == "STATE" for c in err_out), f"错误帧不应产出模拟器命令: {err_out}"
+    assert not any(c.startswith("PLAY") for c in err_out)
+    assert not any(c.startswith("CHOOSE") for c in err_out)
+    assert not any(c == "END" for c in err_out)
+
+    # 3) 完整真实战斗状态（hand 一张技能 + 一张攻击）
+    combat = _combat_state([
+        {"id": "Defend_R", "name": "Defend", "cost": 1, "type": "SKILL",
+         "is_playable": True},
+        {"id": "Strike_R", "name": "Strike", "cost": 1, "type": "ATTACK",
+         "is_playable": True},
+    ])
+    c = brain.decide(combat)
+    assert c != "STATE" and c.startswith("PLAY"), f"真实战斗状态应允许模拟器命令: {c}"
+    src = int(c.split()[1]) - 1
+    has_target = len(c.split()) >= 3
+    hand = combat["game_state"]["combat_state"]["hand"]
+    if has_target:
+        assert hand[src].get("type", "").upper() == "ATTACK", c
+    else:
+        assert hand[src].get("type", "").upper() in ("SKILL", "POWER"), c
+
+    # 4) 紧接错误帧：退回 STATE，不重复上一条命令
+    c2 = brain.decide({"ready_for_command": True, "error": "some other game error"})
+    assert c2 == "STATE", f"错误帧后应退回 STATE 而非重发: {c2}"
+    assert c2 != c
+
+
+def test_real_combat_skill_has_no_target_fixB(brain):
+    """真实战斗单技能手牌：PLAY 不带目标下标（验证 (a) 真实状态/本地知识判定）。"""
+    c = brain.decide(_combat_state([
+        {"id": "Defend_R", "name": "Defend", "cost": 1, "type": "SKILL",
+         "is_playable": True},
+    ]))
+    assert c == "PLAY 1", f"技能牌不应带目标: {c}"
+
+
+def test_incomplete_state_never_drives_simulator(brain):
+    """不完整状态（缺 seed 等）不灌模拟器：宏观分支也回 STATE，不猜命令。"""
+    brain._sim_fresh = False
+    brain._last_cmd = ""
+    # 缺 seed 的真实感状态（模拟 selfcheck 的 _state_stuck / 格式异常）
+    incomplete = {
+        "available_commands": ["choose", "state"], "ready_for_command": True,
+        "in_game": True,
+        "game_state": {"screen_type": "MAP", "floor": 1, "act": 1,
+                       "current_hp": 70, "max_hp": 80, "gold": 99,
+                       "choice_list": [{"x": 0}, {"x": 1}]},
+    }
+    assert brain.decide(incomplete) == "STATE"
+    assert brain._sim_fresh is False

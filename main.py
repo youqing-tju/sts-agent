@@ -220,6 +220,10 @@ class RunLog:
                           "a", encoding="utf-8")
         self.f_evt = open(os.path.join(log_dir, f"{stamp}_events.jsonl"),
                           "a", encoding="utf-8")
+        # L0：原始 stdin 行（解析前原样落盘，含解析失败的行）——"Mod 到底发了什么"
+        # 的不可辩驳证据。22:32 死循环的根因之一就是 L1 只落解析成功的对象。
+        self.f_raw = open(os.path.join(log_dir, f"{stamp}_raw.jsonl"),
+                         "a", encoding="utf-8")
         self.stamp = stamp
         self.n_states = 0
         self._stop = threading.Event()
@@ -232,6 +236,14 @@ class RunLog:
             f.flush()
         except Exception:
             log.exception("写日志失败")
+
+    def raw(self, line: str):
+        """原样追加一行原始 stdin（不做任何加工，含解析失败的行）。"""
+        try:
+            self.f_raw.write(line + "\n")
+            self.f_raw.flush()
+        except Exception:
+            log.exception("写原始日志失败")
 
     def state(self, state: dict):
         self.n_states += 1
@@ -252,6 +264,13 @@ class RunLog:
 
     def close(self):
         self._stop.set()
+        for f in (getattr(self, "f_states", None), getattr(self, "f_dec", None),
+                  getattr(self, "f_evt", None), getattr(self, "f_raw", None)):
+            try:
+                if f:
+                    f.close()
+            except Exception:
+                pass
 
 
 class SimBrain:
@@ -264,6 +283,12 @@ class SimBrain:
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
         self._reject_streak = 0  # 连续被拒计数（仅 error 帧自增，真实状态清零）
         self._last_cmd = ""    # 上一次发的命令（target 被拒不带目标重发用）
+        # 模拟器新鲜度：只有本帧带完整真实 game_state 且 init_from_json 成功才为真。
+        # 一条真实状态只允许产生一条模拟器命令（发出后置 False）。不新鲜时所有
+        # 模拟器分支（ISMCTS / _sim_decide）被禁止，必须回 STATE 请求重发——
+        # 绝不拿模拟器自己的假对局状态当事实来源（22:32 死循环主因）。
+        self._sim_fresh = False
+        self._gs_keys_logged = False  # 一次性诊断：真实 game_state 有哪些键
         self.obs_dim = obs_dim
         self.cand_dim = cand_dim
         self.log = RunLog(log_dir) if log_dir else None
@@ -326,8 +351,10 @@ class SimBrain:
                     log.info("目标被拒，换形式重发: %r -> %r", prev, new_cmd)
                     self._last_cmd = new_cmd
                     return new_cmd
-            # 上一条不是带目标的 PLAY（异常）→ 落到通用处理
-        # 通用：计入连续被拒，超限强 END（熔断）。target 被拒不走此路，避免漏计/误计。
+            # 上一条不是带目标的 PLAY（无真实状态可重试）→ 回 STATE 请求重发，
+            # 绝不拿模拟器假状态猜命令，也不计入熔断。
+            return "STATE"
+        # 通用错误（非目标错误）：计入连续被拒，超限强 END 回合（熔断保命）。
         self._reject_streak += 1
         if self._reject_streak >= 3:
             n = self._reject_streak
@@ -366,10 +393,25 @@ class SimBrain:
         # Communication Mod 的 available_commands 全是小写
         cmds = [c.lower() for c in state.get("available_commands", [])]
 
-        # 战斗：ISMCTS 优先（灌状态进模拟器搜索最优出牌），失败回退规则
+        # 模拟器新鲜度：仅当本帧带完整真实 game_state 且 init_from_json 成功才置真。
+        # 一条真实状态只允许产生一条模拟器命令（各模拟器分支末尾置 False）。
+        self._refresh_sim(state)
+
+        # 主菜单：规则命令，不依赖模拟器（即使不新鲜也照发）
+        if "start" in cmds:
+            cmd = "START IRONCLAD"
+            if self.log:
+                self.log.event("run_start", command=cmd)
+            return cmd
+
+        # 战斗：ISMCTS（灌状态进模拟器搜索最优出牌），需模拟器新鲜。
+        # 不新鲜（错误帧/无真实 game_state）→ 不猜命令，回 STATE 请求重发。
         if "play" in cmds:
+            if not self._sim_fresh:
+                log.warning("战斗命令请求但模拟器不新鲜（无真实 game_state），"
+                            "回 STATE 请求重发（绝不用假状态决策）")
+                return "STATE"
             try:
-                self.gc.init_from_json(json.dumps(_sanitize(state)))
                 cmd = self.combat_brain.decide_with_fallback(
                     state, self.gc, combat_action)
                 self._log_decision(state, screen="COMBAT", kind="COMBAT",
@@ -379,10 +421,11 @@ class SimBrain:
                 cmd = combat_action(state)
                 self._log_decision(state, screen="COMBAT", kind="COMBAT",
                                    cmd=cmd, n_cands=0, degraded=True)
+            self._sim_fresh = False  # 一条真实状态只允许一条命令
             self._last_cmd = cmd
             return cmd
 
-        # 战斗奖励：模拟器没有真实奖励内容，RL 会错误跳过——直接走规则（逐个领取）
+        # 战斗奖励：模拟器没有真实奖励内容，RL 会错误跳过——规则逐个领取（不依赖模拟器）
         gs = state.get("game_state", {})
         if (gs.get("screen_type") or "").upper() == "COMBAT_REWARD":
             cmd = macro_action(state)
@@ -390,14 +433,11 @@ class SimBrain:
                                cmd=cmd, n_cands=0, degraded=True)
             return cmd
 
-        # 游戏未开始（主菜单）
-        if "start" in cmds:
-            cmd = "START IRONCLAD"
-            if self.log:
-                self.log.event("run_start", command=cmd)
-            return cmd
-
-        # 宏观决策：模拟器 + RL；任何失败回退规则
+        # 宏观决策：模拟器 + RL；需模拟器新鲜。不新鲜 → 回 STATE 请求重发。
+        if not self._sim_fresh:
+            log.warning("宏观命令请求但模拟器不新鲜（无真实 game_state），"
+                        "回 STATE 请求重发（绝不用假状态决策）")
+            return "STATE"
         try:
             cmd = self._sim_decide(state, cmds)
         except Exception as exc:
@@ -411,24 +451,76 @@ class SimBrain:
             log.info("rule fallback -> %s", cmd)
             self._log_decision(state, screen=gs.get("screen_type"), kind="-",
                                cmd=cmd, n_cands=0, degraded=True)
+        self._sim_fresh = False  # 一条真实状态只允许一条命令
         return cmd
+
+    # ---- 模拟器新鲜度 ----
+
+    # 判定「真实 game_state 是否完整」所需的必备字段（缺任一即视为不完整，
+    # init_from_json 会崩或产出的模拟器状态不可信）。
+    _REQUIRED_GS_KEYS = ("seed", "floor", "act", "current_hp", "max_hp", "gold")
+
+    def _has_complete_game_state(self, state) -> bool:
+        gs = state.get("game_state")
+        if not isinstance(gs, dict):
+            return False
+        return all(gs.get(k) is not None for k in self._REQUIRED_GS_KEYS)
+
+    def _refresh_sim(self, state):
+        """尝试把本帧真实状态灌入模拟器。仅当状态完整且灌入成功才置 _sim_fresh。
+
+        错误帧（无 game_state）或不完整状态不会灌入，模拟器保持不新鲜。
+        """
+        self._sim_fresh = False
+        if not self._has_complete_game_state(state):
+            return
+        try:
+            self.gc.init_from_json(json.dumps(_sanitize(state)))
+        except Exception:
+            log.exception("init_from_json 失败（状态不完整/格式异常），模拟器不新鲜")
+            self._sim_fresh = False
+            return
+        self._sim_fresh = True
+        self._maybe_log_game_state_keys(state)
+
+    def _maybe_log_game_state_keys(self, state):
+        """一次性诊断：首次拿到带 game_state 的真实状态，打印其键名 + 首张手牌字段。
+
+        这次真机日志里根本没抓到过真实状态，无法确认 game_state 到底有哪些键、
+        hand 里有没有 has_target；打印一次便于下次真机立刻确认（只打一次，不刷屏）。
+        """
+        if self._gs_keys_logged:
+            return
+        self._gs_keys_logged = True
+        gs = state.get("game_state", {})
+        if not isinstance(gs, dict):
+            return
+        log.info("[diag] 真实 game_state 键名: %s",
+                 list(gs.keys()))
+        combat = gs.get("combat_state")
+        if isinstance(combat, dict):
+            log.info("[diag] combat_state 键名: %s", list(combat.keys()))
+            hand = combat.get("hand") or []
+            if hand and isinstance(hand[0], dict):
+                log.info("[diag] 首张手牌字段: %s ; 完整内容: %s",
+                         list(hand[0].keys()), hand[0])
 
     # ---- 模拟器决策路径 ----
 
     def _sim_decide(self, state: dict, cmds: list):
-        """灌入模拟器 → RL 选动作 → 翻译成 comm 命令；不可翻译返回 None。"""
+        """灌入模拟器 → RL 选动作 → 翻译成 comm 命令；不可翻译返回 None。
+
+        前置：调用方已通过 _refresh_sim 灌入并确认 _sim_fresh，故此处不再灌。
+        """
         if self.scorer is None:
             return None
         game = state.get("game_state", {})
 
-        # 前置检查：关键字段为 null 时直接跳过（init_from_json 会崩）
-        _REQUIRED_NUMERIC = ["seed", "floor", "act", "current_hp", "max_hp", "gold"]
-        for field in _REQUIRED_NUMERIC:
-            if game.get(field) is None:
-                log.warning("game_state.%s 为 null，跳过模拟器决策", field)
-                return None
+        # 兜底：若不知为何在不新鲜时被调用，直接放弃（不靠假状态打分）
+        if not self._sim_fresh:
+            log.warning("sim 决策被调用但模拟器不新鲜，放弃")
+            return None
 
-        self.gc.init_from_json(json.dumps(_sanitize(state)))
         gc = self.gc
         self._ascension = int(game.get("ascension_level", 0) or 0)
         screen = gc.screen_state.name
@@ -699,13 +791,16 @@ def main(argv=None):
     guard = LoopDetector()
 
     for line in sys.stdin:
-        line = line.strip()
-        if not line:
+        raw_line = line.strip()
+        if not raw_line:
             continue
+        # L0：原始 stdin 行原样落盘（解析前），含解析失败的行——"Mod 到底发了什么"
+        if brain.log:
+            brain.log.raw(raw_line)
         try:
-            state = json.loads(line)
+            state = json.loads(raw_line)
         except json.JSONDecodeError:
-            log.error("bad json: %s", line[:200])
+            log.error("bad json: %s", raw_line[:200])
             continue
 
         # L1：真实状态原样落盘（无损重放）
