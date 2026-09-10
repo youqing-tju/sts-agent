@@ -358,3 +358,70 @@ def test_grid_confirm_frame(brain):
                          "screen_state": {"for_purge": False, "for_upgrade": True,
                                           "selected_cards": [3], "cards": []}}}
     assert brain.decide(st) == "CONFIRM"
+
+
+# ---------- 跳牌（低分 SKIP）与路线打分（MAP） ----------
+
+def _card_reward_state(cards):
+    return {"available_commands": ["choose", "skip", "key", "click", "wait", "state"],
+            "ready_for_command": True, "in_game": True,
+            "game_state": {"screen_type": "CARD_REWARD", "floor": 3, "act": 1,
+                           "current_hp": 70, "max_hp": 80, "gold": 100, "seed": 5,
+                           "deck": [],
+                           "choice_list": [c["id"] for c in cards],
+                           "screen_state": {"cards": cards}}}
+
+
+def test_card_reward_all_low_score_skips(brain):
+    """全是低分牌（最高 <0.15）→ SKIP（用户反馈"RL 不会跳过牌"）。"""
+    st = _card_reward_state([{"id": "Clash", "rarity": "COMMON", "type": "ATTACK"},
+                             {"id": "Perfected Strike", "rarity": "COMMON", "type": "ATTACK"},
+                             {"id": "Twin Strike", "rarity": "COMMON", "type": "ATTACK"}])
+    assert brain.decide(st) == "SKIP"
+
+
+def test_card_reward_good_card_not_skipped(brain):
+    """有值得拿的牌 → 正常 CHOOSE（不误跳）。"""
+    st = _card_reward_state([{"id": "Wild Strike", "rarity": "COMMON", "type": "ATTACK"},
+                             {"id": "Shrug It Off", "rarity": "UNCOMMON", "type": "SKILL"},
+                             {"id": "Havoc", "rarity": "COMMON", "type": "SKILL"}])
+    assert brain.decide(st) == "CHOOSE 1"
+
+
+def _map_state(nodes, hp=80, mx=80, gold=100):
+    return {"available_commands": ["choose", "return", "key", "click", "wait", "state"],
+            "ready_for_command": True, "in_game": True,
+            "game_state": {"screen_type": "MAP", "floor": 5, "act": 1,
+                           "current_hp": hp, "max_hp": mx, "gold": gold, "seed": 5,
+                           "choice_list": [f"x={n['x']}" for n in nodes],
+                           "screen_state": {"first_node_chosen": True,
+                                            "current_node": {"x": 0, "y": 4},
+                                            "next_nodes": nodes}}}
+
+
+def test_map_route_prefers_shop_when_rich(brain):
+    """有钱（≥150）时 [M,$] 选商店（不再"永远最左"）。"""
+    st = _map_state([{"symbol": "M", "x": 0, "y": 5},
+                     {"symbol": "$", "x": 4, "y": 5}], gold=200)
+    assert brain.decide(st) == "CHOOSE 1"
+
+
+def test_map_route_prefers_rest_when_low_hp(brain):
+    """低血 [M,R] 选休息。"""
+    st = _map_state([{"symbol": "M", "x": 0, "y": 5},
+                     {"symbol": "R", "x": 4, "y": 5}], hp=30)
+    assert brain.decide(st) == "CHOOSE 1"
+
+
+def test_map_route_prefers_elite_when_healthy(brain):
+    """健康 [M,E] 选精英。"""
+    st = _map_state([{"symbol": "M", "x": 0, "y": 5},
+                     {"symbol": "E", "x": 4, "y": 5}], hp=80)
+    assert brain.decide(st) == "CHOOSE 1"
+
+
+def test_map_route_avoids_elite_when_low_hp(brain):
+    """低血 [M,E] 避开精英（选普通战斗）。"""
+    st = _map_state([{"symbol": "M", "x": 0, "y": 5},
+                     {"symbol": "E", "x": 4, "y": 5}], hp=30)
+    assert brain.decide(st) == "CHOOSE 0"

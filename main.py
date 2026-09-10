@@ -558,6 +558,21 @@ class SimBrain:
                         _scores.append(round(_s, 4))
                         if _s > _best_s:
                             _best, _best_s = _i, _s
+                    # 全是垃圾牌（最高分也 < 0.15）→ SKIP 比拿烂牌好（牌组越小
+                    # 越精）；真机样本：Clash 0.10 / PerfectedStrike 0.04 /
+                    # TwinStrike 0.04 —— 用户反馈"RL 不会跳过牌"。
+                    if _best_s < 0.15 and "skip" in cmds:
+                        log.info("CARD_REWARD 全为低分 %s → SKIP", _scores)
+                        if self.log:
+                            self.log.event("card_skip", scores=_scores,
+                                           cards=[c.get("id") for c in _cards])
+                        cmd = "SKIP"
+                        self._log_decision(state, screen="CARD_REWARD",
+                                           kind="CARD", cmd=cmd,
+                                           n_cands=len(_cards), scores=_scores,
+                                           degraded=True)
+                        self._last_cmd = cmd
+                        return cmd
                     log.info("CARD_REWARD 打分: %s → CHOOSE %d", _scores, _best)
                     if self.log:
                         self.log.event("card_pick", scores=_scores, chosen=_best,
@@ -612,6 +627,57 @@ class SimBrain:
                                    cmd=_rg, n_cands=0, degraded=True)
                 self._last_cmd = _rg
                 return _rg
+
+        # ---- F6（2026-09-11）：路线规划——安全网之前按节点价值打分 ----
+        # 用户反馈："路线依旧是一直走最左边"。根因：MAP 屏被安全网一律
+        # CHOOSE 0（choice_list 第一个 = 最左节点）。真机帧的
+        # screen_state.next_nodes 直接给出可达节点（含 symbol），与 choice_list
+        # 一一对应；按其类型打分选最优（低血优先休息、缺血避精英、有钱优先商店）。
+        if ((_gs_cr.get("screen_type") or "").upper() == "MAP"
+                and "choose" in cmds):
+            _nn = ((_gs_cr.get("screen_state") or {}).get("next_nodes") or [])
+            if _nn:
+                try:
+                    _cur = _gs_cr.get("current_hp") or 0
+                    _mx = _gs_cr.get("max_hp") or 1
+                    _ratio = float(_cur) / float(_mx) if _mx else 1.0
+                    _gold = _gs_cr.get("gold") or 0
+                    _low_hp = _ratio < 0.5
+                    _rich = _gold >= 150
+                    _base = {"T": 1.00, "R": 0.90, "E": 0.85, "$": 0.75,
+                             "?": 0.60, "M": 0.50}
+                    _best, _best_s, _mscores = 0, float("-inf"), []
+                    for _i, _n in enumerate(_nn):
+                        _sym = str(_n.get("symbol") or "").upper()
+                        _sc = _base.get(_sym, 0.50)
+                        if _low_hp:
+                            if _sym == "R":
+                                _sc += 0.60          # 缺血：休息最香
+                            if _sym == "E":
+                                _sc -= 0.70          # 缺血：精英危险
+                            if _sym == "M":
+                                _sc -= 0.10
+                        if _rich and _sym == "$":
+                            _sc += 0.30              # 有钱：商店变现
+                        _mscores.append(round(_sc, 3))
+                        if _sc > _best_s:
+                            _best, _best_s = _i, _sc
+                    log.info("MAP 路线打分 %s → CHOOSE %d（hp=%s/%s gold=%s）",
+                             list(zip([n.get("symbol") for n in _nn], _mscores)),
+                             _best, _cur, _mx, _gold)
+                    if self.log:
+                        self.log.event("map_route", scores=_mscores, chosen=_best,
+                                       nodes=[{k: n.get(k) for k in ("symbol", "x", "y")}
+                                              for n in _nn])
+                    cmd = f"CHOOSE {_best}"
+                    self._log_decision(state, screen="MAP", kind="MAP",
+                                       cmd=cmd, n_cands=len(_nn),
+                                       scores=_mscores, chosen_idx=_best,
+                                       degraded=True)
+                    self._last_cmd = cmd
+                    return cmd
+                except Exception:
+                    log.exception("MAP 路线打分失败，回退安全网")
 
         # ---- P0 安全网 #1：选项类屏幕（有 choice_list）永远选第一个 ----
         # 优先级最高：确保「缺 seed 等导致模拟器不新鲜」时也给出可执行命令，绝不
