@@ -425,3 +425,29 @@ def test_map_route_avoids_elite_when_low_hp(brain):
     st = _map_state([{"symbol": "M", "x": 0, "y": 5},
                      {"symbol": "E", "x": 4, "y": 5}], hp=30)
     assert brain.decide(st) == "CHOOSE 0"
+
+
+# ---------- 事件屏防重复（Match and Keep 配对屏血案） ----------
+
+def test_event_screen_anti_repeat_increments(brain):
+    """同事件屏同 RL 选择 → 索引递增（翻下一张牌），不再死循环。
+
+    真机 2026-09-11 03:07 血案：Match and Keep! 配对屏上 V9 每次打分都选
+    同一张 → 翻同一张牌 = 无效操作 → CHOOSE 0 ×20 → stall_giveup。
+    修复后：RL 原始选择相同时索引逐步递增（0,1,2,...）把牌翻完。
+    """
+    brain._ev_last_key = None
+    brain._ev_last_raw = None
+    brain._ev_repeat = 0
+    opts = [{"choice_index": i, "disabled": False, "text": f"card{i}",
+             "label": f"card{i}"} for i in range(12)]
+    st = {"available_commands": ["choose", "key", "click", "wait", "state"],
+          "ready_for_command": True, "in_game": True,
+          "game_state": {"screen_type": "EVENT", "floor": 12, "act": 2,
+                         "current_hp": 60, "max_hp": 80, "gold": 100, "seed": 1,
+                         "choice_list": [f"card{i}" for i in range(12)],
+                         "screen_state": {"event_id": "Match and Keep!",
+                                          "options": opts}}}
+    seq = [brain.decide(st) for _ in range(6)]
+    uniq = len(set(seq))
+    assert uniq >= 4, f"事件防重复应递增（旧版 6 次全相同→死循环），实际 {seq}"

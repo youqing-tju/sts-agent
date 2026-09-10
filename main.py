@@ -405,6 +405,11 @@ class SimBrain:
         # 满栏换药流程的状态（见 _reward_potion_flow）
         self._pot_discard_sent = False   # 本次满栏事件里是否已发过 discard
         self._pot_full_skip = False      # discard 无效后是否已放弃换药
+        # 事件屏防重复（Match and Keep 配对屏血案，2026-09-11 03:07）
+        self._ev_last_key = None
+        self._ev_last_raw = None
+        self._ev_last_cmd = None
+        self._ev_repeat = 0
         self.decisions = 0
         self.fallbacks = 0
 
@@ -742,8 +747,32 @@ class SimBrain:
                     _ev_sel, _ev_scores = self._rl_pick(
                         state, build_event_candidates(_gs_cr), "EVENT")
                 except Exception:
-                    log.exception("RL 事件打分异常，交安全网")
-                if _ev_sel is not None:
+                    log.exception("RL 事件打分异常，用兜底")
+                # RL 不可用（模拟器不新鲜等）→ 索引 0 兜底，但仍走防重复
+                # （旧版交给安全网会无限重复同一 CHOOSE 命令 → 配对屏死循环）。
+                if _ev_sel is None:
+                    _ev_sel, _ev_scores = 0, []
+                    # 防重复（2026-09-11 03:07 血案：Match and Keep 配对屏上
+                    # V9 每次打分都选同一张牌——翻同一张 = 无效操作——死循环
+                    # stall_giveup）。同事件同选项数的同命令重复时，索引递增
+                    # （把 12 张牌依次翻完；配对策略可后续升级为记忆配对）。
+                    _ev_key = (str((_gs_cr.get("screen_state") or {}).get("event_id")),
+                               len(_opts))
+                    # 重复键用 **RL 的原始选择**（不是"上次发出的命令"——否则
+                    # 递增后的命令会与上次不匹配、计数被重置 → 0/1 震荡）。
+                    _ev_raw = _ev_sel
+                    if self._ev_last_key == _ev_key and self._ev_last_raw == _ev_raw:
+                        self._ev_repeat += 1
+                    else:
+                        self._ev_repeat = 0
+                    self._ev_last_key = _ev_key
+                    self._ev_last_raw = _ev_raw
+                    if self._ev_repeat > 0:
+                        _ev_sel = (_ev_raw + self._ev_repeat) % max(1, len(_opts))
+                        log.info("EVENT 防重复：索引递增 %d → %d（第 %d 次）",
+                                 _ev_raw, _ev_sel, self._ev_repeat)
+                    _ev_cmd = f"CHOOSE {_ev_sel}"
+                    self._ev_last_cmd = _ev_cmd
                     log.info("EVENT RL 打分: %s → CHOOSE %d",
                              [round(v, 3) for v in _ev_scores], _ev_sel)
                     if self.log:
