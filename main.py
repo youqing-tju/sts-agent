@@ -74,6 +74,9 @@ from env.base_env import Candidate
 from combat_brain import CombatBrain
 from shop_brain import ShopBrain, is_shop_state, card_buy_score
 from models.power_alias import alias_power_ids
+from models.live_candidates import (build_card_reward_candidates,
+                                    build_map_candidates,
+                                    build_event_candidates)
 
 # 降级路径：规则 bot（战斗启发式 + 宏观规则）
 from main_rule import combat_action, macro_action
@@ -546,6 +549,30 @@ class SimBrain:
                 and "choose" in cmds):
             _cards = ((_gs_cr.get("screen_state") or {}).get("cards") or [])
             if _cards:
+                # -------- ① 首选 RL：V9 对真机构造的候选打分（2026-09-11）--------
+                _rl_sel, _rl_scores = None, None
+                try:
+                    _rl_sel, _rl_scores = self._rl_pick(
+                        state, build_card_reward_candidates(_gs_cr), "CARD_REWARD")
+                except Exception:
+                    log.exception("RL 选牌打分异常，回退 KB")
+                if _rl_sel is not None:
+                    log.info("CARD_REWARD RL 打分: %s → CHOOSE %d",
+                             [round(v, 3) for v in _rl_scores], _rl_sel)
+                    if self.log:
+                        self.log.event("card_pick_rl",
+                                       scores=[round(v, 3) for v in _rl_scores],
+                                       chosen=_rl_sel,
+                                       cards=[c.get("id") for c in _cards])
+                    cmd = f"CHOOSE {_rl_sel}"
+                    self._log_decision(state, screen="CARD_REWARD",
+                                       kind="CARD_RL", cmd=cmd,
+                                       n_cands=len(_cards),
+                                       scores=[round(v, 3) for v in _rl_scores],
+                                       chosen_idx=_rl_sel, degraded=False)
+                    self._last_cmd = cmd
+                    return cmd
+                # -------- ② 回退：KB 打分（含低分 SKIP）--------
                 try:
                     _dc = Counter(str(c.get("id") or "")
                                   for c in (_gs_cr.get("deck") or [])
@@ -637,6 +664,32 @@ class SimBrain:
                 and "choose" in cmds):
             _nn = ((_gs_cr.get("screen_state") or {}).get("next_nodes") or [])
             if _nn:
+                # -------- ① 首选 RL：V9 对地图候选打分（room 由 symbol 映射）--------
+                _map_sel, _map_scores = None, None
+                try:
+                    _map_sel, _map_scores = self._rl_pick(
+                        state, build_map_candidates(_gs_cr), "MAP")
+                except Exception:
+                    log.exception("RL 路线打分异常，回退规则")
+                if _map_sel is not None:
+                    log.info("MAP RL 打分 %s → CHOOSE %d",
+                             [(n.get("symbol"),
+                               round(s_, 3)) for n, s_ in zip(_nn, _map_scores)],
+                             _map_sel)
+                    if self.log:
+                        self.log.event("map_route_rl",
+                                       scores=[round(v, 3) for v in _map_scores],
+                                       chosen=_map_sel,
+                                       nodes=[{k: n.get(k) for k in ("symbol", "x", "y")}
+                                              for n in _nn])
+                    cmd = f"CHOOSE {_map_sel}"
+                    self._log_decision(state, screen="MAP", kind="MAP_RL",
+                                       cmd=cmd, n_cands=len(_nn),
+                                       scores=[round(v, 3) for v in _map_scores],
+                                       chosen_idx=_map_sel, degraded=False)
+                    self._last_cmd = cmd
+                    return cmd
+                # -------- ② 回退：规则打分 --------
                 try:
                     _cur = _gs_cr.get("current_hp") or 0
                     _mx = _gs_cr.get("max_hp") or 1
@@ -678,6 +731,34 @@ class SimBrain:
                     return cmd
                 except Exception:
                     log.exception("MAP 路线打分失败，回退安全网")
+
+        # ---- F7（2026-09-11）：事件屏——V9 打分选择（失败交安全网）----
+        if ((_gs_cr.get("screen_type") or "").upper() in ("EVENT", "EVENT_SCREEN")
+                and "choose" in cmds):
+            _opts = ((_gs_cr.get("screen_state") or {}).get("options") or [])
+            if _opts:
+                _ev_sel, _ev_scores = None, None
+                try:
+                    _ev_sel, _ev_scores = self._rl_pick(
+                        state, build_event_candidates(_gs_cr), "EVENT")
+                except Exception:
+                    log.exception("RL 事件打分异常，交安全网")
+                if _ev_sel is not None:
+                    log.info("EVENT RL 打分: %s → CHOOSE %d",
+                             [round(v, 3) for v in _ev_scores], _ev_sel)
+                    if self.log:
+                        self.log.event("event_pick_rl",
+                                       scores=[round(v, 3) for v in _ev_scores],
+                                       chosen=_ev_sel,
+                                       event=((_gs_cr.get("screen_state") or {})
+                                              .get("event_id")))
+                    cmd = f"CHOOSE {_ev_sel}"
+                    self._log_decision(state, screen="EVENT", kind="EVENT_RL",
+                                       cmd=cmd, n_cands=len(_opts),
+                                       scores=[round(v, 3) for v in _ev_scores],
+                                       chosen_idx=_ev_sel, degraded=False)
+                    self._last_cmd = cmd
+                    return cmd
 
         # ---- P0 安全网 #1：选项类屏幕（有 choice_list）永远选第一个 ----
         # 优先级最高：确保「缺 seed 等导致模拟器不新鲜」时也给出可执行命令，绝不
@@ -876,6 +957,47 @@ class SimBrain:
         "FearPotion", "Weak Potion", "Regen Potion", "Blood Potion",
         "Fruit Juice", "Ancient Potion",
     })
+
+    def _rl_pick(self, state, specs, tag: str):
+        """用 V9 给真机构造的候选打分：返回 (select_idx, scores)；失败 (None, None)。
+
+        obs 从"灌入后的模拟器"生成（实测 HP/金币/楼层/牌组段完全准确）；
+        候选由 models/live_candidates 从真机 JSON 手工构造——绕开
+        initFromJson 枚举不全（CARD_SELECT=0/EVENT=0/MAP=1）的瓶颈，
+        让 RL 真正参与真机决策（2026-09-11 用户指令）。
+        """
+        if self.scorer is None or not self._sim_fresh or not specs:
+            return None, None
+        import math as _math
+        raw = list(self._nni.getObservation(self.gc))
+        obs = enhance_observation(raw, self.gc, card_index=CARD_INDEX,
+                                  arch_table=CARD_ARCHETYPE,
+                                  card_effects=CARD_EFFECTS)
+        deck_arch = encode_deck_stats(raw, card_index=CARD_INDEX,
+                                      arch_table=CARD_ARCHETYPE,
+                                      card_effects=CARD_EFFECTS)[:5]
+        vecs = []
+        for sp in specs:
+            proto = Candidate(idx=sp["idx"], kind=sp["kind"],
+                              desc_vec=[], label=sp["label"])
+            vecs.append(encode_candidate(
+                proto,
+                card=sp.get("card"),
+                room=sp.get("room"),
+                bits=sp.get("bits"),
+                deck_arch=deck_arch,
+                event_key=sp.get("event_key"),
+                event_option_idx=sp.get("event_option_idx"),
+            ))
+        with torch.no_grad():
+            logits = self.scorer(torch.tensor(obs, dtype=torch.float32),
+                                 torch.tensor(vecs, dtype=torch.float32))
+        scores = [float(x) for x in logits]
+        if any(_math.isnan(v) for v in scores):
+            log.warning("RL 打分出现 NaN（%s），回退", tag)
+            return None, None
+        best_i = max(range(len(scores)), key=lambda i: scores[i])
+        return specs[best_i]["select_idx"], scores
 
     def _reward_potion_flow(self, state: dict):
         """COMBAT_REWARD 满栏换药前置；返回命令或 None。
