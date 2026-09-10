@@ -25,8 +25,14 @@ import logging
 from collections import OrderedDict
 
 import slaythespire as sts
+from models.card_data import get_card_effects
 
 log = logging.getLogger("sts-agent.combat")
+
+# 真实状态里可能携带的「是否需要目标」字段名（容错探测，不写死一个键）
+_TARGET_FIELD_CANDIDATES = (
+    "has_target", "requires_target", "target_type", "needs_target",
+)
 
 
 def _sanitize(obj):
@@ -50,6 +56,74 @@ def _norm_card_id(name) -> str:
     return str(name).strip().lower()
 
 
+def _card_needs_target(state: dict, source_idx: int) -> bool:
+    """判断 hand[source_idx] 这张牌打出时是否需要带目标下标。
+
+    命令约定：PLAY {source_idx+1} [target_idx]，仅当牌需要目标才追加 target_idx。
+    手牌列表是 0-based，命令里的卡牌下标是 1-based（source_idx 已是 0-based）。
+
+    优先级（高→低）：
+      (a) 真实状态里的字段（容错探测 has_target / target_type / targets 等）；
+      (b) 本地卡牌知识（models.card_data）：ATTACK 且非 AOE → 需要；
+          SKILL / POWER / STATUS / CURSE → 不需要；
+      (c) 判定不出 → 默认需要目标（保持现状，靠 main.py 的 error 帧纠错兜底）。
+    """
+    game = state.get("game_state", {}) or {}
+    cs = game.get("combat_state") or game
+    hand = cs.get("hand") or []
+    if not isinstance(hand, list) or source_idx < 0 or source_idx >= len(hand):
+        return True  # (c) 拿不到手牌 → 默认需要（靠纠错）
+
+    card = hand[source_idx]
+    if not isinstance(card, dict):
+        return True  # (c)
+
+    # (a) 真实状态字段容错探测
+    for field in _TARGET_FIELD_CANDIDATES:
+        if field in card:
+            val = card[field]
+            if val is None or val == "":
+                continue
+            if isinstance(val, bool):
+                return val
+            if isinstance(val, (int, float)):
+                return bool(val)
+            s = str(val).strip().upper()
+            if s in ("", "NONE", "SELF"):
+                return False
+            if s in ("ENEMY", "MONSTER"):
+                return True           # 单体敌人 → 需要目标
+            if s in ("ALL_ENEMY", "ALL", "AOES", "AOE"):
+                return False          # 群体 → 不需要单体目标
+            return True               # 其它非空字符串按「需要」处理
+    # targets 字段：敌人列表非空 → 需要目标
+    if "targets" in card:
+        tg = card.get("targets")
+        if isinstance(tg, list):
+            return len(tg) > 0
+        return bool(tg)
+
+    # (b) 本地卡牌知识
+    name = card.get("name") or card.get("id")
+    ctype = str(card.get("type") or "").upper()
+    if ctype in ("SKILL", "POWER", "STATUS", "CURSE"):
+        return False                 # 群体内/自身效应，不需要单体目标
+    if ctype == "ATTACK":
+        eff = get_card_effects(name) if name else None
+        if eff is not None and eff.get("is_aoe"):
+            return False             # 群体攻击不需要单体目标
+        return True                  # 单体攻击（含未知攻击）→ 需要目标
+    if name:
+        eff = get_card_effects(name)
+        if eff is not None:
+            if eff.get("is_attack") and not eff.get("is_aoe"):
+                return True
+            return False
+
+    # (c) 判定不出 → 默认需要目标（靠 main.py error 帧纠错）
+    return True
+
+
 class CombatBrain:
     """战斗大脑：ISMCTS（K 个确定性化未来 + 按卡牌身份投票）→ PLAY 命令。"""
 
@@ -58,6 +132,7 @@ class CombatBrain:
         self.determinizations = determinizations  # 平行未来数量 K
         self._bc = None
         self.last_votes = None  # 最近一次决策的得票分布（观测/调试用）
+        self._hand_fields_logged = False  # 一次性诊断：手牌字段究竟叫什么
 
     def decide(self, state: dict, gc):
         """从真实游戏战斗状态生成 PLAY/END 命令。
@@ -76,6 +151,16 @@ class CombatBrain:
                 log.warning("sts.BattleSearcher 绑定不可用，回退规则")
                 return None
 
+            # 6. 一次性诊断：首次见到含 hand 的真实战斗状态，打印手牌字段名，
+            #    以便下次真机确认 (a) 那条「真实状态字段判定」到底能不能用。
+            if not self._hand_fields_logged:
+                cs = (state.get("game_state", {}) or {}).get("combat_state") or {}
+                hand = cs.get("hand") or []
+                if hand and isinstance(hand[0], dict):
+                    self._hand_fields_logged = True
+                    log.info("[diag] 手牌卡牌字段: %s", list(hand[0].keys()))
+                    log.info("[diag] 首张手牌完整内容: %s", hand[0])
+
             # 1. 一次重建 bc0
             bc0 = sts.BattleContext()
             bc0.init_from_json(gc, json.dumps(_sanitize(state)))
@@ -84,7 +169,7 @@ class CombatBrain:
             # 2. randomize_rng 不可用 → v1 单次搜索（绑定未编译时的降级）
             if not self._supports_determinization(bc0):
                 log.info("randomize_rng 不可用，降级 v1 单次搜索")
-                return self._v1_search(bc0, searcher_cls)
+                return self._v1_search(bc0, searcher_cls, state)
 
             # 3. ISMCTS：K 个平行未来搜索 + 投票
             return self._ismcts_decide(state, gc, bc0, searcher_cls)
@@ -131,7 +216,7 @@ class CombatBrain:
             return None
         # max 对平票返回先出现的 key（OrderedDict 保序）
         winner_key = max(votes, key=lambda kk: votes[kk])
-        return self._to_comm(winners[winner_key])
+        return self._to_comm(winners[winner_key], state)
 
     @staticmethod
     def _vote_key(action, bc0):
@@ -148,26 +233,33 @@ class CombatBrain:
 
     # ---- v1 单次搜索（降级路径） ----
 
-    def _v1_search(self, bc0, searcher_cls):
+    def _v1_search(self, bc0, searcher_cls, state=None):
         action = searcher_cls(bc0, self.sim_count).best_action
         if callable(action):
             action = action()
         if action is None:
             log.warning("MCTS 未返回动作，回退规则")
             return None
-        return self._to_comm(action)
+        return self._to_comm(action, state)
 
     # ---- 动作翻译 ----
 
     @staticmethod
-    def _to_comm(action):
-        """把 MCTS 动作翻译成 comm 命令；无法翻译返回 None（走规则）。"""
+    def _to_comm(action, state=None):
+        """把 MCTS 动作翻译成 comm 命令；无法翻译返回 None（走规则）。
+
+        CARD 动作：仅当该牌确实需要目标时才追加 target_idx，否则整条命令会被
+        Communication Mod 拒绝（"Selected card cannot be played with the selected
+        target"）并导致游戏不执行任何操作 → 死循环。目标判定见 _card_needs_target。
+        """
         action_type = getattr(action, "action_type", None)
 
         if action_type == "CARD":
             cmd = f"PLAY {action.source_idx + 1}"
-            target_idx = getattr(action, "target_idx", -1)
-            if target_idx is not None and target_idx >= 0:
+            if _card_needs_target(state or {}, action.source_idx):
+                target_idx = getattr(action, "target_idx", 0)
+                if target_idx is None or target_idx < 0:
+                    target_idx = 0
                 cmd += f" {target_idx}"
             return cmd
 

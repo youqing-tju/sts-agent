@@ -110,7 +110,7 @@ def _is_game_over(state: dict) -> bool:
 # 真机历史上死过一次：agent 发 `PLAY 1` 被拒 → 回 `STATE` → 游戏状态不变 →
 # 再发 `PLAY 1` …… 死循环 5853 次、整局一步没动（`communication_mod_errors.log`）。
 # 根因是「命令无效 + 状态不变」没人检测。下面这套守卫专门堵这个洞。
-_STALL_LIMIT = 4        # 状态指纹连续相同几次 → 判定卡死，强制换动作
+_STALL_LIMIT = 5        # 状态指纹连续相同 / 同一真实状态反复出现几次 → 判卡死，强制换动作
 _STALL_HARD_LIMIT = 20  # 换动作后仍卡死 → 退出保命（宁可停下让人接管，不要空转）
 
 
@@ -163,26 +163,49 @@ def _alternate_cmd(state: dict, avoid: str = None):
     for cand in candidates:
         if cand != avoid_u:
             return cand
-    return candidates[0] if candidates else "STATE"
+    # 找不到真正不同的替代命令：战斗内强制 END（至少推进回合/放弃出牌），
+    # 非战斗回 STATE（避免假装行动却原地空转）。绝不可返回原命令（avoid）。
+    if "play" in cmds:
+        return "END"
+    return "STATE"
 
 
-class StallGuard:
-    """连续相同状态指纹检测（与发了什么命令无关，只看游戏有没有动）。"""
+class LoopDetector:
+    """卡死检测：两种信号，与「发了什么命令」协同判断游戏有没有真的推进。
+
+    信号 1（连续相同指纹）：状态指纹逐帧完全相同（连 error 帧都算）→ 游戏完全不动。
+    信号 2（同一真实状态反复出现）：允许中间夹着 error 帧——本次真机死循环正是
+        「COMBAT 状态 → error 帧 → 同一 COMBAT 状态 → error 帧」交替，命令恒为
+        `PLAY 1 0`、状态指纹从不连续重复，旧 StallGuard 永不触发。这里只统计真实
+        游戏状态（error 帧 has_game_state=False，不计数），同一状态出现 ≥limit 次即判卡死。
+
+    返回当前 severity（两信号取大），main 循环据此强制换动作 / 主动退出。
+    """
 
     def __init__(self, limit=_STALL_LIMIT, hard_limit=_STALL_HARD_LIMIT):
         self.limit = limit
         self.hard_limit = hard_limit
         self._fp = None
-        self.strikes = 0
+        self._consec = 0          # 连续相同指纹（含 error 帧）
+        self._game_fp = None
+        self._game_repeats = 0    # 同一真实游戏状态出现次数（error 帧不计数）
         self.total_stalls = 0
 
-    def observe(self, fp) -> int:
+    def observe(self, fp, has_game_state=False) -> int:
+        # 信号 1：连续相同指纹
         if fp == self._fp:
-            self.strikes += 1
+            self._consec += 1
         else:
-            self.strikes = 0
+            self._consec = 0
         self._fp = fp
-        return self.strikes
+        # 信号 2：同一真实状态反复出现（忽略 error 帧）
+        if has_game_state:
+            if fp == self._game_fp:
+                self._game_repeats += 1
+            else:
+                self._game_fp = fp
+                self._game_repeats = 1
+        return max(self._consec, self._game_repeats)
 
 
 class RunLog:
@@ -239,8 +262,8 @@ class SimBrain:
                  combat_sims=2000, determinizations=10, log_dir=None):
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
-        self._error_count = 0  # 连续游戏错误计数（熔断用）
-        self._last_cmd = ""    # 上一次发的命令（检测重复拒绝）
+        self._reject_streak = 0  # 连续被拒计数（仅 error 帧自增，真实状态清零）
+        self._last_cmd = ""    # 上一次发的命令（target 被拒不带目标重发用）
         self.obs_dim = obs_dim
         self.cand_dim = cand_dim
         self.log = RunLog(log_dir) if log_dir else None
@@ -279,19 +302,54 @@ class SimBrain:
 
     # ---- 决策入口 ----
 
+    def _handle_error_frame(self, state: dict, err) -> str:
+        """处理游戏的 error 帧。
+
+        关键错误：「Selected card cannot be played with the selected target」——
+        Communication Mod 语义：不需要目标的牌（Defend/技能/能力/群体攻击）一旦
+        带上目标下标，整条命令被拒且游戏不执行任何操作。这种情况我们不回 STATE、
+        也不计入熔断，而是把上一条 PLAY 命令去掉末尾目标下标后立刻重发。
+
+        其它错误：计入连续被拒计数，≥3 次强制 END 回合（熔断保命）。
+        """
+        log.warning("game error: %s", err)
+        low = (err or "").lower()
+        if "cannot be played with the selected target" in low:
+            prev = self._last_cmd
+            if isinstance(prev, str) and prev.startswith("PLAY"):
+                parts = prev.split()
+                if len(parts) >= 3:
+                    new_cmd = " ".join(parts[:2])  # PLAY 1 0 -> PLAY 1
+                    if self.log:
+                        self.log.event("target_rejected", original=prev,
+                                       retried=new_cmd, error=err)
+                    log.info("目标被拒，换形式重发: %r -> %r", prev, new_cmd)
+                    self._last_cmd = new_cmd
+                    return new_cmd
+            # 上一条不是带目标的 PLAY（异常）→ 落到通用处理
+        # 通用：计入连续被拒，超限强 END（熔断）。target 被拒不走此路，避免漏计/误计。
+        self._reject_streak += 1
+        if self._reject_streak >= 3:
+            n = self._reject_streak
+            self._reject_streak = 0
+            if self.log:
+                self.log.event("force_end", reason="reject_streak", count=n,
+                               error=err)
+            log.warning("命令连续被拒 %d 次，强制 END 回合", n)
+            self._last_cmd = "END"
+            return "END"
+        return "STATE"
+
     def decide(self, state: dict) -> str:
-        if state.get("error"):
-            log.warning("game error: %s", state["error"])
-            # 熔断：PLAY 被拒后游戏报错帧可能没有 play 命令，必须在分支前拦截
-            if self._last_cmd.startswith("PLAY"):
-                self._error_count += 1
-                if self._error_count >= 3:
-                    log.warning("PLAY 连续被拒 %d 次，强制 END 回合", self._error_count)
-                    self._error_count = 0
-                    self._last_cmd = "END"
-                    return "END"
-        else:
-            self._error_count = 0
+        # --- error 帧处理（先于一切分支，避免被后面「无 game_state → STATE」吞掉） ---
+        err = state.get("error")
+        if err:
+            return self._handle_error_frame(state, err)
+
+        # 收到真实游戏状态（带 game_state 且就绪）→ 清零连续被拒计数。
+        # 不再依赖 _last_cmd，避免「被拒后插 STATE 把计数清零」导致熔断失效。
+        if state.get("game_state") and state.get("ready_for_command"):
+            self._reject_streak = 0
 
         if _is_game_over(state):
             gs = state.get("game_state", {})
@@ -638,7 +696,7 @@ def main(argv=None):
     sys.stdout.write("ready\n")
     sys.stdout.flush()
     log.info("sts-agent bridge ready (sim brain)")
-    guard = StallGuard()
+    guard = LoopDetector()
 
     for line in sys.stdin:
         line = line.strip()
@@ -668,8 +726,10 @@ def main(argv=None):
                 brain.log.event("fatal", error=f"{type(exc).__name__}: {exc}")
             cmd = "STATE"
 
-        # 防卡死：状态指纹连续不变 → 强制换动作；仍未恢复 → 退出保命
-        strikes = guard.observe(_fingerprint(state))
+        # 防卡死：连续相同状态指纹 / 同一真实状态反复出现（含夹 error 帧）→
+        # 强制换动作；仍未恢复 → 退出保命
+        strikes = guard.observe(_fingerprint(state),
+                                has_game_state=bool(state.get("game_state")))
         if strikes >= guard.limit:
             alt = _alternate_cmd(state, avoid=cmd)
             guard.total_stalls += 1
