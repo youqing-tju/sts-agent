@@ -184,7 +184,9 @@ def _alternate_cmd(state: dict, avoid: str = None):
     if "start" in cmds:
         candidates.append("START IRONCLAD")
     for c in cmds:                           # 兜底：任何非 state 命令
-        if c != "state":
+        # 兜底候选也要过滤：key/click/play/potion 需要参数，裸发会被拒
+        # （真机实测 81 次 `Argument missing in command "key"`）。
+        if c not in ("state", "key", "click", "play", "potion", "choose"):
             candidates.append(c.upper())
 
     for cand in candidates:
@@ -655,6 +657,18 @@ class SimBrain:
         """真实状态规则的「自然」命令（未做重复轮换）。"""
         cmds = [c.lower() for c in state.get("available_commands", [])]
 
+        # 商店屏必须**优先离开**：SHOP_SCREEN 的 choice_list 是商品列表
+        # （'purge' + 卡牌/药水名），而 choose 分支排在 leave 前面 → 会一直
+        # CHOOSE 0 去购物/开删除卡牌服务，永远轮不到 LEAVE。真机 2026-09-11
+        # 实测：金币 110 → 14，状态在 SHOP_SCREEN/SHOP_ROOM/GRID 之间循环。
+        # 模拟器侧不支持购买决策，买了纯浪费金币，所以规则一律先离开。
+        gs0 = state.get("game_state") or {}
+        screen0 = (gs0.get("screen_type") or "").upper()
+        name0 = (gs0.get("screen_name") or "").upper()
+        if screen0 == "SHOP_SCREEN" or name0 == "SHOP":
+            if "leave" in cmds:
+                return "LEAVE"
+
         if "choose" in cmds and self._has_choice_list(state):
             return "CHOOSE 0"
         if "proceed" in cmds:
@@ -673,16 +687,29 @@ class SimBrain:
         # 确实没有任何可执行命令
         return "STATE"
 
+    # 可以**不带参数**直接发的命令白名单。其余（key/click/play/potion/choose…）
+    # 需要参数，原样发出去只会换来 "Argument missing in command" 拒绝 ——
+    # 真机实测 81 次 `Argument missing in command "key"` 就是这么来的。
+    _SAFE_NOARG = ("proceed", "leave", "skip", "end", "start", "wait",
+                   "confirm", "return", "state")
+
     def _rotate_available(self, state: dict, avoid: str):
-        """从 available_commands 里挑一个 ≠ avoid 的命令轮换；优先非 STATE，
-        实在没有才 STATE；都没有返回 None（调用方回 STATE）。"""
-        cmds = [c.upper() for c in state.get("available_commands", [])]
+        """挑一个 ≠ avoid 的**可安全发出**的命令做轮换；没有返回 None。
+
+        只从 _SAFE_NOARG 白名单里挑（key/click/play/potion 需要参数，不能裸发）；
+        `choose` 若可用则回 CHOOSE 0（它一定有选项可退）。
+        """
+        cmds = [c.lower() for c in state.get("available_commands", [])]
         if not cmds:
             return None
-        others = [c for c in cmds if c != avoid and c != "STATE"]
+        others = [c.upper() for c in cmds
+                  if c in self._SAFE_NOARG and c != "STATE"
+                  and c.upper() != (avoid or "").upper()]
         if others:
             return others[0]
-        if "STATE" in cmds and avoid != "STATE":
+        if "choose" in cmds and (avoid or "").upper() != "CHOOSE 0":
+            return "CHOOSE 0"
+        if avoid != "STATE":
             return "STATE"
         return None
 

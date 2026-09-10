@@ -639,3 +639,44 @@ def test_target_skips_dead_monsters():
         "hand": [{"name": "Strike", "type": "ATTACK", "has_target": True}],
     }}}
     assert CombatBrain._to_comm(_Act(), no_info) == "PLAY 2 0"
+
+
+# ---------- 真机第五轮回归：商店屏必须离开、不得裸发需要参数的命令 ----------
+
+def _shop_state(avail, choice=None):
+    return {"ready_for_command": True, "in_game": True, "available_commands": avail,
+            "game_state": {"screen_type": "SHOP_SCREEN", "screen_name": "SHOP",
+                           "floor": 3, "act": 1, "current_hp": 80, "max_hp": 80,
+                           "gold": 14, "room_phase": "COMPLETE",
+                           "choice_list": choice or []}}
+
+
+def test_shop_screen_prefers_leave(brain):
+    """商店屏必须优先 LEAVE，不能被 choice_list 带去购物。
+
+    真机 2026-09-11 实测：SHOP_SCREEN 的 choice_list 是商品列表
+    （'purge' + 卡牌/药水名），而规则的 choose 分支排在 leave 之前 →
+    一直 CHOOSE 0 购物/开删除卡牌服务，金币 110 掉到 14，
+    状态在 SHOP_SCREEN / SHOP_ROOM / GRID 之间循环。
+    """
+    # choice_list 非空且含 choose：仍必须 LEAVE（这一条就是当初的 bug）
+    st = _shop_state(["choose", "leave", "key", "click", "wait", "state"],
+                     ["purge", "Strike", "Defend"])
+    assert brain._natural_rule_cmd(st) == "LEAVE"
+    # 不含 choose 的那种商城帧也要 LEAVE
+    st2 = _shop_state(["leave", "key", "click", "wait", "state"])
+    assert brain._natural_rule_cmd(st2) == "LEAVE"
+
+
+def test_never_emit_bare_arg_requiring_commands(brain):
+    """轮换/兜底绝不能裸发 key/click/play/potion —— 它们需要参数。
+
+    真机实测 81 次 `Argument missing in command "key"` 即由此而来。
+    """
+    st = _shop_state(["key", "click", "wait", "state"])
+    got = brain._rotate_available(st, avoid="LEAVE")
+    assert got in ("WAIT", "STATE"), f"不该裸发需要参数的命令，实际 {got}"
+
+    st2 = _shop_state(["key", "click", "play", "potion", "state"])
+    got2 = brain._rotate_available(st2, avoid="LEAVE")
+    assert got2 not in ("KEY", "CLICK", "PLAY", "POTION"), f"实际 {got2}"
