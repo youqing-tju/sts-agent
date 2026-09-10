@@ -138,7 +138,8 @@ def _is_game_over(state: dict) -> bool:
 # 真机历史上死过一次：agent 发 `PLAY 1` 被拒 → 回 `STATE` → 游戏状态不变 →
 # 再发 `PLAY 1` …… 死循环 5853 次、整局一步没动（`communication_mod_errors.log`）。
 # 根因是「命令无效 + 状态不变」没人检测。下面这套守卫专门堵这个洞。
-_STALL_LIMIT = 5        # 状态指纹连续相同 / 同一真实状态反复出现几次 → 判卡死，强制换动作
+_STALL_LIMIT = 8        # 卡死信号累积几次 → 强制换动作（真机 01:30：5 太急，
+                         # 游戏过渡/动画期间就被误判；且只在「我方有非 STATE 命令」时计数）
 _STALL_HARD_LIMIT = 20  # 换动作后仍卡死 → 退出保命（宁可停下让人接管，不要空转）
 
 
@@ -185,7 +186,12 @@ def _alternate_cmd(state: dict, avoid: str = None):
     _is_shop2 = ((_gs2.get("screen_type") or "").upper() in ("SHOP_SCREEN", "SHOP_ROOM")
                  or (_gs2.get("screen_name") or "").upper() == "SHOP")
     if "choose" in cmds and not _is_shop2:
-        candidates.append("CHOOSE 0")        # 事件/篝火/地图：退到第一个选项
+        # 选项屏的平级轮换候选是**其它选项索引**（CHOOSE 0/1/2…），不是 avail 里
+        # 乱挑的怪命令——真机 01:30 血案：这里曾把正确的 CHOOSE 0 换成无效的裸
+        # WAIT（因为 choose 被 avoid 掉后，只剩 wait 通过了过滤）。
+        _cl = (state.get("game_state") or {}).get("choice_list") or []
+        for _i in range(max(1, len(_cl))):
+            candidates.append(f"CHOOSE {_i}")
     if "leave" in cmds:
         candidates.append("LEAVE")
     if "start" in cmds:
@@ -193,7 +199,7 @@ def _alternate_cmd(state: dict, avoid: str = None):
     for c in cmds:                           # 兜底：任何非 state 命令
         # 兜底候选也要过滤：key/click/play/potion 需要参数，裸发会被拒
         # （真机实测 81 次 `Argument missing in command "key"`）。
-        if c not in ("state", "key", "click", "play", "potion", "choose"):
+        if c not in ("state", "key", "click", "play", "potion", "choose", "wait"):
             candidates.append(c.upper())
 
     for cand in candidates:
@@ -228,33 +234,51 @@ class LoopDetector:
         self._consec = 0          # 连续相同指纹（含 error 帧）
         self._game_fp = None
         self._game_repeats = 0    # 同一真实游戏状态出现次数（error 帧不计数）
-        self._cmd_last = None
-        self._cmd_streak = 0      # 同一非 STATE 命令连续输出次数（STATE 夹在中间不计）
+        self._cmd_key = None      # (screen, cmd) —— 信号 3 的键
+        self._cmd_streak = 0      # 同一【屏幕】上同一非 STATE 命令连续输出次数
         self.total_stalls = 0
+        self.gave_up = False      # hard_limit 后放弃干预（keep-alive，只回 STATE）
 
     def observe(self, fp, has_game_state=False, cmd=None) -> int:
-        # 信号 1：连续相同指纹
+        """三个信号共同回答一个问题：*我们发出有效命令后，游戏推进了吗？*
+
+        🔴 核心语义（真机 01:30 血案的教训）：**当本轮命令是 STATE 时，状态重复
+        是预期行为**——STATE 只是"请求重发状态"，我方向来就没打算推进游戏
+        （等动画/等人工）。旧版把这种重复当卡死，战斗过渡屏上每帧干预、把
+        STATE 换成无效命令，自造死循环直接打死一局。故三个信号**只在「本轮
+        有非 STATE 命令」时才计数**（STATE 帧冻结计数，不增不清）。
+        """
+        effective = (cmd != "STATE")          # STATE / None(=调用方没给) 的语义不同：
+        #                                        None 视为有效（兼容旧调用方/测试）
+        # 信号 1：连续相同指纹（仅有效命令帧）
         if fp == self._fp:
-            self._consec += 1
+            if effective:
+                self._consec += 1
         else:
             self._consec = 0
         self._fp = fp
-        # 信号 2：同一真实状态反复出现（忽略 error 帧）
+        # 信号 2：同一真实状态反复出现（忽略 error 帧；仅有效命令帧）
         if has_game_state:
             if fp == self._game_fp:
-                self._game_repeats += 1
+                if effective:
+                    self._game_repeats += 1
             else:
                 self._game_fp = fp
                 self._game_repeats = 1
-        # 信号 3：同一命令连续输出（与指纹无关；STATE 夹在中间不算打断也不计数）
-        if cmd is not None and cmd != "STATE":
-            if cmd == self._cmd_last:
+        # 信号 3：同一【屏幕】上同一命令连续输出（与指纹无关；STATE 不打断不计数）
+        #   屏幕维度是关键：CHOOSE 0 在不同屏上是完全不同的操作（地图选节点 /
+        #   事件选项 / 奖励选项），不同屏的相同命令文本不构成"重复"。
+        if effective:
+            key = (fp[0] if fp else None, cmd)
+            if key == self._cmd_key:
                 self._cmd_streak += 1
             else:
-                self._cmd_last = cmd
+                self._cmd_key = key
                 self._cmd_streak = 1
-        # 注意：cmd == "STATE" 时既不增也不清（允许「有效命令 STATE 无效命令」交替）
-        return max(self._consec, self._game_repeats, self._cmd_streak)
+        sev = max(self._consec, self._game_repeats, self._cmd_streak)
+        if sev < self.limit:
+            self.gave_up = False          # 恢复正常 → 允许再次干预
+        return sev
 
 
 class RunLog:
@@ -730,7 +754,9 @@ class SimBrain:
     # 可以**不带参数**直接发的命令白名单。其余（key/click/play/potion/choose…）
     # 需要参数，原样发出去只会换来 "Argument missing in command" 拒绝 ——
     # 真机实测 81 次 `Argument missing in command "key"` 就是这么来的。
-    _SAFE_NOARG = ("proceed", "leave", "skip", "end", "start", "wait",
+    # 可**不带参数**直接发的命令白名单。注意：`wait` 不在其中——真机实测
+    # 裸发 `wait` 被拒：`Argument missing in command "wait"`（它需要参数）。
+    _SAFE_NOARG = ("proceed", "leave", "skip", "end", "start",
                    "confirm", "return", "state")
 
     def _rotate_available(self, state: dict, avoid: str):
@@ -752,8 +778,14 @@ class SimBrain:
         gs = state.get("game_state") or {}
         is_shop = ((gs.get("screen_type") or "").upper() in ("SHOP_SCREEN", "SHOP_ROOM")
                    or (gs.get("screen_name") or "").upper() == "SHOP")
-        if "choose" in cmds and not is_shop and (avoid or "").upper() != "CHOOSE 0":
-            return "CHOOSE 0"
+        if "choose" in cmds and not is_shop:
+            # 选项屏轮换：先试其它选项索引（CHOOSE 1、2…），最后回 CHOOSE 0。
+            cl = (state.get("game_state") or {}).get("choice_list") or []
+            order = list(range(1, max(len(cl), 1))) + [0]
+            for i in order:
+                c = f"CHOOSE {i}"
+                if c != (avoid or "").upper():
+                    return c
         if avoid != "STATE":
             return "STATE"
         return None
@@ -1189,23 +1221,31 @@ def main(argv=None):
                                 has_game_state=bool(state.get("game_state")),
                                 cmd=cmd)
         if strikes >= guard.limit:
-            alt = _alternate_cmd(state, avoid=cmd)
-            guard.total_stalls += 1
             screen = (state.get("game_state", {}) or {}).get("screen_type")
-            if brain.log:
-                brain.log.event("stall", strikes=strikes, prev_cmd=cmd,
-                                forced=alt, screen=screen)
-            print(f"[guard] 卡死检测：状态连续 {strikes} 次未变，"
-                  f"强制换动作 {cmd!r} -> {alt!r} (screen={screen})",
-                  file=sys.stderr, flush=True)
-            cmd = alt
-            if strikes >= guard.hard_limit:
+            if guard.gave_up:
+                # keep-alive：已放弃干预，只回 STATE（无害——仅请求状态重发）。
+                # 绝不能继续"换动作"（拿无效命令打游戏 = 旧版的死法），也不要
+                # 退出——进程活着，用户手动推进/状态变化后 agent 立即恢复。
+                cmd = "STATE"
+            else:
+                alt = _alternate_cmd(state, avoid=cmd)
+                guard.total_stalls += 1
                 if brain.log:
-                    brain.log.event("stall_abort", strikes=strikes, screen=screen)
-                print(f"[guard] !!! 卡死 {strikes} 次仍无法恢复，主动退出。"
-                      f"原始状态已存 logs/realtime/*_states.jsonl，可复盘。",
+                    brain.log.event("stall", strikes=strikes, prev_cmd=cmd,
+                                    forced=alt, screen=screen)
+                print(f"[guard] 卡死检测：状态连续 {strikes} 次未变，"
+                      f"强制换动作 {cmd!r} -> {alt!r} (screen={screen})",
                       file=sys.stderr, flush=True)
-                break
+                cmd = alt
+                if strikes >= guard.hard_limit:
+                    guard.gave_up = True
+                    if brain.log:
+                        brain.log.event("stall_giveup", strikes=strikes,
+                                        screen=screen)
+                    print(f"[guard] 卡死 {strikes} 次仍无法恢复，转入 keep-alive："
+                          f"只回 STATE 等人工接管/状态变化（进程不退出）。",
+                          file=sys.stderr, flush=True)
+                    cmd = "STATE"
 
         # 节奏与去重：真机实测 167ms/条会打断游戏过场 → 界面闪烁；见 CommandPacer
         avail = state.get("available_commands", []) or []

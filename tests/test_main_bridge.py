@@ -677,7 +677,11 @@ def test_never_emit_bare_arg_requiring_commands(brain):
     """
     st = _shop_state(["key", "click", "wait", "state"])
     got = brain._rotate_available(st, avoid="LEAVE")
-    assert got in ("WAIT", "STATE"), f"不该裸发需要参数的命令，实际 {got}"
+    # wait 需要参数（真机实测 `Argument missing in command "wait"`）→ 已移出白名单；
+    # 没有任何可安全轮换的命令时应回 STATE，绝不能裸发 key/click/wait。
+    assert got not in ("KEY", "CLICK", "WAIT", "PLAY", "POTION"), \
+        f"不该裸发需要参数的命令，实际 {got}"
+    assert got == "STATE", f"无可轮换命令应回 STATE，实际 {got}"
 
     st2 = _shop_state(["key", "click", "play", "potion", "state"])
     got2 = brain._rotate_available(st2, avoid="LEAVE")
@@ -702,3 +706,78 @@ def test_natural_rule_shop_room_proceeds_never_choose(brain):
     no_proceed = json.loads(json.dumps(room))
     no_proceed["available_commands"] = ["choose", "key", "click", "wait", "state"]
     assert brain._natural_rule_cmd(no_proceed) == "STATE"
+
+
+# ---------- 真机 01:30 血案回归：守卫误判 + 裸发 WAIT ----------
+
+def test_cmd_streak_resets_across_screens():
+    """信号 3 必须带屏幕维度：不同屏上的同名命令（CHOOSE 0）不算重复。
+
+    真机 01:30 血案：命令流 COMBAT_REWARD→CARD_REWARD→MAP→EVENT 连续 4 屏都在
+    发 CHOOSE 0（每一步都在正常推进！），旧逻辑把它当成「同一命令连续 5 次」，
+    触发强制换动作，把正确的 CHOOSE 0 换成了无效的裸 WAIT，自造死循环，
+    20 次后 stall_abort 退出——整局被守卫打死。
+    """
+    from main import LoopDetector, _fingerprint
+
+    guard = LoopDetector()
+    seq = ["COMBAT_REWARD", "COMBAT_REWARD", "CARD_REWARD", "COMBAT_REWARD",
+           "MAP", "EVENT", "EVENT", "MAP", "EVENT", "EVENT", "EVENT",
+           "EVENT", "EVENT", "EVENT"]
+    for i, scr in enumerate(seq):
+        st = {"ready_for_command": True,
+              "game_state": {"screen_type": scr, "floor": 1, "act": 1,
+                             "current_hp": 80, "gold": 113,
+                             "choice_list": ["a", "b"]}}
+        sev = guard.observe(_fingerprint(st), has_game_state=True,
+                            cmd="CHOOSE 0")
+        assert sev < guard.limit, (
+            f"第{i}帧（{scr}）被误判卡死：sev={sev}——屏幕在变就意味着游戏在推进，"
+            f"不同屏的同名命令绝不能算重复")
+
+
+def test_state_wait_does_not_trigger_stall():
+    """我方无有效命令（回 STATE 等待）时，状态重复是预期行为，不得判卡死。
+
+    真机 01:30 血案的另一半：战斗过渡屏（avail 里没有可用的推进命令）上
+    decide 每帧给 STATE，游戏在播过渡动画、状态自然重复。旧逻辑据此累积
+    卡死计数并强制换动作（换成裸 WAIT）→ 死循环 → 退出。
+    """
+    from main import LoopDetector, _fingerprint
+
+    guard = LoopDetector()
+    st = {"ready_for_command": True,
+          "available_commands": ["key", "click", "wait", "state"],
+          "game_state": {"screen_type": "NONE", "floor": 6, "act": 1,
+                         "current_hp": 57, "gold": 163,
+                         "combat_state": {"turn": None, "hand": []}}}
+    for i in range(30):
+        sev = guard.observe(_fingerprint(st), has_game_state=True, cmd="STATE")
+        assert sev < guard.limit, (
+            f"第{i}帧被误判卡死：sev={sev}——STATE 只是请求重发状态，"
+            f"此时状态重复是游戏在播动画/等待，不是卡死")
+
+
+def test_alternate_cmd_event_screen_rotates_choose_not_wait():
+    """EVENT 屏的强制换动作：轮换其它选项索引，绝不出现裸 WAIT。
+
+    真机 01:30：EVENT 屏 avail=['choose','key','click','wait','state']，
+    avoid='CHOOSE 0'（原命令）时旧的候选过滤后只剩 wait 通过 →
+    裸发 WAIT 被拒 15 次。正确行为：CHOOSE 1（轮换到第二个选项）。
+    """
+    from main import _alternate_cmd
+
+    st = {"ready_for_command": True,
+          "available_commands": ["choose", "key", "click", "wait", "state"],
+          "game_state": {"screen_type": "EVENT", "floor": 1, "gold": 113,
+                         "choice_list": ["治疗", "移除", "离开"]}}
+    got = _alternate_cmd(st, avoid="CHOOSE 0")
+    assert got != "WAIT", f"绝不能把 CHOOSE 换成一个需要参数的裸 wait，实际 {got}"
+    assert got == "CHOOSE 1", f"应轮换到第二个选项，实际 {got}"
+    # 5 选项时轮换出 CHOOSE 1（不是 0）
+    st5 = json.loads(json.dumps(st))
+    st5["game_state"]["choice_list"] = ["a", "b", "c", "d", "e"]
+    assert _alternate_cmd(st5, avoid="CHOOSE 0") == "CHOOSE 1"
+    # 轮换的语义是"给一个真正不同的命令"（打破重复即可），顺序不敏感：
+    # avoid=CHOOSE 1 时返回列表里第一个 ≠ CHOOSE 1 的选项（CHOOSE 0）也正确。
+    assert _alternate_cmd(st5, avoid="CHOOSE 1") != "CHOOSE 1"

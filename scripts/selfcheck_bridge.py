@@ -139,9 +139,12 @@ def main():
     check("畸形 JSON 后仍能正常响应", r == "START IRONCLAD", f"got={r!r}")
 
     # 5) 防卡死守卫：连喂同一个不推进的状态
+    #    真机 01:30 血案后调整语义：守卫 hard_limit 后**不再退出**，改为
+    #    keep-alive（进程活着、只回 STATE）——退出意味着用户必须重启游戏才能
+    #    恢复；keep-alive 下用户手动推进或状态变化，agent 立即自动恢复。
     stuck = _state_stuck()
     replies = []
-    for _ in range(25):
+    for _ in range(40):
         b.send(stuck)
         rr = b.recv(timeout=20)
         if rr is None:
@@ -155,8 +158,11 @@ def main():
           f"guard 消息 {len(guard_msg)} 条")
     if guard_msg:
         print(f"        {guard_msg[0]}")
-    check("最终主动退出（不无限空转）", b.proc.poll() is not None,
-          f"returncode={b.proc.poll()}")
+    check("转入 keep-alive 而不退出（进程存活可人工接管）",
+          b.proc.poll() is None, f"returncode={b.proc.poll()}")
+    check("keep-alive 阶段只回 STATE（不再拿无效命令打游戏）",
+          len(replies) >= 3 and all(r == "STATE" for r in replies[-3:]),
+          f"尾部回复={replies[-3:]}")
 
     # 6) 事件日志落盘
     evt_files = [f for f in os.listdir(log_dir) if f.endswith("_events.jsonl")]
@@ -167,6 +173,13 @@ def main():
                 if '"stall"' in line:
                     stall_evt = True
     check("stall 事件写入 L3 日志", stall_evt)
+    giveup_evt = False
+    if evt_files:
+        with open(os.path.join(log_dir, evt_files[0]), encoding="utf-8") as f:
+            for line in f:
+                if '"stall_giveup"' in line:
+                    giveup_evt = True
+    check("stall_giveup 事件写入 L3 日志", giveup_evt)
 
     st_files = [f for f in os.listdir(log_dir) if f.endswith("_states.jsonl")]
     n_states = 0
