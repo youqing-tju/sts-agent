@@ -393,8 +393,7 @@ class SimBrain:
         # Communication Mod 的 available_commands 全是小写
         cmds = [c.lower() for c in state.get("available_commands", [])]
 
-        # 模拟器新鲜度：仅当本帧带完整真实 game_state 且 init_from_json 成功才置真。
-        # 一条真实状态只允许产生一条模拟器命令（各模拟器分支末尾置 False）。
+        # 模拟器新鲜度（P1：缺 seed 时用占位 seed=0 灌入；见 _refresh_sim）
         self._refresh_sim(state)
 
         # 主菜单：规则命令，不依赖模拟器（即使不新鲜也照发）
@@ -404,13 +403,23 @@ class SimBrain:
                 self.log.event("run_start", command=cmd)
             return cmd
 
-        # 战斗：ISMCTS（灌状态进模拟器搜索最优出牌），需模拟器新鲜。
-        # 不新鲜（错误帧/无真实 game_state）→ 不猜命令，回 STATE 请求重发。
+        # ---- P0 安全网 #1：选项类屏幕（有 choice_list）永远选第一个 ----
+        # 优先级最高：确保「缺 seed 等导致模拟器不新鲜」时也给出可执行命令，绝不
+        # 回 STATE 空转（本任务要修的新 failure mode）。CHOOSE 0 对事件/篝火/地图/
+        # 选卡永远合法且一定推进游戏。
+        if "choose" in cmds and self._has_choice_list(state):
+            return "CHOOSE 0"
+
+        # 战斗：ISMCTS（灌状态进模拟器搜索最优出牌），需模拟器新鲜。不新鲜
+        # （缺 seed 且占位 seed 也灌入失败 / 无真实 game_state）→ P0 真实状态规则
+        # 兜底（出牌或 END），绝不用假状态决策、绝不空转。
         if "play" in cmds:
             if not self._sim_fresh:
-                log.warning("战斗命令请求但模拟器不新鲜（无真实 game_state），"
-                            "回 STATE 请求重发（绝不用假状态决策）")
-                return "STATE"
+                log.warning("战斗命令但模拟器不新鲜（无真实 game_state/缺 seed 等），"
+                            "P0 真实状态规则兜底（绝不用假状态决策，也绝不空转）")
+                cmd = self._real_state_rule(state)
+                self._last_cmd = cmd
+                return cmd
             try:
                 cmd = self.combat_brain.decide_with_fallback(
                     state, self.gc, combat_action)
@@ -433,11 +442,14 @@ class SimBrain:
                                cmd=cmd, n_cands=0, degraded=True)
             return cmd
 
-        # 宏观决策：模拟器 + RL；需模拟器新鲜。不新鲜 → 回 STATE 请求重发。
+        # 宏观决策：模拟器 + RL；需模拟器新鲜。不新鲜 → P0 真实状态规则兜底
+        # （绝不回 STATE 空转：会卡死）。
         if not self._sim_fresh:
-            log.warning("宏观命令请求但模拟器不新鲜（无真实 game_state），"
-                        "回 STATE 请求重发（绝不用假状态决策）")
-            return "STATE"
+            log.warning("宏观命令但模拟器不新鲜（缺 seed 且占位 seed 也失败等），"
+                        "P0 真实状态规则兜底（绝不用假状态决策，也绝不空转）")
+            cmd = self._real_state_rule(state)
+            self._last_cmd = cmd
+            return cmd
         try:
             cmd = self._sim_decide(state, cmds)
         except Exception as exc:
@@ -466,18 +478,57 @@ class SimBrain:
             return False
         return all(gs.get(k) is not None for k in self._REQUIRED_GS_KEYS)
 
+    def _missing_only_seed(self, state) -> bool:
+        """除 seed 外其它必备字段都在（seed 缺失或为 null）。
+
+        用于 P1：这种状态其它字段齐全，只是 Mod 没发 seed；用占位 seed=0
+        灌模拟器即可（实测可行，见 _refresh_sim）。若连其它字段也缺，则不是
+        「只缺 seed」，不能占位，回 STATE 等重发。
+        """
+        gs = state.get("game_state")
+        if not isinstance(gs, dict):
+            return False
+        others = [k for k in self._REQUIRED_GS_KEYS if k != "seed"]
+        return (all(gs.get(k) is not None for k in others)
+                and gs.get("seed") is None)
+
+    def _has_choice_list(self, state) -> bool:
+        """真实状态是否带「可选选项列表」（事件/篝火/地图/选卡屏）。"""
+        gs = state.get("game_state") or {}
+        cl = gs.get("choice_list")
+        if isinstance(cl, list) and cl:
+            return True
+        ro = (gs.get("screen_state") or {}).get("rest_options")
+        return isinstance(ro, list) and bool(ro)
+
     def _refresh_sim(self, state):
         """尝试把本帧真实状态灌入模拟器。仅当状态完整且灌入成功才置 _sim_fresh。
 
-        错误帧（无 game_state）或不完整状态不会灌入，模拟器保持不新鲜。
+        P1 占位 seed：若状态只缺 seed（其它必备字段齐全），用占位 seed=0 灌入——
+        实测 init_from_json 在 seed 缺失/为 null 时会抛 RuntimeError，但给占位
+        seed 后能成功且 get_all_actions 返回合理动作（MAP_SCREEN=5 个、BATTLE=0
+        个战斗动作，战斗动作本就来自 ISMCTS 而非 get_all_actions）。这样既不拿假
+        状态决策，也不会因缺 seed 永远不新鲜而空转。
+
+        错误帧（无 game_state）/ 连其它字段也缺的状态不会灌入，模拟器保持不新鲜。
         """
         self._sim_fresh = False
+        payload = state
         if not self._has_complete_game_state(state):
-            return
+            if self._missing_only_seed(state):
+                # 只缺 seed：占位 seed=0 灌模拟器（P1）
+                gs = dict(state.get("game_state") or {})
+                gs["seed"] = 0
+                payload = dict(state)
+                payload["game_state"] = gs
+                log.info("[P1] 真实状态缺 seed，用占位 seed=0 灌模拟器")
+            else:
+                return
         try:
-            self.gc.init_from_json(json.dumps(_sanitize(state)))
+            self.gc.init_from_json(json.dumps(_sanitize(payload)))
         except Exception:
-            log.exception("init_from_json 失败（状态不完整/格式异常），模拟器不新鲜")
+            log.exception("init_from_json 失败（缺 seed 且占位 seed 也失败/格式异常），"
+                          "模拟器不新鲜 → 走 P0 真实状态规则兜底")
             self._sim_fresh = False
             return
         self._sim_fresh = True
@@ -504,6 +555,43 @@ class SimBrain:
             if hand and isinstance(hand[0], dict):
                 log.info("[diag] 首张手牌字段: %s ; 完整内容: %s",
                          list(hand[0].keys()), hand[0])
+
+    # ---- P0 真实状态规则（安全网，不碰模拟器） ----
+
+    def _real_state_rule(self, state: dict) -> str:
+        """P0 安全网：真实状态规则，只读 game_state / available_commands。
+
+        只要有真实状态且 ready_for_command，务必给出一个**可执行**命令，绝不
+        允许一直回 STATE 导致静默死锁（本任务要修的新 failure mode：缺 seed 等
+        导致 _sim_fresh 永远 False → 宏观/战斗分支都回 STATE → 空转）。
+
+        优先级：
+          choice_list 非空        → CHOOSE 0   （事件/篝火/地图/选卡，永远合法推进）
+          proceed 可用            → PROCEED
+          end 可用                → END
+          play 可用               → 战斗规则出牌，规则哑火则 END（推进回合）
+          skip / leave 可用       → 对应命令
+        以上都不满足（确实没有任何可用命令）→ 才回 STATE（绝不假装行动原地空转）。
+        """
+        cmds = [c.lower() for c in state.get("available_commands", [])]
+
+        if "choose" in cmds and self._has_choice_list(state):
+            return "CHOOSE 0"
+        if "proceed" in cmds:
+            return "PROCEED"
+        if "end" in cmds:
+            return "END"
+        if "play" in cmds:
+            cmd = combat_action(state)
+            if cmd and cmd.upper() != "STATE":
+                return cmd
+            return "END"
+        if "skip" in cmds:
+            return "SKIP"
+        if "leave" in cmds:
+            return "LEAVE"
+        # 确实没有任何可执行命令
+        return "STATE"
 
     # ---- 模拟器决策路径 ----
 

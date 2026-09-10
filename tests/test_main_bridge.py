@@ -310,16 +310,113 @@ def test_real_combat_skill_has_no_target_fixB(brain):
 
 
 def test_incomplete_state_never_drives_simulator(brain):
-    """不完整状态（缺 seed 等）不灌模拟器：宏观分支也回 STATE，不猜命令。"""
+    """（Task 2 旧断言，Task 3 已改写）除 seed 外字段齐全 → P1 占位 seed 灌入成功，
+    给出可执行命令而非 STATE；模拟器新鲜度被置真。
+
+    注：这是 Task 3 P1 修复后的新正确行为——旧版"永远回 STATE"正是要修的
+    静默死锁 failure mode。此处用 _base_game_state 构造"只缺 seed"的完整状态
+    （deck/map/relics 等齐全），与实测 init_from_json 占位 seed 成功条件一致。
+
+    隔离 gc：模块级 brain 的 gc 可能被前一个战斗测试里的 ISMCTS 改动到
+    半模拟状态，重灌不同屏会失败；此处重置成干净上下文，专测 P1 占位 seed。
+    """
+    import slaythespire as sts
+    brain.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
     brain._sim_fresh = False
     brain._last_cmd = ""
-    # 缺 seed 的真实感状态（模拟 selfcheck 的 _state_stuck / 格式异常）
+    # 基于完整 game_state，只去掉 seed（模拟 Mod 没发 seed 的真实场景）
+    gs = _base_game_state()
+    gs.pop("seed", None)
     incomplete = {
         "available_commands": ["choose", "state"], "ready_for_command": True,
         "in_game": True,
-        "game_state": {"screen_type": "MAP", "floor": 1, "act": 1,
-                       "current_hp": 70, "max_hp": 80, "gold": 99,
-                       "choice_list": [{"x": 0}, {"x": 1}]},
+        "game_state": gs,
     }
-    assert brain.decide(incomplete) == "STATE"
-    assert brain._sim_fresh is False
+    cmd = brain.decide(incomplete)
+    assert cmd != "STATE", f"缺 seed 状态不应空转: {cmd}"
+    # 该状态无 choice_list，会走模拟器 RL 路径（P1 占位 seed 灌入成功才会新鲜、
+    # 才会进入 _sim_decide 产出真实 CHOOSE），而非回 STATE 空转。
+    assert cmd.startswith("CHOOSE "), f"P1 应让模拟器产出可执行命令: {cmd}"
+
+
+# ---------- Task 3 安全网：真实状态必须能推进，禁止空转 ----------
+
+def test_missing_seed_real_state_executable_not_state_fixC(brain):
+    """(a) 完整战斗状态缺 seed + ready → 必须可执行而非 STATE（P0/P1 安全网）。
+
+    对应本次新增 failure mode：_has_complete_game_state 要求 seed，缺 seed 时
+    _sim_fresh 永远 False → 战斗分支都回 STATE → 静默死锁。P1 占位 seed 灌入
+    使模拟器新鲜（ISMCTS 能跑）；P0 保证即使兜底也不空转。
+
+    隔离 gc：避免被前一个战斗测试的 ISMCTS 改动影响（见同名注释）。
+    """
+    import slaythespire as sts
+    brain.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
+    brain._sim_fresh = False
+    brain._last_cmd = ""
+    # 完整 game_state（deck/map/relics 齐全）只去掉 seed + 加 combat_state
+    gs = _base_game_state()
+    gs.pop("seed", None)
+    gs["screen_type"] = "NONE"
+    gs["combat_state"] = {
+        "hand": [{"id": "Strike_R", "name": "Strike", "cost": 1,
+                  "type": "ATTACK", "is_playable": True},
+                 {"id": "Defend_R", "name": "Defend", "cost": 1,
+                  "type": "SKILL", "is_playable": True}],
+        "monsters": [{"id": "JawWorm", "name": "Jaw Worm", "current_hp": 40,
+                      "max_hp": 44, "is_gone": False, "intent": "ATTACK"}],
+        "player": {"energy": 3, "block": 0}, "turn": 1,
+    }
+    st = {
+        "available_commands": ["play", "end", "potion", "state"],
+        "ready_for_command": True, "in_game": True, "game_state": gs,
+    }
+    cmd = brain.decide(st)
+    assert cmd != "STATE", f"缺 seed 战斗状态不应空转: {cmd}"
+    assert cmd.startswith("PLAY") or cmd == "END", f"应可执行: {cmd}"
+
+
+def test_no_available_commands_state_not_play_choose_fixC(brain):
+    """(b) 20 个无 available_commands 的真实状态：允许 STATE（无命令可发），
+    但绝不出现 PLAY / CHOOSE（避免越界/假命令）。"""
+    brain._sim_fresh = False
+    brain._last_cmd = ""
+    screens = ["MAP", "EVENT", "REST", "SHOP_ROOM", "COMBAT_REWARD",
+               "CHEST", "GRID"]
+    for i in range(20):
+        sc = screens[i % len(screens)]
+        st = {
+            "available_commands": [], "ready_for_command": True, "in_game": True,
+            # 既缺 seed 也缺 gold → 不是"只缺 seed"，模拟器不新鲜，走真实状态规则
+            "game_state": {"screen_type": sc, "floor": i + 1, "act": 1,
+                           "current_hp": 70, "max_hp": 80,
+                           "room_type": "MonsterRoom"},
+        }
+        cmd = brain.decide(st)
+        assert cmd == "STATE", f"无可用命令应回 STATE，实际 {cmd} (screen={sc})"
+        assert not cmd.startswith("PLAY"), cmd
+        assert not cmd.startswith("CHOOSE"), cmd
+        assert brain._sim_fresh is False, f"不完整状态不应新鲜 (screen={sc})"
+
+
+def test_missing_seed_choice_list_all_choose0_fixC(brain):
+    """(c) 20 个缺 seed 但 choice_list 非空的真实状态：全部 CHOOSE 0（P0 安全网）。
+
+    CHOOSE 0 对事件/篝火/地图/选卡永远合法且推进游戏；无论 P1 占位 seed 是否让
+    模拟器新鲜，选项屏都优先走真实状态规则，绝不回 STATE 空转。
+    """
+    brain._sim_fresh = False
+    brain._last_cmd = ""
+    screens = ["EVENT", "REST", "MAP", "CARD_SELECT", "GRID", "COMBAT_REWARD"]
+    for i in range(20):
+        sc = screens[i % len(screens)]
+        st = {
+            "available_commands": ["choose", "state"], "ready_for_command": True,
+            "in_game": True,
+            "game_state": {"screen_type": sc, "floor": i + 1, "act": 1,
+                           "current_hp": 70, "max_hp": 80, "gold": 99 + i,
+                           "choice_list": [{"x": 0}, {"x": 1}, {"x": 2}]},
+        }
+        cmd = brain.decide(st)
+        assert cmd == "CHOOSE 0", \
+            f"缺 seed+choice_list 应 CHOOSE 0，实际 {cmd} (screen={sc})"
