@@ -9,3 +9,7 @@ third_party/sts_lightspeed/build/
 .pytest_cache/
 checkpoints/
 logs/
+
+# 运行时产物（每次运行重生，不入库）
+sts_agent_debug.log
+last_state.json
