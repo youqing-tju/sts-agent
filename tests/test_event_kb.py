@@ -134,13 +134,45 @@ def test_rating_out_of_vector_and_separate():
 
 
 def test_kb_coverage_counts():
-    # 原 29 个 + 2026-09 补录 14 个（Fountain of Cleansing 与已收录的
-    # The Divine Fountain 为同一事件，不重复计）= 43 个事件。
-    # 新增选项数：Act1(2) + Act2(2+2+2+2+3+3+3=17) + Act3(3+3+3+3+2+2=16) = 35
-    # 原 option_count 68 + 35 = 103。
-    assert event_count() == 43
-    assert option_count() == 103
+    # 原 43 个 + 2026-09 补录 9 个（Old Beggar / Cursed Tome / Designer In-Spire /
+    # Augmenter / Knowing Skull / Masked Bandits / Mysterious Sphere / N'loth /
+    # The Moai Head）= 52 个事件。
+    # 新增选项数：Old Beggar(2)+Cursed Tome(7)+Designer In-Spire(6)+Augmenter(3)
+    # +Knowing Skull(4)+Masked Bandits(2)+Mysterious Sphere(2)+N'loth(3)+The Moai Head(3)=32
+    # 原 option_count 103 + 32 = 135。
+    assert event_count() == 52
+    assert option_count() == 135
     assert len(CATEGORY_LIST) == 12
+
+
+def test_cpp_display_name_aliases_resolve():
+    # 任务 A：C++ 绑定返回的显示名应能命中同一条目（别名映射）
+    # The Colosseum → Colosseum
+    v = get_event_option_features("The Colosseum", 0)
+    assert any(v), "The Colosseum 查表不应全零"
+    assert v[3] == 1.0  # COMBAT 类别（Colosseum 继续战斗）
+    # Transmorgrifier（少个 o）→ Transmogrifier
+    v2 = get_event_option_features("Transmorgrifier", 0)
+    assert any(v2), "Transmorgrifier 查表不应全零"
+    assert v2[9] == 1.0  # TRANSMOG 类别
+
+
+def test_new_events_at_least_one_nonzero_option():
+    # 任务 B：9 个新事件每个至少有一个选项返回非全零向量
+    new_events = [
+        "Old Beggar", "Cursed Tome", "Designer In-Spire", "Augmenter",
+        "Knowing Skull", "Masked Bandits", "Mysterious Sphere", "N'loth",
+        "The Moai Head",
+    ]
+    from models.event_kb import EVENT_KB
+    for ek in new_events:
+        assert ek in EVENT_KB, f"新事件 {ek} 未收录"
+        rec = EVENT_KB[ek]
+        nonzeros = [i for i, opt in enumerate(rec["options"])
+                    if any(get_event_option_features(ek, i))]
+        assert nonzeros, f"事件 {ek} 全部选项均全零"
+        # 每个事件至少应有 2 个选项（C++ 分支确认）
+        assert len(rec["options"]) >= 2, f"{ek} 选项数异常: {len(rec['options'])}"
 
 
 def test_neow_fourth_blessing_is_relic():

@@ -424,6 +424,87 @@ EVENT_KB = {
             _opt("GAMBLE", rating=2),                  # 转动：随机结果
         ]
     },
+    # ===================== 2026-09 补录：模拟器已实现但 KB 缺失的 9 个事件 =====================
+    # 来源：third_party/sts_lightspeed/src/game/GameContext.cpp 各 case Event::XXX 分支
+    # （C++ 选项序号即 bits.idx1 / get_event_info()["option_indices"] 的值）。
+    # 数值以 C++ 真实分支为准；不确定的字段填保守值并标 `# 待核`。
+    "Old Beggar": {
+        # canAddEvent: gold>=75 才出现。idx0 花 75 金删 1 张卡；idx1 离开。
+        "options": [
+            _opt("REMOVE", gold=-75, remove=1, rating=4),  # 给钱：花 75 金，删除一张卡
+            _opt("OTHER", rating=2),                       # 离开
+        ]
+    },
+    "Cursed Tome": {
+        # 多相位阅读事件（C++ 用 info.eventData 记录相位，idx 随阅读推进）。
+        # 数值以 C++ 分支为准；相位损失 HP 与最终获得遗物的确切血量标 `# 待核`。
+        "options": [
+            _opt("OTHER", rating=2),                       # [0] 继续阅读（相位 0，暂无偿）
+            _opt("OTHER", rating=3),                       # [1] 离开
+            _opt("OTHER", hp_cost=1, rating=1),            # [2] 阅读：失去 phase(=1) HP   # 待核相位损失
+            _opt("OTHER", hp_cost=2, rating=1),            # [3] 阅读：失去 phase(=2) HP   # 待核
+            _opt("OTHER", hp_cost=3, rating=1),            # [4] 阅读：失去 phase(=3) HP   # 待核
+            _opt("RELIC", hp_cost=12, relic=1, rating=4),  # [5] 读完：失去 10/15 HP + 随机遗物(Necronomicon/Enchiridion/Nilrys Codex)  # 待核 hp
+            _opt("OTHER", hp_cost=3, rating=3),            # [6] 收尾：失去 3 HP + 结束
+        ]
+    },
+    "Designer In-Spire": {
+        # canAddEvent: act==2||3 且 gold>=75。6 选项定制商店式事件。
+        "options": [
+            _opt("UPGRADE", gold=-40, upgrade=1, rating=4),  # [0] 花 40 金，升级一张卡
+            _opt("UPGRADE", upgrade=2, rating=4),            # [1] 升级两张随机卡
+            _opt("REMOVE", gold=-60, remove=1, rating=4),    # [2] 花 60 金，删除一张卡
+            _opt("TRANSMOG", gold=-60, rating=3),            # [3] 花 60 金，变化两张卡   # 变化 2 张
+            _opt("REMOVE", gold=-90, remove=1, rating=3),    # [4] 花 90 金，删除一张卡（随后升级一张）
+            _opt("OTHER", hp_cost=3, rating=3),              # [5] 失去 3 HP，结束
+        ]
+    },
+    "Augmenter": {
+        "options": [
+            _opt("OTHER", rating=3),                     # [0] 获得卡 J.A.X.   # 待核(类别，得卡无专属类别)
+            _opt("TRANSMOG", rating=3),                  # [1] 变化两张卡
+            _opt("RELIC", relic=1, rating=4),            # [2] 获得遗物「突变力量」(Mutagenic Strength)
+        ]
+    },
+    "Knowing Skull": {
+        # canAddEvent: act==2 且 curHp>12。每次拜访 HP 损失随相位递增（info.hpAmountN++），
+        # 确切起始值由运行时决定，下列 HP 用首访保守值并标 `# 待核`。
+        "options": [
+            _opt("GOLD", gold=90, hp_cost=7, rating=3),  # [0] 失去约 7 HP，获得 90 金   # 待核 hp
+            _opt("OTHER", hp_cost=9, rating=3),          # [1] 失去约 9 HP，获得一张无色卡   # 待核 hp
+            _opt("POTION", potion=1, hp_cost=11, rating=4),  # [2] 失去约 11 HP，获得一个药水   # 待核 hp
+            _opt("OTHER", hp_cost=6, rating=3),          # [3] 失去 6 HP，结束
+        ]
+    },
+    "Masked Bandits": {
+        "options": [
+            _opt("GOLD", gold=-300, rating=1),           # [0] 失去全部金币（金额不定，截断 -1.0）   # 待核(全额不定)
+            _opt("COMBAT", gold=30, relic=1, rating=4),  # [1] 战斗：胜得 25-35 金 + 遗物「红面具」   # 待核 gold
+        ]
+    },
+    "Mysterious Sphere": {
+        "options": [
+            _opt("COMBAT", gold=50, relic=1, rating=5),  # [0] 战斗：胜得 45-55 金 + 随机稀有遗物   # 待核 gold
+            _opt("GOLD", gold=99, rating=3),             # [1] 获得 99 金（不利时 50）   # 待核 gold
+        ]
+    },
+    "N'loth": {
+        # canAddEvent: act==2 且 relics.size()>=2。牺牲一个遗物换「N'loth's Gift」。
+        "options": [
+            _opt("RELIC", relic=1, rating=4),            # [0] 牺牲遗物[relicIdx0]，获得 N'loth's Gift
+            _opt("RELIC", relic=1, rating=4),            # [1] 牺牲遗物[relicIdx1]，获得 N'loth's Gift
+            _opt("OTHER", rating=3),                     # [2] 离开
+        ]
+    },
+    "The Moai Head": {
+        # canAddEvent: curHp<=maxHp/2 或持有「金神像」。idx0 失去 12.5-18% 最大生命后回满；
+        # idx1 得 333 金但失去持有的「金神像」遗物。
+        "options": [
+            _opt("HEAL", max_hp_cost=10, rating=4),      # [0] 失去约 12.5% 最大生命(截断)，回满血   # 待核(12.5-18% maxHp)
+            _opt("GOLD", gold=333, rating=4),             # [1] 获得 333 金（失去持有的「金神像」遗物）   # 待核(失去遗物无负字段)
+            _opt("OTHER", rating=3),                     # [2] 离开
+        ]
+    },
 }
 
 
@@ -443,11 +524,36 @@ def normalize_event_key(name: str) -> str:
 
 _NORM_INDEX = {normalize_event_key(k): k for k in EVENT_KB}
 
+# ======================================================================
+# ⚠️ 显示名别名映射（修复 C++ 绑定返回名与本 KB 规范名不一致，见 commit）
+# ----------------------------------------------------------------------
+# C++ 绑定的事件 display 名来自
+# third_party/sts_lightspeed/include/constants/Events.h 的 eventGameNames[]：
+#   "The Colosseum" / "Transmorgrifier"
+# 而本 KB 早期按 Wiki 显示名收为 "Colosseum" / "Transmogrifier"（注意后者游戏
+# 本就拼成少一个 o，以 C++ 为准）。两处不一致导致查表静默返回全零。这里
+# **不改旧键名**，而是在查表时先查主索引再查别名表。别名经与主表相同的
+# normalize_event_key 归一化（去非字母数字），确保 "The Colosseum" → thecolosseum
+# → 命中 "Colosseum"；"Transmorgrifier" → transmorgrifier → 命中 "Transmogrifier"。
+_EVENT_NAME_ALIASES = {
+    # C++ eventGameNames[] 显示名   → 本 KB 规范名
+    "The Colosseum":  "Colosseum",
+    "Transmorgrifier": "Transmogrifier",  # 游戏本就拼成少个 o，以 C++ 为准
+}
+_EVENT_ALIAS_INDEX = {
+    normalize_event_key(cpp_name): canonical
+    for cpp_name, canonical in _EVENT_NAME_ALIASES.items()
+}
+
 
 def _resolve_key(event_key: str):
     if not event_key:
         return None
-    return _NORM_INDEX.get(normalize_event_key(event_key))
+    k = normalize_event_key(event_key)
+    key = _NORM_INDEX.get(k)
+    if key is None:
+        key = _EVENT_ALIAS_INDEX.get(k)
+    return key
 
 
 def get_event_option_features(event_key: str, option_idx: int = None,

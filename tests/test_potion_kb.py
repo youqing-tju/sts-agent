@@ -86,3 +86,19 @@ def test_category_onehot_mutually_exclusive():
 
 def test_coverage_count():
     assert len(POTION_KB) == 33
+
+
+def test_cpp_display_name_aliases_resolve():
+    # 任务 A：C++ 绑定返回的显示名应能命中同一条目（别名映射）
+    # Elixir Potion → Elixir（铁甲专属药水）
+    v_cpp = get_potion_features("Elixir Potion")
+    v_kb = get_potion_features("Elixir")
+    assert v_cpp == v_kb, "Elixir Potion 与 Elixir 应逐元素相等"
+    assert any(v_cpp), "Elixir Potion 查表不应全零"
+    assert v_cpp[7] == 1.0  # OTHER 类别（Elixir 原标 OTHER）
+    # Fairy Potion → Fairy in a Bottle（稀有复活药）
+    v_cpp2 = get_potion_features("Fairy Potion")
+    v_kb2 = get_potion_features("Fairy in a Bottle")
+    assert v_cpp2 == v_kb2, "Fairy Potion 与 Fairy in a Bottle 应逐元素相等"
+    assert any(v_cpp2), "Fairy Potion 查表不应全零"
+    assert v_cpp2[4] == 1.0  # HEAL 类别

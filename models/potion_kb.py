@@ -123,10 +123,35 @@ def _build_potion_kb():
 # 归一化 key → 原始条目；调用方也可读 POTION_KB 看收录了哪些
 POTION_KB = _build_potion_kb()
 
+# ======================================================================
+# ⚠️ 显示名别名映射（修复 C++ 绑定返回名与本 KB 规范名不一致，见 commit）
+# ----------------------------------------------------------------------
+# C++ 绑定（slaythespire.pyd）的药水显示名来自
+# third_party/sts_lightspeed/include/constants/Potions.h 的 potionNames[]：
+#   "Elixir Potion" / "Fairy Potion"
+# 而本 KB 早期按 Wiki 显示名收为 "Elixir" / "Fairy in a Bottle"。两处不一致
+# 导致运行时查表静默返回全零。这里**不改旧键名**（避免牵动测试/docstring），
+# 而是在查表时先查别名表再查主表。别名经与主表相同的 _norm_potion 归一化，
+# 确保 "Elixir Potion" → elixir_potion → 命中 "Elixir" 这条。
+_POTION_NAME_ALIASES = {
+    # C++ potionNames[] 显示名        → 本 KB 规范名
+    "Elixir Potion":   "Elixir",            # 铁甲战士专属药水，漏掉损失大
+    "Fairy Potion":    "Fairy in a Bottle",  # 稀有复活药，高价值
+}
+_POTION_ALIAS_INDEX = {
+    _norm_potion(cpp_name): _norm_potion(canonical)
+    for cpp_name, canonical in _POTION_NAME_ALIASES.items()
+}
+
 
 def get_potion_features(name: str) -> list:
     """返回 24 维药水特征向量；未收录（含空名）返回 24 个 0.0，绝不抛异常。"""
-    entry = POTION_KB.get(_norm_potion(name))
+    nk = _norm_potion(name)
+    entry = POTION_KB.get(nk)
+    if entry is None:
+        alias = _POTION_ALIAS_INDEX.get(nk)
+        if alias is not None:
+            entry = POTION_KB.get(alias)
     if entry is None:
         return [0.0] * POTION_FEATURE_DIM
 
