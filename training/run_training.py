@@ -45,6 +45,9 @@ def main():
     p.add_argument("--workers", type=int, default=None,
                    help="并行收集进程数（游戏模拟是单线程 CPU 瓶颈）；"
                         "默认 auto = min(16, CPU 核数)；1 表示串行")
+    p.add_argument("--hidden", default="512,256",
+                   help="Scorer 隐藏层，逗号分隔。V6=(512,256)；"
+                        "V7 试过 (1024,512) 但实测无增益")
     args = p.parse_args()
 
     workers = args.workers
@@ -63,7 +66,8 @@ def main():
     if args.algo == "ppo":
         from models.scorer import ValueNet
         from training.ppo import PPOTrainer
-        scorer = Scorer(obs_dim=468, cand_dim=443, hidden=(1024, 512))
+        hidden = tuple(int(x) for x in args.hidden.split(",") if x.strip())
+        scorer = Scorer(obs_dim=468, cand_dim=443, hidden=hidden)
         value_net = ValueNet(obs_dim=468)
         lr = args.lr if args.lr is not None else 3e-4
         if args.init_from and os.path.exists(args.init_from):

@@ -244,8 +244,16 @@ def _collect_worker(args):
     scorer 固定放 CPU —— 每个子进程建 CUDA context 约 300~500MB，
     16 进程会顶爆 8GB 显存；而 (1024,512) 的 CPU 推理单次仅约 1ms，
     相对游戏模拟（约 2s/局）可忽略。
+
+    关键：必须把 torch 线程数压到 1。torch 默认每进程开满物理核数（16）线程，
+    16 个 worker × 16 线程 = 256 线程抢 32 个硬件线程（8× 超订），
+    上下文切换会吃掉绝大部分算力（实测 CPU 利用率从应有的 ~100% 掉到 7%）。
     """
+    import os
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["MKL_NUM_THREADS"] = "1"
     import torch as _torch
+    _torch.set_num_threads(1)
     from env.lightspeed_env import LightspeedEnv
     from models.scorer import Scorer
 
