@@ -15,6 +15,10 @@ class Scorer(nn.Module):
         # cand_dim 默认跟随候选编码器当前维度（367→443 追加 KB 段后=443）；
         # 旧权重不兼容、需重训，故默认即新维度，避免链路维度错配。
         super().__init__()
+        # 存下维度元数据：并行训练的 worker 进程需要据此重建同构 scorer
+        self.obs_dim = obs_dim
+        self.cand_dim = cand_dim
+        self.hidden = tuple(hidden)
         layers = []
         d = obs_dim + cand_dim
         for h in hidden:

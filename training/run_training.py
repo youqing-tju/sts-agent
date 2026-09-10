@@ -42,7 +42,14 @@ def main():
                         "相同的对局序列与网络初始化，可做配对 A/B（唯一变量是表征）")
     p.add_argument("--device", type=str, default=None,
                    help="训练设备；默认 auto：有 CUDA 用 cuda，否则 cpu")
+    p.add_argument("--workers", type=int, default=None,
+                   help="并行收集进程数（游戏模拟是单线程 CPU 瓶颈）；"
+                        "默认 auto = min(16, CPU 核数)；1 表示串行")
     args = p.parse_args()
+
+    workers = args.workers
+    if workers is None:
+        workers = min(16, os.cpu_count() or 1)
 
     if args.seed is not None:
         import random as _random
@@ -108,7 +115,8 @@ def main():
             _torch.save(scorer.state_dict(), args.checkpoint)
             _torch.save(value_net.state_dict(), args.checkpoint + ".value.pt")
         hist = trainer.train(n_games=args.games, log_fn=log_fn,
-                             save_fn=(lambda i: _save_fn(i) if i % 400 == 0 else None))
+                             save_fn=(lambda i: _save_fn(i) if i % 400 == 0 else None),
+                             workers=workers)
     else:
         hist = trainer.train(n_games=args.games, eval_every=args.eval_every,
                              eval_fn=eval_fn, log_fn=log_fn)

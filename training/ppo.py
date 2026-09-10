@@ -57,35 +57,9 @@ class PPOTrainer:
         trajectory 元素为 (obs_vec, cand_vecs, chosen_pos, logp_old)，
         logp_old 为采样时策略下所选候选的 log 概率（detached）。
         """
-        if seed is not None:
-            env.reset(seed)
-        traj = []
-        obs = env.observe()
-        done, steps, res = False, 0, None
-        while not done and steps < _MAX_STEPS:
-            cands = env.candidates()
-            if not cands:
-                res = env.step(-1)  # 防御性分支；正常流程由 env 自动推进战斗
-            else:
-                cand_vecs = [c.desc_vec for c in cands]
-                with torch.no_grad():
-                    logp = F.log_softmax(self._scores(obs.vec, cand_vecs), dim=-1)
-                    pos = int(torch.multinomial(logp.exp(), 1).item())
-                traj.append((list(obs.vec), cand_vecs, pos,
-                             float(logp[pos])))
-                if logger:
-                    logger.log_decision(
-                        floor=obs.floor, screen=obs.screen,
-                        candidates=[c.label for c in cands],
-                        chosen=cands[pos].label, hp=obs.hp)
-                res = env.step(cands[pos].idx)
-            obs, done = res.obs, res.done
-            steps += 1
-        final_floor = obs.floor
-        win = bool(res and res.info.get("outcome") == _WIN_OUTCOME)
-        if logger:
-            logger.finish(final_floor=final_floor, win=win)
-        return traj, final_floor, win
+        return _run_episode(seed, self.scorer, env, logger=logger,
+                            device=self.device)
+
 
     def update(self, episodes):
         """对一批 episode 做 K 个 epoch 的 PPO 更新，返回统计 dict。"""
@@ -152,7 +126,8 @@ class PPOTrainer:
             }
         return stats
 
-    def train(self, n_games, log_fn=None, log_dir=None, save_fn=None):
+    def train(self, n_games, log_fn=None, log_dir=None, save_fn=None,
+              workers=1):
         """主循环：攒满 batch_games 局 → update → 清空，直到 n_games。
 
         每局随机种子、每局一个 RunLogger JSONL（log_dir 非空时）；
@@ -161,13 +136,51 @@ class PPOTrainer:
         policy_loss/value_loss），与 REINFORCE 曲线分析兼容。
         尾部不足一个 batch 的局也会做最后一次 update。
         save_fn(i)：每次 update 后回调，用于定期保存 checkpoint（防中断丢进度）。
+
+        workers > 1 时用多进程并行收集：游戏模拟（C++ MCTS）是单线程 CPU
+        瓶颈，串行只吃满 1 核；并行后 CPU 利用率可接近 100%。并行路径不写
+        RunLogger JSONL（子进程无法安全共享 logger 对象）。
         """
+        from concurrent.futures import ProcessPoolExecutor
         from env.lightspeed_env import LightspeedEnv
         from logging.run_logger import RunLogger
 
         log_dir = log_dir if log_dir is not None else self.log_dir
         env = LightspeedEnv(mcts_simulations=self.mcts_sim)
-        history, batch = [], []
+        history = []
+        parallel = bool(workers and workers > 1)
+
+        if parallel:
+            cfg = {
+                "obs_dim": getattr(self.scorer, "obs_dim", 468),
+                "cand_dim": getattr(self.scorer, "cand_dim", 443),
+                "hidden": tuple(getattr(self.scorer, "hidden", (512, 256))),
+                "mcts_sim": self.mcts_sim,
+            }
+            seeds_all = [random.randrange(2 ** 31) for _ in range(n_games)]
+            nw = max(1, min(int(workers), self.batch_games))
+            pos = 0
+            # 持久进程池：进程启动需 import torch+slaythespire（数秒），
+            # 若每批重建，启动开销会完全抵消并行收益。
+            with ProcessPoolExecutor(max_workers=nw) as pool:
+                while pos < n_games:
+                    chunk = seeds_all[pos:pos + self.batch_games]
+                    pos += len(chunk)
+                    # worker 用 CPU 推理，权重必须先搬到 CPU
+                    state = {k: v.detach().to("cpu").clone()
+                             for k, v in self.scorer.state_dict().items()}
+                    tasks = [(s, state, cfg) for s in chunk]
+                    batch = list(pool.map(_collect_worker, tasks))
+                    stats = self.update(batch)
+                    rec = {"game": pos, **stats}
+                    history.append(rec)
+                    if log_fn is not None:
+                        log_fn(rec)
+                    if save_fn is not None:
+                        save_fn(pos)
+            return history
+
+        batch = []
         for i in range(1, n_games + 1):
             seed = random.randrange(2**31)
             logger = RunLogger(log_dir, seed) if log_dir else None
@@ -183,3 +196,63 @@ class PPOTrainer:
             if save_fn is not None:
                 save_fn(i)
         return history
+
+
+def _run_episode(seed, scorer, env, logger=None, device="cpu"):
+    """用给定 scorer 跑一局游戏（模块级，主进程与子进程共用）。
+
+    抽成模块级函数是为了并行：子进程用 spawn 启动，无法继承主进程对象，
+    需要能独立重建 scorer + env 来跑一局。
+    """
+    if seed is not None:
+        env.reset(seed)
+    traj = []
+    obs = env.observe()
+    done, steps, res = False, 0, None
+    while not done and steps < _MAX_STEPS:
+        cands = env.candidates()
+        if not cands:
+            res = env.step(-1)  # 防御性分支；正常流程由 env 自动推进战斗
+        else:
+            cand_vecs = [c.desc_vec for c in cands]
+            with torch.no_grad():
+                obs_t = torch.tensor(obs.vec, dtype=torch.float32, device=device)
+                cands_t = torch.tensor(cand_vecs, dtype=torch.float32,
+                                       device=device)
+                logp = F.log_softmax(scorer(obs_t, cands_t), dim=-1)
+                pos = int(torch.multinomial(logp.exp(), 1).item())
+            traj.append((list(obs.vec), cand_vecs, pos,
+                         float(logp[pos])))
+            if logger:
+                logger.log_decision(
+                    floor=obs.floor, screen=obs.screen,
+                    candidates=[c.label for c in cands],
+                    chosen=cands[pos].label, hp=obs.hp)
+            res = env.step(cands[pos].idx)
+        obs, done = res.obs, res.done
+        steps += 1
+    final_floor = obs.floor
+    win = bool(res and res.info.get("outcome") == _WIN_OUTCOME)
+    if logger:
+        logger.finish(final_floor=final_floor, win=win)
+    return traj, final_floor, win
+
+
+def _collect_worker(args):
+    """子进程 worker：重建 scorer + env 跑一局，返回 (traj, floor, win)。
+
+    scorer 固定放 CPU —— 每个子进程建 CUDA context 约 300~500MB，
+    16 进程会顶爆 8GB 显存；而 (1024,512) 的 CPU 推理单次仅约 1ms，
+    相对游戏模拟（约 2s/局）可忽略。
+    """
+    import torch as _torch
+    from env.lightspeed_env import LightspeedEnv
+    from models.scorer import Scorer
+
+    seed, state, cfg = args
+    scorer = Scorer(obs_dim=cfg["obs_dim"], cand_dim=cfg["cand_dim"],
+                    hidden=tuple(cfg["hidden"]))
+    scorer.load_state_dict(state)
+    scorer.eval()
+    env = LightspeedEnv(mcts_simulations=cfg["mcts_sim"])
+    return _run_episode(seed, scorer, env, device="cpu")
