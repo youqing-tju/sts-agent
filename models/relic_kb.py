@@ -171,8 +171,6 @@ _RELIC_CURATED = {
         power=0.40, energy=0.40, rarity_score=0.0, is_boss=0, synergy=0.50),
     "Bottled Tornado": dict(arch=[0,0,0,0,0], rs="COMMON", ironclad=0, drawback=0, trigger=None,
         power=0.30, block=0.30, rarity_score=0.0, is_boss=0, synergy=0.40),
-    "Violet Lotus": dict(arch=[0,0,0,0,0], rs="COMMON", ironclad=0, drawback=0, trigger="COMBAT_START",
-        power=0.40, energy=0.40, rarity_score=0.0, is_boss=0, synergy=0.50),
     "Ancient Tea Set": dict(arch=[0,0,0,0,0], rs="SHOP", ironclad=0, drawback=0, trigger=None,
         power=0.30, heal=0.30, rarity_score=0.5, is_boss=0, synergy=0.40),
     "Art of War": dict(arch=[0,0,0,0,0], rs="COMMON", ironclad=0, drawback=0, trigger=None,
@@ -217,6 +215,20 @@ _RELIC_CURATED = {
 
 
 # ===== 补全批次：133 条低信息兜底遗物（高置信，数据源 Slay the Spire Wiki）=====
+# ==============================================================================
+# ⚠️ KB 作用域：本项目锁定「铁甲战士 / 进阶 0 / 全解锁 / 单角色」。
+# 以下 30 个 RelicId 铁甲永远拿不到，已从 KB 移除（不再给语义画像）：
+#   Silent 专属(10)：SNECKO_SKULL NINJA_SCROLL PAPER_KRANE TOUGH_BANDAGES THE_SPECIMEN
+#                    TINGSHA WRIST_BLADE HOVERING_KITE RING_OF_THE_SERPENT TWISTED_FUNNEL
+#   Defect 专属(8) ：DATA_DISK SYMBIOTIC_VIRUS GOLD_PLATED_CABLES EMOTION_CHIP INSERTER
+#                    FROZEN_CORE NUCLEAR_BATTERY RUNIC_CAPACITOR
+#   Watcher 专属(9)：DAMARU DUALITY TEARDROP_LOCKET CLOAK_CLASP GOLDEN_EYE HOLY_WATER
+#                    VIOLET_LOTUS MELANGE PURE_WATER
+#   ？角色起始(3)  ：RING_OF_THE_SNAKE(Silent) CRACKED_CORE(Defect) PURE_WATER(Watcher)
+#   兜底(1)        ：RED_CIRCLET
+# 依据：third_party/sts_lightspeed/include/constants/RelicPools.h 的 namespace Ironclad（130 件池）。
+# 可达遗物 = 130 池 ∪ BURNING_BLOOD ∪ 事件专属 18 条。将来若支持其他角色，需按对应 pools 补回。
+# ==============================================================================
 _RELIC_FILL = {
   "BLOODY_IDOL": {
     "arch": [
@@ -308,24 +320,6 @@ _RELIC_FILL = {
     "is_boss": 0,
     "energy": 0.4
   },
-  "CLOAK_CLASP": {
-    "arch": [
-      0,
-      0.5,
-      0,
-      0,
-      0
-    ],
-    "rs": "RARE",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "PER_TURN",
-    "power": 0.4,
-    "synergy": 0.55,
-    "rarity_score": 1.0,
-    "is_boss": 0,
-    "block": 0.5
-  },
   "DARKSTONE_PERIAPT": {
     "arch": [
       0,
@@ -361,57 +355,6 @@ _RELIC_FILL = {
     "is_boss": 0,
     "exhaust": 0.8,
     "draw": 0.5
-  },
-  "DUALITY": {
-    "arch": [
-      0,
-      0.2,
-      0,
-      0,
-      0
-    ],
-    "rs": "UNCOMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "IMMEDIATE",
-    "power": 0.3,
-    "synergy": 0.15,
-    "rarity_score": 0.5,
-    "is_boss": 0
-  },
-  "EMOTION_CHIP": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "RARE",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "PER_TURN",
-    "power": 0.25,
-    "synergy": 0.15,
-    "rarity_score": 1.0,
-    "is_boss": 0
-  },
-  "FROZEN_CORE": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "BOSS",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "IMMEDIATE",
-    "power": 0.25,
-    "synergy": 0.15,
-    "rarity_score": 1.0,
-    "is_boss": 1
   },
   "FROZEN_EYE": {
     "arch": [
@@ -462,23 +405,6 @@ _RELIC_FILL = {
     "trigger": None,
     "power": 0.3,
     "synergy": 0.4,
-    "rarity_score": 1.0,
-    "is_boss": 0
-  },
-  "GOLDEN_EYE": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "RARE",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "IMMEDIATE",
-    "power": 0.2,
-    "synergy": 0.15,
     "rarity_score": 1.0,
     "is_boss": 0
   },
@@ -537,24 +463,6 @@ _RELIC_FILL = {
     "is_boss": 0,
     "block": 0.5
   },
-  "HOVERING_KITE": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "BOSS",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "PER_TURN",
-    "power": 0.4,
-    "synergy": 0.15,
-    "rarity_score": 1.0,
-    "is_boss": 1,
-    "energy": 0.4
-  },
   "ICE_CREAM": {
     "arch": [
       0,
@@ -607,23 +515,6 @@ _RELIC_FILL = {
     "rarity_score": 0.5,
     "is_boss": 0,
     "draw": 0.3
-  },
-  "INSERTER": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "BOSS",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "PER_TURN",
-    "power": 0.25,
-    "synergy": 0.15,
-    "rarity_score": 1.0,
-    "is_boss": 1
   },
   "LETTER_OPENER": {
     "arch": [
@@ -694,23 +585,6 @@ _RELIC_FILL = {
     "rarity_score": 0.5,
     "is_boss": 0,
     "exhaust": 0.2
-  },
-  "MELANGE": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "SHOP",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "IMMEDIATE",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 0.5,
-    "is_boss": 0
   },
   "MERCURY_HOURGLASS": {
     "arch": [
@@ -872,24 +746,6 @@ _RELIC_FILL = {
     "is_boss": 0,
     "block": 0.4
   },
-  "PAPER_KRANE": {
-    "arch": [
-      0,
-      0.2,
-      0,
-      0,
-      0
-    ],
-    "rs": "UNCOMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": None,
-    "power": 0.3,
-    "synergy": 0.2,
-    "rarity_score": 0.5,
-    "is_boss": 0,
-    "vuln_weak": 0.3
-  },
   "POCKETWATCH": {
     "arch": [
       0,
@@ -977,23 +833,6 @@ _RELIC_FILL = {
     "rarity_score": 1.0,
     "is_boss": 1,
     "draw": 0.5
-  },
-  "SNECKO_SKULL": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0.4
-    ],
-    "rs": "COMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "IMMEDIATE",
-    "power": 0.3,
-    "synergy": 0.2,
-    "rarity_score": 0.0,
-    "is_boss": 0
   },
   "STONE_CALENDAR": {
     "arch": [
@@ -1102,41 +941,6 @@ _RELIC_FILL = {
     "is_boss": 0,
     "damage": 0.3
   },
-  "THE_SPECIMEN": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0.4
-    ],
-    "rs": "RARE",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "IMMEDIATE",
-    "power": 0.4,
-    "synergy": 0.2,
-    "rarity_score": 1.0,
-    "is_boss": 0
-  },
-  "TINGSHA": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "RARE",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "PER_TURN",
-    "power": 0.4,
-    "synergy": 0.2,
-    "rarity_score": 1.0,
-    "is_boss": 0,
-    "damage": 0.4
-  },
   "TOOLBOX": {
     "arch": [
       0,
@@ -1169,24 +973,6 @@ _RELIC_FILL = {
     "trigger": "ON_HP_LOSS",
     "power": 0.5,
     "synergy": 0.6,
-    "rarity_score": 1.0,
-    "is_boss": 0,
-    "block": 0.4
-  },
-  "TOUGH_BANDAGES": {
-    "arch": [
-      0,
-      0.4,
-      0,
-      0,
-      0
-    ],
-    "rs": "RARE",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "PER_TURN",
-    "power": 0.4,
-    "synergy": 0.2,
     "rarity_score": 1.0,
     "is_boss": 0,
     "block": 0.4
@@ -1243,23 +1029,6 @@ _RELIC_FILL = {
     "rarity_score": 1.0,
     "is_boss": 0
   },
-  "TWISTED_FUNNEL": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0.4
-    ],
-    "rs": "SHOP",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.3,
-    "synergy": 0.1,
-    "rarity_score": 0.5,
-    "is_boss": 0
-  },
   "UNCEASING_TOP": {
     "arch": [
       0,
@@ -1294,24 +1063,6 @@ _RELIC_FILL = {
     "synergy": 0.4,
     "rarity_score": 0.3,
     "is_boss": 0
-  },
-  "WRIST_BLADE": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "BOSS",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "IMMEDIATE",
-    "power": 0.4,
-    "synergy": 0.2,
-    "rarity_score": 1.0,
-    "is_boss": 1,
-    "damage": 0.4
   },
   "FACE_OF_CLERIC": {
     "arch": [
@@ -1364,57 +1115,6 @@ _RELIC_FILL = {
     "power": 0.4,
     "synergy": 0.55,
     "rarity_score": 0.5,
-    "is_boss": 0
-  },
-  "CRACKED_CORE": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "COMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 0.0,
-    "is_boss": 0
-  },
-  "DAMARU": {
-    "arch": [
-      0,
-      0.2,
-      0,
-      0,
-      0
-    ],
-    "rs": "COMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "PER_TURN",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 0.0,
-    "is_boss": 0
-  },
-  "DATA_DISK": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "COMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 0.0,
     "is_boss": 0
   },
   "DU_VU_DOLL": {
@@ -1470,23 +1170,6 @@ _RELIC_FILL = {
     "rarity_score": 1.0,
     "is_boss": 0
   },
-  "GOLD_PLATED_CABLES": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "UNCOMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "IMMEDIATE",
-    "power": 0.25,
-    "synergy": 0.15,
-    "rarity_score": 0.5,
-    "is_boss": 0
-  },
   "GREMLIN_VISAGE": {
     "arch": [
       0,
@@ -1503,24 +1186,6 @@ _RELIC_FILL = {
     "synergy": 0.1,
     "rarity_score": 0.3,
     "is_boss": 0
-  },
-  "HOLY_WATER": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "BOSS",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 1.0,
-    "is_boss": 1,
-    "draw": 0.3
   },
   "LANTERN": {
     "arch": [
@@ -1575,41 +1240,6 @@ _RELIC_FILL = {
     "rarity_score": 0.3,
     "is_boss": 0
   },
-  "NINJA_SCROLL": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "UNCOMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 0.5,
-    "is_boss": 0,
-    "draw": 0.3
-  },
-  "NUCLEAR_BATTERY": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "BOSS",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 1.0,
-    "is_boss": 1
-  },
   "ODDLY_SMOOTH_STONE": {
     "arch": [
       0,
@@ -1663,24 +1293,6 @@ _RELIC_FILL = {
     "rarity_score": 0.0,
     "is_boss": 0
   },
-  "PURE_WATER": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "COMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.15,
-    "synergy": 0.1,
-    "rarity_score": 0.0,
-    "is_boss": 0,
-    "draw": 0.2
-  },
   "RED_MASK": {
     "arch": [
       0,
@@ -1698,59 +1310,6 @@ _RELIC_FILL = {
     "rarity_score": 0.3,
     "is_boss": 0,
     "vuln_weak": 0.5
-  },
-  "RING_OF_THE_SERPENT": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "BOSS",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "PER_TURN",
-    "power": 0.4,
-    "synergy": 0.1,
-    "rarity_score": 1.0,
-    "is_boss": 1,
-    "draw": 0.4
-  },
-  "RING_OF_THE_SNAKE": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "COMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.4,
-    "synergy": 0.1,
-    "rarity_score": 0.0,
-    "is_boss": 0,
-    "draw": 0.4
-  },
-  "RUNIC_CAPACITOR": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "SHOP",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 0.5,
-    "is_boss": 0
   },
   "SLAVERS_COLLAR": {
     "arch": [
@@ -1787,40 +1346,6 @@ _RELIC_FILL = {
     "rarity_score": 0.5,
     "is_boss": 0,
     "strength": 0.4
-  },
-  "SYMBIOTIC_VIRUS": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "UNCOMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 0.5,
-    "is_boss": 0
-  },
-  "TEARDROP_LOCKET": {
-    "arch": [
-      0,
-      0.2,
-      0,
-      0,
-      0
-    ],
-    "rs": "UNCOMMON",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": "COMBAT_START",
-    "power": 0.2,
-    "synergy": 0.1,
-    "rarity_score": 0.5,
-    "is_boss": 0
   },
   "THREAD_AND_NEEDLE": {
     "arch": [
@@ -2528,23 +2053,6 @@ _RELIC_FILL = {
     "rarity_score": 0.3,
     "is_boss": 0
   },
-  "RED_CIRCLET": {
-    "arch": [
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "rs": "EVENT",
-    "ironclad": 0,
-    "drawback": 0,
-    "trigger": None,
-    "power": 0.1,
-    "synergy": 0.1,
-    "rarity_score": 0.3,
-    "is_boss": 0
-  }
 }
 _RELIC_CURATED.update(_RELIC_FILL)
 
