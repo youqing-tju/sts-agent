@@ -225,3 +225,71 @@ def test_potion_not_full_no_interception(brain):
         {"id": "Potion Slot", "can_use": False, "requires_target": False}])
     cmd = brain.decide(st)
     assert not str(cmd).startswith("POTION Discard"), f"栏没满不应丢药，实际 {cmd}"
+
+
+# ---------- MCTS 目标翻译（真机"总是打最左边"） ----------
+
+def test_target_translates_sim_index_to_real_array():
+    """MCTS 的 target 是"活怪序列"下标——必须翻译回真机完整数组下标。
+
+    根因（真机实测）：initFromJson 只灌活怪（真机 4 只含 3 尸体 → 模拟器 1 只），
+    索引空间不同。旧版丢弃模拟器目标、总发"真机第一个活怪"——用户观察：
+    "总是从左边打起，Boss 进斩杀线也优先打爪牙"。
+    核心回归：真机 [死, 活A, 死, 活B]，模拟器想打"第 2 只活怪"（target 1）→
+    必须打真机下标 3（活B），而不是旧版的 1（活A）。
+    """
+    from combat_brain import CombatBrain
+
+    class _Act:
+        action_type = "CARD"
+        source_idx = 1
+        target_idx = 1
+
+    st = {"game_state": {"combat_state": {
+        "hand": [{"id": "X"}, {"id": "Strike_R"}],
+        "monsters": [{"is_gone": True, "current_hp": 0},
+                     {"is_gone": False, "current_hp": 20},
+                     {"is_gone": True, "current_hp": 0},
+                     {"is_gone": False, "current_hp": 5}],
+        "player": {"energy": 2}}}}
+    assert CombatBrain._to_comm(_Act(), st) == "PLAY 2 3", \
+        "必须把'活怪序列 target 1'翻译成真机下标 3（活B）"
+
+    class _Act0(_Act):
+        target_idx = 0
+
+    assert CombatBrain._to_comm(_Act0(), st) == "PLAY 2 1", \
+        "target 0 → 真机第一个活怪（下标 1）"
+
+
+def test_target_falls_back_on_out_of_range():
+    """模拟器 target 越界 → 回退真机第一个活怪（不越界、不崩）。"""
+    from combat_brain import CombatBrain
+
+    class _Act:
+        action_type = "CARD"
+        source_idx = 1
+        target_idx = 9
+
+    st = {"game_state": {"combat_state": {
+        "hand": [{"id": "X"}, {"id": "Strike_R"}],
+        "monsters": [{"is_gone": True, "current_hp": 0},
+                     {"is_gone": False, "current_hp": 7}],
+        "player": {"energy": 1}}}}
+    assert CombatBrain._to_comm(_Act(), st) == "PLAY 2 1"
+
+
+def test_target_all_dead_returns_none():
+    """全死 → None（交调用方走规则，绝不发指向尸体的命令）。"""
+    from combat_brain import CombatBrain
+
+    class _Act:
+        action_type = "CARD"
+        source_idx = 1
+        target_idx = 0
+
+    st = {"game_state": {"combat_state": {
+        "hand": [{"id": "X"}, {"id": "Strike_R"}],
+        "monsters": [{"is_gone": True}, {"is_gone": True}],
+        "player": {"energy": 1}}}}
+    assert CombatBrain._to_comm(_Act(), st) is None

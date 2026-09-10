@@ -83,6 +83,30 @@ def _first_alive_target(state: dict):
     return None            # 列表存在但全死了 → 确实没有合法目标
 
 
+def _translate_target(state: dict, sim_target):
+    """把 MCTS 的 target_idx（**活怪序列**下标）翻译成真机完整数组下标。
+
+    实测（2026-09-11）：initFromJson 只灌**活着**的怪——真机 4 只（3 具尸体）
+    在模拟器里只剩 1 只，所以模拟器的 target 是"活怪序列"下标，与真机
+    完整数组（含尸体）不同空间。旧版直接丢弃模拟器的目标、总发"真机第一个
+    活怪"——用户观察："总是从左边打起，Boss 进斩杀线也优先打爪牙"。
+
+    返回：真机数组下标（int）；None=没有活怪（无合法目标）；"unknown"=帧里
+    没有 monsters 信息（退回保守行为，交调用方处理）。
+    """
+    gs = state.get("game_state") or {}
+    monsters = (gs.get("combat_state") or {}).get("monsters")
+    if not monsters:
+        return "unknown"
+    alive = [i for i, m in enumerate(monsters)
+             if isinstance(m, dict) and not m.get("is_gone")]
+    if not alive:
+        return None
+    if isinstance(sim_target, int) and 0 <= sim_target < len(alive):
+        return alive[sim_target]
+    return alive[0]              # 无效/越界目标 → 回退第一个活怪
+
+
 def _card_needs_target(state: dict, source_idx: int) -> bool:
     """判断 hand[source_idx] 这张牌打出时是否需要带目标下标。
 
@@ -288,9 +312,12 @@ class CombatBrain:
         if action_type == "CARD":
             cmd = f"PLAY {action.source_idx + 1}"
             if _card_needs_target(state or {}, action.source_idx):
-                # 目标必须在**活着的**怪里挑：模拟器给的 target_idx 可能指向已被
-                # 打死的怪（is_gone=True），那样整条命令会被游戏拒绝。
-                target_idx = _first_alive_target(state or {})
+                # 翻译 MCTS 选定的目标：模拟器的 target 是"活怪序列"下标
+                # （死怪在灌入时被过滤），必须映射回真机完整数组下标。
+                # 旧版丢弃模拟器的目标、永远发"真机第一个活怪"——导致所有
+                # 攻击都打最左边的怪（用户观察："Boss 进斩杀线也优先打爪牙"）。
+                target_idx = _translate_target(state or {},
+                                               getattr(action, "target_idx", None))
                 if target_idx is None:
                     log.warning("怪物列表里没有活着的目标，放弃该 CARD 动作（交调用方走规则）")
                     return None
