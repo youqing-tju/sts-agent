@@ -599,3 +599,43 @@ def test_real_state_rule_accepts_repeat_guard_flag(brain):
     brain._real_state_rule(state, True)    # 不得抛 TypeError
     brain._real_state_rule(state, False)
     brain._real_state_rule(state)          # 默认参数也要可用
+
+
+# ---------- 真机第四轮回归：目标必须选活着的怪（打尸体导致攻击全被拒） ----------
+
+def test_target_skips_dead_monsters():
+    """怪物 0 已死(is_gone) → 目标必须落在还活着的怪物上。
+
+    真机 2026-09-11 血案：打死一只怪后 monsters[0].is_gone 恒为 True，
+    而 target_idx 恒为 0 → 攻击全打在尸体上 → 游戏回
+    "Selected card cannot be played with the selected target." 拒绝，
+    退化成 END；表现为"连续好几次什么牌都不打就结束回合"。
+    实测 79/105 个战斗状态都踩在这个坑里。
+    """
+    from combat_brain import CombatBrain
+
+    class _Act:
+        action_type = "CARD"
+        source_idx = 1                 # 0-based → 1-based 的 PLAY 2
+        target_idx = 0                 # 模拟器给的尸体下标
+
+    state = {"game_state": {"combat_state": {
+        "hand": [{"name": "Defend", "type": "SKILL"},
+                 {"name": "Strike", "type": "ATTACK", "has_target": True}],
+        "monsters": [{"is_gone": True, "current_hp": 0},
+                     {"is_gone": False, "current_hp": 11}],
+    }}}
+    assert CombatBrain._to_comm(_Act(), state) == "PLAY 2 1", "目标必须跳过死怪"
+
+    # 全部怪物都死了 → 放弃该动作（交调用方走规则），不得再发指向尸体的命令
+    dead = {"game_state": {"combat_state": {
+        "hand": [{"name": "Strike", "type": "ATTACK", "has_target": True}],
+        "monsters": [{"is_gone": True}, {"is_gone": True}],
+    }}}
+    assert CombatBrain._to_comm(_Act(), dead) is None
+
+    # 非战斗帧（没有 monsters 信息）→ 退回保守行为，不得返回 None
+    no_info = {"game_state": {"combat_state": {
+        "hand": [{"name": "Strike", "type": "ATTACK", "has_target": True}],
+    }}}
+    assert CombatBrain._to_comm(_Act(), no_info) == "PLAY 2 0"

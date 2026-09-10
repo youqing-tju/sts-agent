@@ -56,6 +56,32 @@ def _norm_card_id(name) -> str:
     return str(name).strip().lower()
 
 
+def _first_alive_target(state: dict):
+    """真实状态里第一个**还活着**的怪物下标（0-based）。
+
+    返回值三种：整数=可选目标；None=有怪物列表但全死了（无合法目标）；
+    "unknown"=这帧没有 monsters 信息（退回保守行为）。
+
+    真机 2026-09-11 血案：打死一只怪后，`monsters[0].is_gone` 恒为 True，
+    而我们把 `target_idx` 直接当目标发出去 → 目标恒为 0 → 指向尸体 →
+    游戏回 "Selected card cannot be played with the selected target." 拒绝，
+    翻译失败后退化成 END。实测 79/105 个战斗状态都在这个坑里，
+    表现为"连续好几次什么牌都不打就结束回合"。
+    """
+    gs = state.get("game_state") or {}
+    cs = gs.get("combat_state") or {}
+    monsters = cs.get("monsters")
+    if not monsters:
+        # 列表缺失：说明这帧没给战斗信息，退回保守行为（由调用方决定），
+        # 不能用"全死"来判定——否则非战斗帧会被误判成无目标。
+        return "unknown"
+    for i, m in enumerate(monsters):
+        if isinstance(m, dict) and m.get("is_gone"):
+            continue
+        return i
+    return None            # 列表存在但全死了 → 确实没有合法目标
+
+
 def _card_needs_target(state: dict, source_idx: int) -> bool:
     """判断 hand[source_idx] 这张牌打出时是否需要带目标下标。
 
@@ -257,9 +283,17 @@ class CombatBrain:
         if action_type == "CARD":
             cmd = f"PLAY {action.source_idx + 1}"
             if _card_needs_target(state or {}, action.source_idx):
-                target_idx = getattr(action, "target_idx", 0)
-                if target_idx is None or target_idx < 0:
-                    target_idx = 0
+                # 目标必须在**活着的**怪里挑：模拟器给的 target_idx 可能指向已被
+                # 打死的怪（is_gone=True），那样整条命令会被游戏拒绝。
+                target_idx = _first_alive_target(state or {})
+                if target_idx is None:
+                    log.warning("怪物列表里没有活着的目标，放弃该 CARD 动作（交调用方走规则）")
+                    return None
+                if target_idx == "unknown":
+                    # 没有战斗信息：退回保守行为（沿用模拟器给的 target_idx）
+                    target_idx = getattr(action, "target_idx", 0)
+                    if target_idx is None or target_idx < 0:
+                        target_idx = 0
                 cmd += f" {target_idx}"
             return cmd
 
