@@ -14,6 +14,8 @@ loss = policy_loss + 0.5 * value_loss - entropy_coef * mean(entropy)。
 """
 import random
 
+import numpy as np
+
 import torch
 import torch.nn.functional as F
 
@@ -64,46 +66,71 @@ class PPOTrainer:
 
 
     def update(self, episodes):
-        """对一批 episode 做 K 个 epoch 的 PPO 更新，返回统计 dict。"""
+        """对一批 episode 做 K 个 epoch 的 PPO 更新，返回统计 dict。
+
+        【为什么写成批量张量】原实现是「每个 epoch 内逐决策点循环」：
+        每步各发一次 _scores + _value 前向，一个 batch 要发
+        epochs × T × 2 次微小 kernel。实测 8.5 ms/步（batch 16/64 完全线性），
+        使主进程成为整个训练的关键路径（主进程 ~0.86 s/局 > worker 并行后的
+        ~0.31 s/局），14 个 worker 大半时间空转、CPU 只有 11%。
+        现在把「步 × 候选」压成一个 (T, C) 矩阵一次前向，数学完全等价
+        （候选补齐位用 mask 屏蔽，熵项只对有效位求和）。
+        """
         if not episodes:
             raise ValueError("episodes 为空")
 
-        # ---- 展平 batch：每步一条样本 ----
-        steps = []  # (obs_vec, cand_vecs, pos, logp_old, g)
+        # ---- 展平 batch：每步一条样本（批量装箱，不做逐条 Python 循环）----
+        obs_list, cand_lists, pos_list, logp_list, g_list = [], [], [], [], []
         floors, wins = [], []
         for traj, final_floor, win in episodes:
             g = float(final_floor) + float(self.win_bonus) * float(win)
             floors.append(float(final_floor))
             wins.append(float(win))
             for obs_vec, cand_vecs, pos, logp_old in traj:
-                steps.append((obs_vec, cand_vecs, pos, logp_old, g))
-        if not steps:
+                obs_list.append(obs_vec)
+                cand_lists.append(cand_vecs)
+                pos_list.append(pos)
+                logp_list.append(logp_old)
+                g_list.append(g)
+        if not obs_list:
             raise ValueError("episodes 全部没有决策点")
+
+        dev = self.device
+        T = len(obs_list)
+        C = max(len(c) for c in cand_lists)
+        obs_t = torch.as_tensor(np.asarray(obs_list, dtype=np.float32), device=dev)
+        # 候选补齐到等宽 (T, C, cand_dim)；mask 标出有效位
+        cand_t = torch.zeros(T, C, self.scorer.cand_dim, device=dev)
+        mask = torch.zeros(T, C, dtype=torch.bool, device=dev)
+        for i, cl in enumerate(cand_lists):
+            n = len(cl)
+            cand_t[i, :n] = torch.as_tensor(
+                np.asarray(cl, dtype=np.float32), device=dev)
+            mask[i, :n] = True
+        pos_t = torch.as_tensor(pos_list, dtype=torch.long, device=dev)
+        logp_old_t = torch.as_tensor(logp_list, dtype=torch.float32, device=dev)
+        g_t = torch.as_tensor(g_list, dtype=torch.float32, device=dev)
 
         # ---- advantage：A_t = G - V(s_t)，用更新前的 critic，batch 内标准化 ----
         with torch.no_grad():
-            advs = torch.tensor(
-                [g - float(self._value(obs_vec))
-                 for obs_vec, _, _, _, g in steps],
-                dtype=torch.float32, device=self.device)
+            advs = g_t - self.value_net(obs_t)
         advs = (advs - advs.mean()) / (advs.std() + 1e-8)
 
-        logp_old_t = torch.tensor([s[3] for s in steps],
-                                  dtype=torch.float32, device=self.device)
-        g_t = torch.tensor([s[4] for s in steps],
-                           dtype=torch.float32, device=self.device)
-
+        # 补齐位用「有限大负数」而不是 -inf：-inf 会让 p*logp 变成 0×(-inf)=nan，
+        # 而 torch.where 的反向传播会把该 nan 泄漏成 NaN 梯度 → 权重被污染 →
+        # 采样时报 "probability tensor contains inf/nan"。
+        # 用 -1e4 时 exp(-1e4) 在 float32 下精确下溢为 0，既无 nan 也不影响熵项。
+        NEG_BIG = -1e4
         stats = {}
         for _ in range(self.epochs):
-            logp_news, ents, vs = [], [], []
-            for (obs_vec, cand_vecs, pos, _, _), adv in zip(steps, advs):
-                logp = F.log_softmax(self._scores(obs_vec, cand_vecs), dim=-1)
-                logp_news.append(logp[pos])
-                ents.append(-(logp.exp() * logp).sum())
-                vs.append(self._value(obs_vec))
-            logp_new_t = torch.stack(logp_news)
-            ent_t = torch.stack(ents)
-            v_t = torch.stack(vs)
+            logits = self.scorer.forward_padded(obs_t, cand_t).masked_fill(~mask, NEG_BIG)
+            logp_all = F.log_softmax(logits, dim=-1)
+            logp_new_t = logp_all.gather(1, pos_t.unsqueeze(1)).squeeze(1)
+
+            p = logp_all.exp()                      # 补齐位精确为 0
+            ent_t = -(p * logp_all).sum(dim=-1)     # 0 × (-1e4) = -0.0，不污染求和
+
+            v_t = self.value_net(obs_t)
 
             ratio = (logp_new_t - logp_old_t).exp()
             surr1 = ratio * advs

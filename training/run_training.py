@@ -47,6 +47,10 @@ def main():
     p.add_argument("--workers", type=int, default=None,
                    help="并行收集进程数（游戏模拟是单线程 CPU 瓶颈）；"
                         "默认 auto = min(16, CPU 核数)；1 表示串行")
+    p.add_argument("--batch-games", type=int, default=16,
+                   help="每攒满多少局做一次 PPO update；进程池大小被它封顶"
+                        "（nw = min(workers, batch_games)），所以要用 >16 worker "
+                        "必须同时抬高本值")
     p.add_argument("--hidden", default="512,256",
                    help="Scorer 隐藏层，逗号分隔。V6=(512,256)；"
                         "V7 试过 (1024,512) 但实测无增益")
@@ -83,6 +87,7 @@ def main():
             print("警告：--init-from 指定的 checkpoint 不存在，从零训练")
         trainer = PPOTrainer(scorer, value_net, lr=lr, mcts_sim=args.mcts_sim,
                              log_dir=args.log_dir, win_bonus=args.win_bonus,
+                             batch_games=args.batch_games,
                              device=args.device or _auto_device())
     else:
         scorer = Scorer(obs_dim=OBS_DIM, cand_dim=DESC_VEC_DIM, hidden=(128, 128))

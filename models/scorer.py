@@ -41,6 +41,24 @@ class Scorer(nn.Module):
         out = self.mlp(torch.cat([obs_e, cand_e], dim=-1)).squeeze(-1)
         return out.squeeze(0) if single else out
 
+    def forward_padded(self, obs, cands):
+        """批量打分（等宽候选矩阵，供 PPO 更新用）。
+
+        参数：
+            obs  : (T, obs_dim)
+            cands: (T, C, cand_dim) —— 每步的候选补齐到 C 宽，无效位由调用方
+                   用 mask 屏蔽（本方法不处理 mask）。
+        返回：(T, C) logits。
+
+        为什么需要它：逐样本调 forward 会让 T 步 × 候选数产生 T×2 次微小 kernel
+        启动，实测 8.5 ms/步（一个 477+347→512→256→1 的 MLP 本不该这么慢）。
+        合并成一次前向可把主进程的更新开销降两个数量级——这直接决定训练并行度
+        （主进程曾是关键路径，导致 14 个 worker 大部分时间空转）。
+        """
+        t, c = cands.shape[0], cands.shape[1]
+        obs_e = obs.unsqueeze(1).expand(t, c, obs.shape[-1])
+        return self.mlp(torch.cat([obs_e, cands], dim=-1)).squeeze(-1)
+
 
 class ValueNet(nn.Module):
     """状态价值网络：V(s) = MLP(obs)，PPO 的 critic。"""
