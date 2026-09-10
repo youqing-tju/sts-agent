@@ -177,7 +177,13 @@ def _alternate_cmd(state: dict, avoid: str = None):
         candidates.append("PROCEED")
     if "skip" in cmds:
         candidates.append("SKIP")
-    if "choose" in cmds:
+    # 商店例外：SHOP_SCREEN 的 choice_list 是商品列表，CHOOSE 0 = 买东西 /
+    # 开删除卡牌服务（真机实测金币 110→14、状态在商店/房间/GRID 间死循环）。
+    # 守卫的强制换动作也绝不能把"离开商店"改成"购物"。
+    _gs2 = state.get("game_state") or {}
+    _is_shop2 = ((_gs2.get("screen_type") or "").upper() == "SHOP_SCREEN"
+                 or (_gs2.get("screen_name") or "").upper() == "SHOP")
+    if "choose" in cmds and not _is_shop2:
         candidates.append("CHOOSE 0")        # 事件/篝火/地图：退到第一个选项
     if "leave" in cmds:
         candidates.append("LEAVE")
@@ -473,6 +479,24 @@ class SimBrain:
                 self.log.event("run_start", command=cmd)
             return cmd
 
+        # ---- 商店例外（必须在 choose 分支之前）：优先离开，绝不"购物" ----
+        # 真机 2026-09-11 血案：SHOP_SCREEN 的 choice_list 是商品列表
+        # （'purge' + 卡牌/药水名），且 avail 含 choose → 下面的 choose 分支
+        # 永远命中 → 一直 CHOOSE 0 买/开删除卡牌服务，金币 110 → 14，
+        # 状态在 SHOP_SCREEN/SHOP_ROOM/GRID 之间死循环，永远出不了商店。
+        # 模拟器侧不支持购买决策，买了纯浪费金币，所以商店一律先离开。
+        _gs = state.get("game_state") or {}
+        _scr = (_gs.get("screen_type") or "").upper()
+        _nm = (_gs.get("screen_name") or "").upper()
+        if (_scr == "SHOP_SCREEN" or _nm == "SHOP") and "leave" in cmds:
+            # 仍走 _repeat_guard：商店真能关掉时屏幕会变、计数自动清零；
+            # 若 LEAVE 连续 3 次无效则轮换（否则会一直重发 LEAVE 打转过场动画）。
+            cmd = self._repeat_guard(state, "LEAVE")
+            self._log_decision(state, screen=_scr or None, kind="RULE",
+                               cmd=cmd, n_cands=0, degraded=True)
+            self._last_cmd = cmd
+            return cmd
+
         # ---- P0 安全网 #1：选项类屏幕（有 choice_list）永远选第一个 ----
         # 优先级最高：确保「缺 seed 等导致模拟器不新鲜」时也给出可执行命令，绝不
         # 回 STATE 空转（本任务要修的新 failure mode）。CHOOSE 0 对事件/篝火/地图/
@@ -707,7 +731,12 @@ class SimBrain:
                   and c.upper() != (avoid or "").upper()]
         if others:
             return others[0]
-        if "choose" in cmds and (avoid or "").upper() != "CHOOSE 0":
+        # 商店里绝不轮换到 CHOOSE：SHOP_SCREEN 的 choice_list 是商品列表，
+        # CHOOSE 0 = 买东西 / 打开删除卡牌服务（会白花金币、开新屏）。
+        gs = state.get("game_state") or {}
+        is_shop = ((gs.get("screen_type") or "").upper() == "SHOP_SCREEN"
+                   or (gs.get("screen_name") or "").upper() == "SHOP")
+        if "choose" in cmds and not is_shop and (avoid or "").upper() != "CHOOSE 0":
             return "CHOOSE 0"
         if avoid != "STATE":
             return "STATE"
