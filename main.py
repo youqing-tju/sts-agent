@@ -6,23 +6,40 @@
 - 向 stdout 写动作命令（PLAY / END / CHOOSE / START 等）
 
 决策架构：
-- 宏观决策（选路/卡牌奖励/篝火/事件/商店）：
+- 宏观决策（选路/卡牌奖励/篝火/事件/商店/遗物/药水）：
   真实游戏 JSON → GameContext.init_from_json 灌入模拟器 → get_all_actions
-  枚举动作 → 368 维候选编码 + 412 维观测 → Scorer 打分 argmax →
+  枚举动作 → **477 维观测 + 347 维候选** → Scorer 打分 argmax →
   把选中的 GameAction.bits 翻译成 Communication Mod 命令发回真实游戏。
-- 战斗出牌：v1 保持简单启发式（出第一张能出的牌，出不了 END），
-  MCTS 战斗接入是后续任务。
-- 降级：init_from_json / 编码 / 打分 / 翻译任一步失败 → 回退 main_rule 规则决策。
+- 战斗出牌：CombatBrain（ISMCTS：K 个平行未来 + 按卡牌身份投票），
+  失败回退 main_rule 的启发式。
+- 降级：init_from_json / 编码 / 打分 / 翻译任一步失败 → 回退规则决策。
 
-与 env/lightspeed_env.py 的候选特征逻辑保持一致（_candidate_kind /
-_candidate_card / _candidate_room 为三处的小拷贝，约束要求不动 env/ 文件）。
+【与训练严格对齐】观测经 `enhance_observation`（412→477），候选经
+`encode_candidate` 并带上 `deck_arch` 与 KB 三段键（药水/遗物/事件）——
+屏幕分发逻辑走 `models/candidate_kb.py` 这一份**单一事实来源**，与
+`env/lightspeed_env.py` 完全同源。等价性由 `tests/test_bridge_parity.py` 回归保证。
+
+【日志】三层，落在 `logs/realtime/`：
+  L1 `*_states.jsonl`    每条真实状态原样落盘（无损重放，事后排障唯一依据）
+  L2 `*_decisions.jsonl` 每步决策：屏幕/候选/模型打分 top3/所选/命令/是否降级
+  L3 `*_events.jsonl`    结局/异常/心跳（心跳线程每 60s 一条）
 """
 
+import argparse
 import json
 import logging
 import os
 import sys
+import threading
 import time
+
+# 真机由 Communication Mod 直接拉起（不经过 shell），拿不到外部环境变量：
+# torch + slaythespire.pyd 各自带一个 OpenMP 运行时，不设这个会报 OMP Error #15。
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
+_ROOT = os.path.dirname(os.path.abspath(__file__))
+# Mod 拉起时 cwd 是游戏目录；切到项目根，保证相对路径（日志/last_state.json）落在这里
+os.chdir(_ROOT)
 
 logging.basicConfig(
     filename="sts_agent_debug.log",
@@ -35,11 +52,22 @@ import slaythespire as sts
 import torch
 
 from models.candidate_encoder import (
+    DESC_VEC_DIM,
     CardInfo,
     compute_map_lookahead,
     decode_action_bits,
     encode_candidate,
 )
+from models.candidate_kb import (
+    REWARD_CARD,
+    REWARD_SKIP,
+    SINGING_BOWL_IDX2,
+    candidate_kind,
+    resolve_candidate_kb,
+)
+from models.card_data import CARD_ARCHETYPE, CARD_EFFECTS
+from models.card_index import CARD_INDEX
+from models.obs_encoder import OBS_DIM, encode_deck_stats, enhance_observation
 from models.scorer import Scorer
 from env.base_env import Candidate
 from combat_brain import CombatBrain
@@ -47,25 +75,8 @@ from combat_brain import CombatBrain
 # 降级路径：规则 bot（战斗启发式 + 宏观规则）
 from main_rule import combat_action, macro_action
 
-_ROOT = os.path.dirname(os.path.abspath(__file__))
-_DEFAULT_CKPT = os.path.join(_ROOT, "checkpoints", "long.pt")
-
-# screen_state 枚举名 → Candidate.kind（与 lightspeed_env._KIND_BY_SCREEN 一致）
-_KIND_BY_SCREEN = {
-    "MAP_SCREEN": "MAP_NODE",
-    "REWARDS": "REWARD",
-    "SHOP_ROOM": "SHOP_ITEM",
-    "REST_ROOM": "REST_OPTION",
-    "EVENT_SCREEN": "EVENT_OPTION",
-    "BOSS_RELIC_REWARDS": "BOSS_RELIC",
-}
-
-# RewardsActionType 编码（见 models.candidate_encoder.decode_action_bits 注释）
-_REWARD_CARD = 0
-_REWARD_SKIP = 6
-
-# 唱歌碗特殊动作（不拿牌），见 lightspeed_env._candidate_card
-_SINGING_BOWL_IDX2 = 5
+_DEFAULT_CKPT = os.path.join(_ROOT, "checkpoints", "ppo_v9_10000.pt")
+_DEFAULT_LOG_DIR = os.path.join(_ROOT, "logs", "realtime")
 
 
 def _sanitize(obj):
@@ -84,40 +95,187 @@ def _sanitize(obj):
 
 
 def _is_victory(state: dict) -> bool:
-    """检测通关画面：Communication Mod 在胜利时发 screen_type=GAME_OVER 且 screen_state.victory=true。"""
+    """通关画面：screen_type=GAME_OVER 且 screen_state.victory=true。"""
     gs = state.get("game_state", {})
     if (gs.get("screen_type") or "").upper() != "GAME_OVER":
         return False
-    ss = gs.get("screen_state", {})
-    return bool(ss.get("victory"))
+    return bool((gs.get("screen_state") or {}).get("victory"))
+
+
+def _is_game_over(state: dict) -> bool:
+    return (state.get("game_state", {}).get("screen_type") or "").upper() == "GAME_OVER"
+
+
+# ---- 防卡死守卫 ----
+# 真机历史上死过一次：agent 发 `PLAY 1` 被拒 → 回 `STATE` → 游戏状态不变 →
+# 再发 `PLAY 1` …… 死循环 5853 次、整局一步没动（`communication_mod_errors.log`）。
+# 根因是「命令无效 + 状态不变」没人检测。下面这套守卫专门堵这个洞。
+_STALL_LIMIT = 4        # 状态指纹连续相同几次 → 判定卡死，强制换动作
+_STALL_HARD_LIMIT = 20  # 换动作后仍卡死 → 退出保命（宁可停下让人接管，不要空转）
+
+
+def _fingerprint(state: dict) -> tuple:
+    """游戏状态指纹：能反映「有没有真的推进」。
+
+    刻意不含 HP 之外的高频抖动字段；战斗中打出一张牌会改变 hand/energy，
+    因此指纹变化 = 有进展；指纹不变 = 卡住。
+    """
+    gs = state.get("game_state", {}) or {}
+    cs = gs.get("combat_state") or {}
+    hand = cs.get("hand") or []
+    return (
+        (gs.get("screen_type") or "").upper(),
+        gs.get("floor"), gs.get("act"), gs.get("current_hp"),
+        gs.get("gold"), gs.get("room_type"),
+        cs.get("turn"), len(hand), cs.get("player", {}).get("energy")
+        if isinstance(cs.get("player"), dict) else None,
+        bool(state.get("ready_for_command")),
+    )
+
+
+def _alternate_cmd(state: dict, avoid: str = None):
+    """卡死时强制换一个『几乎总能推进』的动作。
+
+    avoid：尽量避开这条命令（否则"换了等于没换"，守卫失效）。
+    """
+    cmds = [c.lower() for c in state.get("available_commands", [])]
+    gs = state.get("game_state", {}) or {}
+    screen = (gs.get("screen_type") or "").upper()
+    avoid_u = (avoid or "").upper()
+
+    candidates = []
+    if "play" in cmds:                       # 战斗中：结束回合永远合法
+        candidates.append("END")
+    if "proceed" in cmds:
+        candidates.append("PROCEED")
+    if "skip" in cmds:
+        candidates.append("SKIP")
+    if "choose" in cmds:
+        candidates.append("CHOOSE 0")        # 事件/篝火/地图：退到第一个选项
+    if "leave" in cmds:
+        candidates.append("LEAVE")
+    if "start" in cmds:
+        candidates.append("START IRONCLAD")
+    for c in cmds:                           # 兜底：任何非 state 命令
+        if c != "state":
+            candidates.append(c.upper())
+
+    for cand in candidates:
+        if cand != avoid_u:
+            return cand
+    return candidates[0] if candidates else "STATE"
+
+
+class StallGuard:
+    """连续相同状态指纹检测（与发了什么命令无关，只看游戏有没有动）。"""
+
+    def __init__(self, limit=_STALL_LIMIT, hard_limit=_STALL_HARD_LIMIT):
+        self.limit = limit
+        self.hard_limit = hard_limit
+        self._fp = None
+        self.strikes = 0
+        self.total_stalls = 0
+
+    def observe(self, fp) -> int:
+        if fp == self._fp:
+            self.strikes += 1
+        else:
+            self.strikes = 0
+        self._fp = fp
+        return self.strikes
+
+
+class RunLog:
+    """三层日志（L1 状态流 / L2 决策 / L3 事件+心跳）。"""
+
+    def __init__(self, log_dir: str):
+        os.makedirs(log_dir, exist_ok=True)
+        stamp = time.strftime("%m%d_%H%M%S")
+        self.f_states = open(os.path.join(log_dir, f"{stamp}_states.jsonl"),
+                             "a", encoding="utf-8")
+        self.f_dec = open(os.path.join(log_dir, f"{stamp}_decisions.jsonl"),
+                          "a", encoding="utf-8")
+        self.f_evt = open(os.path.join(log_dir, f"{stamp}_events.jsonl"),
+                          "a", encoding="utf-8")
+        self.stamp = stamp
+        self.n_states = 0
+        self._stop = threading.Event()
+        self._hb = threading.Thread(target=self._heartbeat, daemon=True)
+        self._hb.start()
+
+    def _write(self, f, rec: dict):
+        try:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            f.flush()
+        except Exception:
+            log.exception("写日志失败")
+
+    def state(self, state: dict):
+        self.n_states += 1
+        self._write(self.f_states, state)
+
+    def decision(self, **kw):
+        kw["ts"] = time.time()
+        self._write(self.f_dec, kw)
+
+    def event(self, kind: str, **kw):
+        kw["ts"] = time.time()
+        kw["kind"] = kind
+        self._write(self.f_evt, kw)
+
+    def _heartbeat(self):
+        while not self._stop.wait(60):
+            self.event("heartbeat", states=self.n_states)
+
+    def close(self):
+        self._stop.set()
 
 
 class SimBrain:
     """模拟器大脑：把真实游戏状态灌进 lightspeed 模拟器，用 RL Scorer 决策。"""
 
-    def __init__(self, checkpoint_path: str = _DEFAULT_CKPT):
+    def __init__(self, checkpoint_path=_DEFAULT_CKPT, obs_dim=OBS_DIM,
+                 cand_dim=DESC_VEC_DIM, hidden=(512, 256),
+                 combat_sims=2000, determinizations=10, log_dir=None):
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
         self._error_count = 0  # 连续游戏错误计数（熔断用）
         self._last_cmd = ""    # 上一次发的命令（检测重复拒绝）
+        self.obs_dim = obs_dim
+        self.cand_dim = cand_dim
+        self.log = RunLog(log_dir) if log_dir else None
+        self.decisions = 0
+        self.fallbacks = 0
+
         self.scorer = None
         if os.path.exists(checkpoint_path):
             try:
-                self.scorer = Scorer(obs_dim=412, cand_dim=368, hidden=(128, 128))
-                self.scorer.load_state_dict(
-                    torch.load(checkpoint_path, weights_only=True))
+                self.scorer = Scorer(obs_dim=obs_dim, cand_dim=cand_dim,
+                                     hidden=tuple(hidden))
+                state_dict = torch.load(checkpoint_path, weights_only=True)
+                self.scorer.load_state_dict(state_dict)
                 self.scorer.eval()
-                log.info("scorer loaded: %s", checkpoint_path)
-            except Exception:
+                log.info("scorer loaded: %s (obs=%d cand=%d hidden=%s)",
+                         checkpoint_path, obs_dim, cand_dim, hidden)
+                print(f"[brain] 权重已加载: {checkpoint_path} "
+                      f"obs={obs_dim} cand={cand_dim} hidden={hidden}",
+                      file=sys.stderr, flush=True)
+            except Exception as exc:
                 log.exception("scorer 加载失败，宏观决策将全程走规则降级")
+                print(f"[brain] !!! 权重加载失败，将全程走规则降级: {exc}",
+                      file=sys.stderr, flush=True)
                 self.scorer = None
         else:
             log.warning("checkpoint 不存在: %s，宏观决策将全程走规则降级",
                         checkpoint_path)
+            print(f"[brain] !!! 权重不存在: {checkpoint_path}，将全程走规则降级",
+                  file=sys.stderr, flush=True)
+
         self._ascension = 0
         self._map_cache = None       # (seed, act) 对应的 SpireMap
         self._map_cache_key = None
-        self.combat_brain = CombatBrain(simulation_count=2000)  # ISMCTS：每个平行未来 2000 次模拟（×10 未来）
+        self.combat_brain = CombatBrain(simulation_count=combat_sims,
+                                        determinizations=determinizations)
 
     # ---- 决策入口 ----
 
@@ -135,9 +293,14 @@ class SimBrain:
         else:
             self._error_count = 0
 
-        if _is_victory(state):
-            log.info("VICTORY — 通关")
-            # 不停下，继续开新局（连贯性优先）
+        if _is_game_over(state):
+            gs = state.get("game_state", {})
+            win = _is_victory(state)
+            if self.log:
+                self.log.event("game_over", victory=win,
+                               floor=gs.get("floor"), act=gs.get("act"),
+                               hp=gs.get("current_hp"), max_hp=gs.get("max_hp"))
+            log.info("GAME_OVER victory=%s floor=%s", win, gs.get("floor"))
 
         if not state.get("ready_for_command"):
             return "STATE"
@@ -145,38 +308,51 @@ class SimBrain:
         # Communication Mod 的 available_commands 全是小写
         cmds = [c.lower() for c in state.get("available_commands", [])]
 
-        # 战斗：MCTS 优先（灌状态进模拟器搜索最优出牌），失败回退规则
+        # 战斗：ISMCTS 优先（灌状态进模拟器搜索最优出牌），失败回退规则
         if "play" in cmds:
             try:
-                # 先把整局状态灌入 GameContext（combat brain 需要它初始化 BattleContext）
                 self.gc.init_from_json(json.dumps(_sanitize(state)))
                 cmd = self.combat_brain.decide_with_fallback(
                     state, self.gc, combat_action)
+                self._log_decision(state, screen="COMBAT", kind="COMBAT",
+                                   cmd=cmd, n_cands=0, degraded=False)
             except Exception:
                 log.exception("MCTS 战斗异常，回退规则")
                 cmd = combat_action(state)
-            log.debug("combat -> %s", cmd)
+                self._log_decision(state, screen="COMBAT", kind="COMBAT",
+                                   cmd=cmd, n_cands=0, degraded=True)
             self._last_cmd = cmd
             return cmd
 
         # 战斗奖励：模拟器没有真实奖励内容，RL 会错误跳过——直接走规则（逐个领取）
         gs = state.get("game_state", {})
         if (gs.get("screen_type") or "").upper() == "COMBAT_REWARD":
-            return macro_action(state)
+            cmd = macro_action(state)
+            self._log_decision(state, screen="COMBAT_REWARD", kind="REWARD",
+                               cmd=cmd, n_cands=0, degraded=True)
+            return cmd
 
         # 游戏未开始（主菜单）
         if "start" in cmds:
-            return "START IRONCLAD"
+            cmd = "START IRONCLAD"
+            if self.log:
+                self.log.event("run_start", command=cmd)
+            return cmd
 
         # 宏观决策：模拟器 + RL；任何失败回退规则
         try:
             cmd = self._sim_decide(state, cmds)
-        except Exception:
+        except Exception as exc:
             log.exception("sim 决策异常，回退规则决策")
+            if self.log:
+                self.log.event("sim_error", error=f"{type(exc).__name__}: {exc}")
             cmd = None
         if cmd is None:
             cmd = macro_action(state)
+            self.fallbacks += 1
             log.info("rule fallback -> %s", cmd)
+            self._log_decision(state, screen=gs.get("screen_type"), kind="-",
+                               cmd=cmd, n_cands=0, degraded=True)
         return cmd
 
     # ---- 模拟器决策路径 ----
@@ -204,19 +380,40 @@ class SimBrain:
             log.warning("sim 无可用动作（screen=%s），回退规则", screen)
             return None
 
-        obs = list(self._nni.getObservation(gc))
-        encoded = [self._encode(a, screen, i) for i, a in enumerate(actions)]
+        # ---- 观测：412 原始 + 65 增强 = 477（与训练严格一致） ----
+        raw = list(self._nni.getObservation(gc))
+        obs = enhance_observation(raw, gc, card_index=CARD_INDEX,
+                                  arch_table=CARD_ARCHETYPE,
+                                  card_effects=CARD_EFFECTS)
+        # 牌组流派强度（5 维）：喂给候选的流派交叉项
+        deck_arch = encode_deck_stats(raw, card_index=CARD_INDEX,
+                                      arch_table=CARD_ARCHETYPE,
+                                      card_effects=CARD_EFFECTS)[:5]
+
+        encoded = [self._encode(a, screen, i, deck_arch, gc)
+                   for i, a in enumerate(actions)]
         with torch.no_grad():
             logits = self.scorer(
                 torch.tensor(obs, dtype=torch.float32),
                 torch.tensor(encoded, dtype=torch.float32),
             )
+        scores = [float(x) for x in logits]
         best = int(torch.argmax(logits))
         chosen = actions[best]
         log.debug("screen=%s n_act=%d best=%d bits=0x%08x logits=%s",
-                  screen, len(actions), best, chosen.bits,
-                  [round(float(x), 3) for x in logits])
-        return self._to_comm(chosen, actions, screen, cmds, state)
+                  screen, len(actions), best, chosen.bits, scores)
+
+        cmd = self._to_comm(chosen, actions, screen, cmds, state)
+        top3 = sorted(range(len(scores)), key=lambda i: -scores[i])[:3]
+        self._log_decision(
+            state, screen=screen, kind=candidate_kind(screen,
+                                                      decode_action_bits(chosen.bits)),
+            cmd=cmd, n_cands=len(actions),
+            scores=[round(scores[i], 4) for i in top3],
+            bits=[f"0x{actions[i].bits:08x}" for i in top3],
+            chosen_idx=best, degraded=(cmd is None),
+        )
+        return cmd
 
     # ---- bits → Communication Mod 命令翻译 ----
 
@@ -253,16 +450,15 @@ class SimBrain:
 
         if screen in ("REWARDS", "CARD_SELECT"):
             rt = d["reward_type"]
-            if rt == _REWARD_CARD:
+            if rt == REWARD_CARD:
                 idx = d["idx2"]
-                if idx == _SINGING_BOWL_IDX2:
+                if idx == SINGING_BOWL_IDX2:
                     return None  # 唱歌碗：v1 不会翻译，回退规则
                 cards = self.gc.get_card_reward()
                 if idx >= len(cards):
                     return None
-                # comm mod 卡牌奖励屏 choose 就是按下标选卡
                 return f"CHOOSE {idx}" if "choose" in cmds else None
-            if rt == _REWARD_SKIP:
+            if rt == REWARD_SKIP:
                 if "skip" in cmds:
                     return "SKIP"
                 if "proceed" in cmds:
@@ -303,35 +499,23 @@ class SimBrain:
             return None
         return f"CHOOSE {xs.index(x)}"
 
-    # ---- 候选特征解析（与 lightspeed_env 保持一致的小拷贝） ----
+    # ---- 候选编码（与 env/lightspeed_env 同源：kind/KB 走共享模块） ----
 
-    def _encode(self, action, screen: str, idx: int) -> list:
+    def _encode(self, action, screen: str, idx: int, deck_arch, gc) -> list:
         d = decode_action_bits(action.bits)
-        kind = self._candidate_kind(screen, d)
-        label = action.describe(self.gc) or f"action_0x{action.bits:08x}"
-        proto = Candidate(idx=idx, kind=kind, desc_vec=[], label=label)
+        label = action.describe(gc) or f"action_0x{action.bits:08x}"
+        kb = resolve_candidate_kb(screen, d, gc)
+        proto = Candidate(idx=idx, kind=candidate_kind(screen, d),
+                          desc_vec=[], label=label)
         return encode_candidate(
             proto,
             card=self._candidate_card(screen, d),
             room=self._candidate_room(screen, d),
             bits=action.bits,
             lookahead_rooms=self._candidate_lookahead(screen, d),
+            deck_arch=deck_arch,
+            **kb,
         )
-
-    @staticmethod
-    def _candidate_kind(screen: str, d: dict) -> str:
-        if screen == "REWARDS":
-            rt = d["reward_type"]
-            if rt == 0:
-                return "CARD_REWARD"
-            if rt == 6:
-                return "SKIP"
-            return "REWARD"
-        if screen == "SHOP_ROOM":
-            return "SKIP" if d["reward_type"] == 6 else "SHOP_ITEM"
-        if screen == "TREASURE_ROOM":
-            return "TREASURE"
-        return _KIND_BY_SCREEN.get(screen, "ACTION")
 
     def _candidate_card(self, screen: str, d: dict):
         if screen != "REWARDS" or d["reward_type"] != 0 or d["idx2"] == 5:
@@ -382,12 +566,79 @@ class SimBrain:
             self._map_cache_key = key
         return self._map_cache
 
+    # ---- 日志辅助 ----
 
-def main():
-    brain = SimBrain()
+    def _log_decision(self, state, *, screen, kind, cmd, n_cands,
+                      scores=None, bits=None, chosen_idx=None, degraded=False):
+        self.decisions += 1
+        if not self.log:
+            return
+        gs = state.get("game_state", {}) or {}
+        self.log.decision(
+            n=self.decisions, floor=gs.get("floor"), act=gs.get("act"),
+            hp=gs.get("current_hp"), max_hp=gs.get("max_hp"),
+            gold=gs.get("gold"), screen=screen, kind=kind,
+            n_cands=n_cands, cmd=cmd, scores=scores, bits=bits,
+            chosen_idx=chosen_idx, degraded=degraded,
+            total_fallbacks=self.fallbacks,
+        )
+
+
+def _parse_hidden(s: str):
+    return tuple(int(x) for x in s.split(",") if x.strip())
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(prog="main", description="sts-agent 真实游戏桥接")
+    p.add_argument("--checkpoint", default=_DEFAULT_CKPT,
+                   help=f"Scorer 权重路径（默认 {_DEFAULT_CKPT}）")
+    p.add_argument("--obs-dim", type=int, default=OBS_DIM)
+    p.add_argument("--cand-dim", type=int, default=DESC_VEC_DIM)
+    p.add_argument("--hidden", default="512,256",
+                   help="与训练时一致：PPO=512,256")
+    p.add_argument("--combat-sims", type=int, default=2000,
+                   help="战斗 ISMCTS 每个平行未来的模拟次数")
+    p.add_argument("--determinizations", type=int, default=10,
+                   help="战斗 ISMCTS 平行未来数 K")
+    p.add_argument("--log-dir", default=_DEFAULT_LOG_DIR,
+                   help="三层日志目录；传空串关闭")
+    p.add_argument("--dry-run", action="store_true",
+                   help="只做编码自检（不读写 stdin/stdout），用于启动前验证")
+    args = p.parse_args(argv)
+
+    brain = SimBrain(
+        checkpoint_path=args.checkpoint, obs_dim=args.obs_dim,
+        cand_dim=args.cand_dim, hidden=_parse_hidden(args.hidden),
+        combat_sims=args.combat_sims,
+        determinizations=args.determinizations,
+        log_dir=(args.log_dir or None),
+    )
+
+    if args.dry_run:
+        # 自检：用模拟器跑一小段，确认编码链路维度正确
+        from env.lightspeed_env import LightspeedEnv
+        env = LightspeedEnv(mcts_simulations=200)
+        env.reset(20260831)
+        cands = env.candidates()
+        print(f"[dry-run] 模拟器决策点 OK: screen={env.gc.screen_state.name} "
+              f"候选数={len(cands)}")
+        print(f"[dry-run] env 观测维度={len(env._nn_vec())} "
+              f"候选维度={len(cands[0].desc_vec)}")
+        print(f"[dry-run] brain 期望 obs_dim={brain.obs_dim} "
+              f"cand_dim={brain.cand_dim} scorer={'已加载' if brain.scorer else '未加载'}")
+        if brain.log:
+            brain.log.event("dry_run", ok=True)
+            brain.log.close()
+        return 0
+
+    print(f"[brain] 就绪 | 权重={args.checkpoint} | "
+          f"obs={args.obs_dim} cand={args.cand_dim} | "
+          f"战斗 ISMCTS {args.determinizations}×{args.combat_sims} | "
+          f"日志={args.log_dir}", file=sys.stderr, flush=True)
     sys.stdout.write("ready\n")
     sys.stdout.flush()
     log.info("sts-agent bridge ready (sim brain)")
+    guard = StallGuard()
 
     for line in sys.stdin:
         line = line.strip()
@@ -399,14 +650,45 @@ def main():
             log.error("bad json: %s", line[:200])
             continue
 
-        # 把最近一次状态原样写盘，方便检查真实 JSON 结构
+        # L1：真实状态原样落盘（无损重放）
+        if brain.log:
+            brain.log.state(state)
+        # 兼容旧习惯：把最近一次状态单独写盘
         try:
             with open("last_state.json", "w", encoding="utf-8") as f:
                 json.dump(state, f, ensure_ascii=False, indent=1)
         except Exception:
             pass
 
-        cmd = brain.decide(state)
+        try:
+            cmd = brain.decide(state)
+        except Exception as exc:
+            log.exception("decide 顶层异常，发 STATE 保命")
+            if brain.log:
+                brain.log.event("fatal", error=f"{type(exc).__name__}: {exc}")
+            cmd = "STATE"
+
+        # 防卡死：状态指纹连续不变 → 强制换动作；仍未恢复 → 退出保命
+        strikes = guard.observe(_fingerprint(state))
+        if strikes >= guard.limit:
+            alt = _alternate_cmd(state, avoid=cmd)
+            guard.total_stalls += 1
+            screen = (state.get("game_state", {}) or {}).get("screen_type")
+            if brain.log:
+                brain.log.event("stall", strikes=strikes, prev_cmd=cmd,
+                                forced=alt, screen=screen)
+            print(f"[guard] 卡死检测：状态连续 {strikes} 次未变，"
+                  f"强制换动作 {cmd!r} -> {alt!r} (screen={screen})",
+                  file=sys.stderr, flush=True)
+            cmd = alt
+            if strikes >= guard.hard_limit:
+                if brain.log:
+                    brain.log.event("stall_abort", strikes=strikes, screen=screen)
+                print(f"[guard] !!! 卡死 {strikes} 次仍无法恢复，主动退出。"
+                      f"原始状态已存 logs/realtime/*_states.jsonl，可复盘。",
+                      file=sys.stderr, flush=True)
+                break
+
         log.debug("screen=%s -> %s",
                   state.get("game_state", {}).get("screen_type"), cmd)
         if cmd == "STATE":
@@ -414,6 +696,13 @@ def main():
         sys.stdout.write(cmd + "\n")
         sys.stdout.flush()
 
+    if brain.log:
+        brain.log.event("bridge_exit", decisions=brain.decisions,
+                        fallbacks=brain.fallbacks,
+                        stalls=guard.total_stalls)
+        brain.log.close()
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

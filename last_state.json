@@ -1,0 +1,16 @@
+{
+ "available_commands": [
+  "proceed"
+ ],
+ "ready_for_command": true,
+ "in_game": true,
+ "game_state": {
+  "screen_type": "SHOP_ROOM",
+  "floor": 5,
+  "act": 1,
+  "current_hp": 60,
+  "max_hp": 80,
+  "gold": 120,
+  "choice_list": []
+ }
+}
