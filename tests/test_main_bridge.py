@@ -9,7 +9,7 @@ import json
 
 import pytest
 
-from main import SimBrain
+from main import SimBrain, RunLog
 
 
 def _base_game_state():
@@ -420,3 +420,115 @@ def test_missing_seed_choice_list_all_choose0_fixC(brain):
         cmd = brain.decide(st)
         assert cmd == "CHOOSE 0", \
             f"缺 seed+choice_list 应 CHOOSE 0，实际 {cmd} (screen={sc})"
+
+
+# ---------- 0910 第二轮真机：Bug 1/2/3 回归 ----------
+
+def test_log_surrogate_char_does_not_crash(tmp_path):
+    """Bug 1（P0）：game_state 含孤立代理字符（CJK/GBK 解码产物的 lone surrogate
+    如 U+DCAA）→ RunLog.state() / RunLog.raw() 不抛异常，且写出的文件每行都能
+    被 json.loads 解析（绝不静默丢记录、绝不 1200 条状态全丢）。
+
+    实测方案：_purge_surrogates 用 surrogatepass 编码 → decode('utf-8','replace')
+    把孤立代理换成 U+FFFD；open(..., errors='backslashreplace') 双保险。结果对象
+    可被 json.dumps 且写出的行能被 json.loads 解析回来。
+    """
+    log = RunLog(str(tmp_path))
+    sur = chr(0xDCAA)  # 真实孤立代理字符（CJK/GBK 解码产物），运行时构造避免源码含字面值
+    bad = {
+        "available_commands": ["leave", "state"],
+        "ready_for_command": True,
+        "in_game": True,
+        "game_state": {
+            "screen_type": "SHOP_SCREEN",
+            "note": "商店" + sur,  # 孤立代理字符
+            "floor": 2, "gold": 40,
+        },
+    }
+    # state() 不抛（L1 状态流）
+    log.state(bad)
+    # raw() 也不抛（L0 原始 stdin 行，喂含代理字符的原始串）
+    log.raw('{"game_state": {"note": "商店' + sur + '"}, "available_commands": ["leave"]}')
+    log.close()
+    # 每行都能 json.loads（验证结果确实是合法 JSONL）
+    for fn in ("states", "raw"):
+        path = next(tmp_path.glob(f"*_{fn}.jsonl"))
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                obj = json.loads(line)  # 必须不抛
+                # 净化后不应再残留孤立代理字符（被换成 U+FFFD）
+                assert sur not in json.dumps(obj, ensure_ascii=False), \
+                    f"净化后仍有孤立代理字符: {line}"
+
+
+def test_same_command_repeat_triggers_stall(tmp_path, brain, monkeypatch):
+    """Bug 2（P0）：同屏同命令连续输出（与状态指纹无关）→ ≤5 条内 LoopDetector
+    判卡死并写 stall 事件（L3），且强制换的动作与首条不同。
+
+    复现 SHOP_SCREEN 反复发 LEAVE 697 次、0 stall 事件的旧 bug：新增信号 3
+    （同一非 STATE 命令连续输出 ≥limit，STATE 夹在中间不计）独立于指纹判卡死。
+    """
+    from main import LoopDetector, _alternate_cmd, _fingerprint
+
+    # 让 stall 事件真正落盘到临时 L3，便于断言「事件确实写出」
+    monkeypatch.setattr(brain, "log", RunLog(str(tmp_path)))
+    guard = LoopDetector()
+    shop = {
+        "available_commands": ["leave", "state"],
+        "ready_for_command": True,
+        "in_game": True,
+        "game_state": {"screen_type": "SHOP_SCREEN", "floor": 2, "gold": 40},
+    }
+    fp = _fingerprint(shop)
+    first_cmd = "LEAVE"
+    saw_stall = False
+    forced = None
+    for i in range(10):
+        # 模拟 RL/规则每帧都发 LEAVE、屏幕不变（真实 SHOP 卡死模式）
+        strikes = guard.observe(fp, has_game_state=True, cmd=first_cmd)
+        if strikes >= guard.limit:
+            alt = _alternate_cmd(shop, avoid=first_cmd)
+            brain.log.event("stall", strikes=strikes, prev_cmd=first_cmd,
+                            forced=alt, screen="SHOP_SCREEN")
+            forced = alt
+            saw_stall = True
+            # 主循环会改用 alt；断言「强制换的动作与首条不同」
+            assert alt != first_cmd, f"强制换的动作应不同于 {first_cmd}，实际 {alt}"
+            break
+    assert saw_stall, "同命令连续输出应在 ≤5 条内触发 stall 事件"
+    # 事件确实写进 L3
+    brain.log.close()
+    evt_path = next(tmp_path.glob("*_events.jsonl"))
+    lines = [ln for ln in evt_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    assert any('"stall"' in ln for ln in lines), "L3 未写出 stall 事件"
+    assert forced is not None
+
+
+def test_rule_rotate_prevents_infinite_resend(brain):
+    """Bug 3（P1）：同一有效命令同屏连续发出 ≥3 次 → _real_state_rule 轮换其它
+    可用命令（含 state），绝不无限重发。连续 20 帧里任意单命令连续出现次数 < 8
+    （实际 ≤3，因为 ≥3 次就轮换），且确实发生过轮换（不是 20 条全是 LEAVE 空转）。
+
+    用不完整 SHOP 状态（无 seed）→ 走 _real_state_rule 兜底；available_commands
+    固定、屏幕不变 → 同命令 LEAVE 触发轮换到 STATE，再回到 LEAVE，如此往复。
+    """
+    brain._sim_fresh = False
+    brain._last_cmd = ""
+    brain._rule_last_cmd = None
+    brain._rule_repeat = 0
+    brain._rule_last_screen = None
+    shop = {
+        "available_commands": ["leave", "state"],
+        "ready_for_command": True,
+        "in_game": True,
+        "game_state": {"screen_type": "SHOP_SCREEN", "floor": 2, "gold": 40},
+    }
+    cmds = [brain.decide(shop) for _ in range(20)]
+    # 断言 1：没有单命令连续出现 ≥8 次（实际 LEAVE 连续最多 3 次）
+    max_run = run = 1
+    for a, b in zip(cmds, cmds[1:]):
+        run = run + 1 if a == b else 1
+        max_run = max(max_run, run)
+    assert max_run < 8, f"出现连续相同命令过长: {cmds} (max_run={max_run})"
+    # 断言 2：确实发生过轮换（不是无限重发 LEAVE）
+    assert "STATE" in cmds, f"应触发轮换而非无限重发 LEAVE: {cmds}"

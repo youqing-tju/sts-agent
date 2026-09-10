@@ -94,6 +94,33 @@ def _sanitize(obj):
     return obj
 
 
+def _has_surrogate(s: str) -> bool:
+    """字符串是否含孤立代理字符（U+DC80..U+DCFF 等 lone surrogate）。"""
+    return any(0xD800 <= ord(c) <= 0xDFFF for c in s)
+
+
+def _purge_surrogates(obj, path: str = "", found: list = None):
+    """递归把孤立代理字符替换成 U+FFFD，保证 json.dumps 后是合法 UTF-8 JSON。
+
+    用 surrogatepass 把代理当有效字节编码、再 decode('utf-8','replace') 把非法
+    UTF-8 字节（即原代理）换成 U+FFFD。found 非空时收集出问题的字段路径（只用于
+    首次告警，避免刷屏）。
+    """
+    if isinstance(obj, str):
+        if _has_surrogate(obj):
+            if found is not None:
+                found.append(path or "<root>")
+            return obj.encode("utf-8", "surrogatepass").decode("utf-8", "replace")
+        return obj
+    if isinstance(obj, list):
+        return [_purge_surrogates(x, f"{path}[{i}]", found)
+                for i, x in enumerate(obj)]
+    if isinstance(obj, dict):
+        return {k: _purge_surrogates(v, f"{path}.{k}" if path else str(k), found)
+                for k, v in obj.items()}
+    return obj
+
+
 def _is_victory(state: dict) -> bool:
     """通关画面：screen_type=GAME_OVER 且 screen_state.victory=true。"""
     gs = state.get("game_state", {})
@@ -171,15 +198,18 @@ def _alternate_cmd(state: dict, avoid: str = None):
 
 
 class LoopDetector:
-    """卡死检测：两种信号，与「发了什么命令」协同判断游戏有没有真的推进。
+    """卡死检测：三种信号，与「发了什么命令」协同判断游戏有没有真的推进。
 
     信号 1（连续相同指纹）：状态指纹逐帧完全相同（连 error 帧都算）→ 游戏完全不动。
     信号 2（同一真实状态反复出现）：允许中间夹着 error 帧——本次真机死循环正是
         「COMBAT 状态 → error 帧 → 同一 COMBAT 状态 → error 帧」交替，命令恒为
         `PLAY 1 0`、状态指纹从不连续重复，旧 StallGuard 永不触发。这里只统计真实
         游戏状态（error 帧 has_game_state=False，不计数），同一状态出现 ≥limit 次即判卡死。
+    信号 3（同一命令连续输出）：与状态指纹无关——真机上「命令恒同、状态指纹却在变」
+        是真实存在的模式（如 SHOP_SCREEN 反复发 LEAVE 无效）。同一非 STATE 命令
+        连续输出 ≥limit 次（允许中间夹 STATE）即判卡死，强制改发不同命令。
 
-    返回当前 severity（两信号取大），main 循环据此强制换动作 / 主动退出。
+    返回当前 severity（三信号取大），main 循环据此强制换动作 / 主动退出。
     """
 
     def __init__(self, limit=_STALL_LIMIT, hard_limit=_STALL_HARD_LIMIT):
@@ -189,9 +219,11 @@ class LoopDetector:
         self._consec = 0          # 连续相同指纹（含 error 帧）
         self._game_fp = None
         self._game_repeats = 0    # 同一真实游戏状态出现次数（error 帧不计数）
+        self._cmd_last = None
+        self._cmd_streak = 0      # 同一非 STATE 命令连续输出次数（STATE 夹在中间不计）
         self.total_stalls = 0
 
-    def observe(self, fp, has_game_state=False) -> int:
+    def observe(self, fp, has_game_state=False, cmd=None) -> int:
         # 信号 1：连续相同指纹
         if fp == self._fp:
             self._consec += 1
@@ -205,7 +237,15 @@ class LoopDetector:
             else:
                 self._game_fp = fp
                 self._game_repeats = 1
-        return max(self._consec, self._game_repeats)
+        # 信号 3：同一命令连续输出（与指纹无关；STATE 夹在中间不算打断也不计数）
+        if cmd is not None and cmd != "STATE":
+            if cmd == self._cmd_last:
+                self._cmd_streak += 1
+            else:
+                self._cmd_last = cmd
+                self._cmd_streak = 1
+        # 注意：cmd == "STATE" 时既不增也不清（允许「有效命令 STATE 无效命令」交替）
+        return max(self._consec, self._game_repeats, self._cmd_streak)
 
 
 class RunLog:
@@ -214,36 +254,50 @@ class RunLog:
     def __init__(self, log_dir: str):
         os.makedirs(log_dir, exist_ok=True)
         stamp = time.strftime("%m%d_%H%M%S")
-        self.f_states = open(os.path.join(log_dir, f"{stamp}_states.jsonl"),
-                             "a", encoding="utf-8")
-        self.f_dec = open(os.path.join(log_dir, f"{stamp}_decisions.jsonl"),
-                          "a", encoding="utf-8")
-        self.f_evt = open(os.path.join(log_dir, f"{stamp}_events.jsonl"),
-                          "a", encoding="utf-8")
+        # errors="backslashreplace"：即便净化漏网，写不进的字符也转义成 \\udcaa
+        # 形式落盘，绝不抛异常丢记录（双保险）。
+        _open = lambda name: open(os.path.join(log_dir, f"{stamp}_{name}.jsonl"),
+                                  "a", encoding="utf-8", errors="backslashreplace")
+        self.f_states = _open("states")
+        self.f_dec = _open("decisions")
+        self.f_evt = _open("events")
         # L0：原始 stdin 行（解析前原样落盘，含解析失败的行）——"Mod 到底发了什么"
         # 的不可辩驳证据。22:32 死循环的根因之一就是 L1 只落解析成功的对象。
-        self.f_raw = open(os.path.join(log_dir, f"{stamp}_raw.jsonl"),
-                         "a", encoding="utf-8")
+        self.f_raw = _open("raw")
         self.stamp = stamp
         self.n_states = 0
+        self._surrogate_warned = False  # 首次净化只告警一次，不刷屏
         self._stop = threading.Event()
         self._hb = threading.Thread(target=self._heartbeat, daemon=True)
         self._hb.start()
 
     def _write(self, f, rec: dict):
         try:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            paths = []
+            clean = _purge_surrogates(rec, "", paths)
+            if paths and not self._surrogate_warned:
+                self._surrogate_warned = True
+                log.warning("日志含孤立代理字符（GBK/CJK 解码产物），已替换为 "
+                            "U+FFFD 并落盘，不丢记录；字段: %s", paths[:5])
+            f.write(json.dumps(clean, ensure_ascii=False) + "\n")
             f.flush()
-        except Exception:
-            log.exception("写日志失败")
+        except Exception as exc:
+            # 绝不静默吞掉：记 ERROR 且带上异常类型，方便事后定位
+            log.error("写日志失败: %s: %s", type(exc).__name__, exc, exc_info=True)
 
     def raw(self, line: str):
-        """原样追加一行原始 stdin（不做任何加工，含解析失败的行）。"""
+        """原样追加一行原始 stdin（解析前），但先净化代理字符保证可解析。"""
         try:
-            self.f_raw.write(line + "\n")
+            clean = line.encode("utf-8", "surrogatepass").decode("utf-8",
+                                                                  "replace")
+            if clean != line and not self._surrogate_warned:
+                self._surrogate_warned = True
+                log.warning("原始日志含孤立代理字符，已替换为 U+FFFD 落盘")
+            self.f_raw.write(clean + "\n")
             self.f_raw.flush()
-        except Exception:
-            log.exception("写原始日志失败")
+        except Exception as exc:
+            log.error("写原始日志失败: %s: %s", type(exc).__name__, exc,
+                      exc_info=True)
 
     def state(self, state: dict):
         self.n_states += 1
@@ -283,6 +337,10 @@ class SimBrain:
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
         self._reject_streak = 0  # 连续被拒计数（仅 error 帧自增，真实状态清零）
         self._last_cmd = ""    # 上一次发的命令（target 被拒不带目标重发用）
+        # 命令重复轮换（Bug 3）：同一个有效命令连续发出且屏幕未变 ≥3 次 → 轮换
+        self._rule_last_cmd = None
+        self._rule_repeat = 0
+        self._rule_last_screen = None
         # 模拟器新鲜度：只有本帧带完整真实 game_state 且 init_from_json 成功才为真。
         # 一条真实状态只允许产生一条模拟器命令（发出后置 False）。不新鲜时所有
         # 模拟器分支（ISMCTS / _sim_decide）被禁止，必须回 STATE 请求重发——
@@ -418,6 +476,8 @@ class SimBrain:
                 log.warning("战斗命令但模拟器不新鲜（无真实 game_state/缺 seed 等），"
                             "P0 真实状态规则兜底（绝不用假状态决策，也绝不空转）")
                 cmd = self._real_state_rule(state)
+                self._log_decision(state, screen="COMBAT", kind="RULE",
+                                   cmd=cmd, n_cands=0, degraded=True)
                 self._last_cmd = cmd
                 return cmd
             try:
@@ -430,6 +490,7 @@ class SimBrain:
                 cmd = combat_action(state)
                 self._log_decision(state, screen="COMBAT", kind="COMBAT",
                                    cmd=cmd, n_cands=0, degraded=True)
+            cmd = self._repeat_guard(state, cmd)  # Bug 3：战斗内同命令同屏 ≥3 次→轮换
             self._sim_fresh = False  # 一条真实状态只允许一条命令
             self._last_cmd = cmd
             return cmd
@@ -448,6 +509,8 @@ class SimBrain:
             log.warning("宏观命令但模拟器不新鲜（缺 seed 且占位 seed 也失败等），"
                         "P0 真实状态规则兜底（绝不用假状态决策，也绝不空转）")
             cmd = self._real_state_rule(state)
+            self._log_decision(state, screen=gs.get("screen_type"), kind="RULE",
+                               cmd=cmd, n_cands=0, degraded=True)
             self._last_cmd = cmd
             return cmd
         try:
@@ -464,6 +527,8 @@ class SimBrain:
             self._log_decision(state, screen=gs.get("screen_type"), kind="-",
                                cmd=cmd, n_cands=0, degraded=True)
         self._sim_fresh = False  # 一条真实状态只允许一条命令
+        cmd = self._repeat_guard(state, cmd)  # Bug 3：宏观同命令同屏 ≥3 次→轮换
+        self._last_cmd = cmd
         return cmd
 
     # ---- 模拟器新鲜度 ----
@@ -573,6 +638,11 @@ class SimBrain:
           skip / leave 可用       → 对应命令
         以上都不满足（确实没有任何可用命令）→ 才回 STATE（绝不假装行动原地空转）。
         """
+        natural = self._natural_rule_cmd(state)
+        return self._repeat_guard(state, natural)
+
+    def _natural_rule_cmd(self, state: dict) -> str:
+        """真实状态规则的「自然」命令（未做重复轮换）。"""
         cmds = [c.lower() for c in state.get("available_commands", [])]
 
         if "choose" in cmds and self._has_choice_list(state):
@@ -592,6 +662,49 @@ class SimBrain:
             return "LEAVE"
         # 确实没有任何可执行命令
         return "STATE"
+
+    def _rotate_available(self, state: dict, avoid: str):
+        """从 available_commands 里挑一个 ≠ avoid 的命令轮换；优先非 STATE，
+        实在没有才 STATE；都没有返回 None（调用方回 STATE）。"""
+        cmds = [c.upper() for c in state.get("available_commands", [])]
+        if not cmds:
+            return None
+        others = [c for c in cmds if c != avoid and c != "STATE"]
+        if others:
+            return others[0]
+        if "STATE" in cmds and avoid != "STATE":
+            return "STATE"
+        return None
+
+    def _repeat_guard(self, state: dict, cmd: str) -> str:
+        """Bug 3：同一有效命令连续 ≥3 次且屏幕未变 → 轮换为其它可用命令。
+
+        轮换只在该帧已有「同屏同命令重复」时才发生；STATE 是 P0 兜底（无命令
+        可用），不算有效命令重复，不轮换、清零计数。返回可能已轮换的命令。
+        """
+        if cmd == "STATE" or cmd is None:
+            self._rule_last_cmd = None
+            self._rule_repeat = 0
+            return cmd
+        screen = (state.get("game_state", {}) or {}).get("screen_type") or ""
+        screen = screen.upper()
+        if cmd == self._rule_last_cmd and screen == self._rule_last_screen:
+            self._rule_repeat += 1
+        else:
+            self._rule_last_cmd = cmd
+            self._rule_last_screen = screen
+            self._rule_repeat = 1
+        if self._rule_repeat >= 3:
+            alt = self._rotate_available(state, avoid=cmd)
+            if alt is not None and alt != cmd:
+                if self.log:
+                    self.log.event("cmd_rotate", from_cmd=cmd, to_cmd=alt,
+                                   screen=screen, count=self._rule_repeat)
+                # 轮换后把当前命令记为 alt，避免下一帧又因「同命令」立刻再轮换
+                self._rule_last_cmd = alt
+                self._rule_repeat = 1
+                return alt
+        return cmd
 
     # ---- 模拟器决策路径 ----
 
@@ -819,6 +932,10 @@ class SimBrain:
             n_cands=n_cands, cmd=cmd, scores=scores, bits=bits,
             chosen_idx=chosen_idx, degraded=degraded,
             total_fallbacks=self.fallbacks,
+            # Bug 3：把该帧的 available_commands 与 screen_type 写进 L2 决策记录，
+            # 便于事后复盘「同一命令被轮换」到底发生在哪个屏、当时有哪些可选命令。
+            avail=state.get("available_commands"),
+            screen_raw=gs.get("screen_type"),
         )
 
 
@@ -894,12 +1011,15 @@ def main(argv=None):
         # L1：真实状态原样落盘（无损重放）
         if brain.log:
             brain.log.state(state)
-        # 兼容旧习惯：把最近一次状态单独写盘
+        # 兼容旧习惯：把最近一次状态单独写盘（同样抗代理字符，绝不静默丢）
         try:
-            with open("last_state.json", "w", encoding="utf-8") as f:
-                json.dump(state, f, ensure_ascii=False, indent=1)
-        except Exception:
-            pass
+            with open("last_state.json", "w", encoding="utf-8",
+                      errors="backslashreplace") as f:
+                json.dump(_purge_surrogates(state), f, ensure_ascii=False,
+                          indent=1)
+        except Exception as exc:
+            log.error("写 last_state.json 失败: %s: %s", type(exc).__name__, exc,
+                      exc_info=True)
 
         try:
             cmd = brain.decide(state)
@@ -909,10 +1029,11 @@ def main(argv=None):
                 brain.log.event("fatal", error=f"{type(exc).__name__}: {exc}")
             cmd = "STATE"
 
-        # 防卡死：连续相同状态指纹 / 同一真实状态反复出现（含夹 error 帧）→
-        # 强制换动作；仍未恢复 → 退出保命
+        # 防卡死：连续相同状态指纹 / 同一真实状态反复出现 / 同一命令连续输出
+        # （含夹 error 帧、STATE 中间）→ 强制换动作；仍未恢复 → 退出保命
         strikes = guard.observe(_fingerprint(state),
-                                has_game_state=bool(state.get("game_state")))
+                                has_game_state=bool(state.get("game_state")),
+                                cmd=cmd)
         if strikes >= guard.limit:
             alt = _alternate_cmd(state, avoid=cmd)
             guard.total_stalls += 1
