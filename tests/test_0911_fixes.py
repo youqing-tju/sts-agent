@@ -293,3 +293,68 @@ def test_target_all_dead_returns_none():
         "monsters": [{"is_gone": True}, {"is_gone": True}],
         "player": {"energy": 1}}}}
     assert CombatBrain._to_comm(_Act(), st) is None
+
+
+# ---------- 篝火与升级屏（安全网之前交给宏决策） ----------
+
+def _rest_state(hp, max_hp, done=False):
+    return {"available_commands": (["proceed", "key", "click", "wait", "state"]
+                                   if done else
+                                   ["choose", "key", "click", "wait", "state"]),
+            "ready_for_command": True, "in_game": True,
+            "game_state": {"screen_type": "REST", "floor": 12, "act": 2,
+                           "current_hp": hp, "max_hp": max_hp, "gold": 100,
+                           "seed": 1,
+                           "choice_list": None if done else ["rest", "smith"],
+                           "screen_state": {"has_rested": done,
+                                            "rest_options": [] if done else ["rest", "smith"]}}}
+
+
+def test_rest_full_hp_chooses_smith(brain):
+    """满血篝火必须锻造（smith），不是睡觉。
+
+    用户反馈："火堆满血也要喜欢睡觉，几乎没敲过牌"。
+    根因：REST 屏 choice_list 非空 → 安全网一律 CHOOSE 0（=rest=休息）。
+    """
+    cmd = brain.decide(_rest_state(80, 80))
+    assert cmd == "CHOOSE 1", f"满血应锻造（smith 下标1），实际 {cmd}"
+
+
+def test_rest_low_hp_chooses_rest(brain):
+    """低血篝火休息（<40%）。"""
+    cmd = brain.decide(_rest_state(20, 80))
+    assert cmd == "CHOOSE 0", f"低血应休息（rest 下标0），实际 {cmd}"
+
+
+def test_rest_done_proceeds(brain):
+    """休息/锻造完成后 PROCEED 离开。"""
+    assert brain.decide(_rest_state(90, 90, done=True)) == "PROCEED"
+
+
+def test_grid_upgrade_picks_high_value_card(brain):
+    """升级屏选高价值卡（非打击、高费优先）——真机帧形状。"""
+    st = {"available_commands": ["choose", "key", "click", "wait", "state"],
+          "ready_for_command": True, "in_game": True,
+          "game_state": {"screen_type": "GRID", "floor": 12, "act": 2,
+                         "current_hp": 60, "max_hp": 80, "seed": 1,
+                         "choice_list": ["打击", "打击", "防御", "痛击"],
+                         "screen_state": {
+                             "for_purge": False, "for_upgrade": True,
+                             "cards": [{"id": "Strike_R", "cost": 1},
+                                       {"id": "Strike_R", "cost": 1},
+                                       {"id": "Defend_R", "cost": 1},
+                                       {"id": "Bash", "cost": 2}]}}}
+    cmd = brain.decide(st)
+    assert cmd == "CHOOSE 3", f"应升级痛击（Bash，高费非打击），实际 {cmd}"
+
+
+def test_grid_confirm_frame(brain):
+    """GRID 确认帧 → CONFIRM。"""
+    st = {"available_commands": ["confirm", "cancel", "key", "click", "wait", "state"],
+          "ready_for_command": True, "in_game": True,
+          "game_state": {"screen_type": "GRID", "floor": 12, "act": 2,
+                         "current_hp": 60, "max_hp": 80, "seed": 1,
+                         "choice_list": None,
+                         "screen_state": {"for_purge": False, "for_upgrade": True,
+                                          "selected_cards": [3], "cards": []}}}
+    assert brain.decide(st) == "CONFIRM"

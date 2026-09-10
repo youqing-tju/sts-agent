@@ -592,6 +592,27 @@ class SimBrain:
                 self._last_cmd = _pf
                 return _pf
 
+        # ---- F5（2026-09-11）：篝火与升级屏——安全网之前交给规则宏决策 ----
+        # 用户反馈："火堆满血也要睡觉，几乎没敲过牌"。
+        # 根因：REST 屏 choice_list=["rest","smith"] 非空 → 安全网一律 CHOOSE 0
+        # （=rest=休息，满血也睡）；GRID 升牌屏同理（升第一张，往往是打击）。
+        # macro_action 的既有逻辑（REST：<40% 休息、否则锻造；GRID：升牌优先
+        # 非打击高费卡 / 删牌优先打击防御 / confirm）一直没机会执行。
+        _scr_rg = (_gs_cr.get("screen_type") or "").upper()
+        if _scr_rg in ("REST", "GRID"):
+            try:
+                _rg = macro_action(state)
+            except Exception:
+                log.exception("%s 宏决策异常，交回安全网", _scr_rg)
+                _rg = None
+            if _rg:
+                log.info("%s 决策: %s（hp=%s/%s）", _scr_rg, _rg,
+                         _gs_cr.get("current_hp"), _gs_cr.get("max_hp"))
+                self._log_decision(state, screen=_scr_rg, kind="REST_GRID",
+                                   cmd=_rg, n_cands=0, degraded=True)
+                self._last_cmd = _rg
+                return _rg
+
         # ---- P0 安全网 #1：选项类屏幕（有 choice_list）永远选第一个 ----
         # 优先级最高：确保「缺 seed 等导致模拟器不新鲜」时也给出可执行命令，绝不
         # 回 STATE 空转（本任务要修的新 failure mode）。CHOOSE 0 对事件/篝火/地图/
