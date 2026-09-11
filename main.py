@@ -1557,9 +1557,10 @@ def main(argv=None):
     p.add_argument("--cand-dim", type=int, default=DESC_VEC_DIM)
     p.add_argument("--hidden", default="512,256",
                    help="与训练时一致：PPO=512,256")
-    p.add_argument("--combat-sims", type=int, default=50000,
-                   help="战斗 ISMCTS 每个平行未来的模拟次数（用户指定 50000："
-                        "实测约 9s/决策；嫌慢可传 8000 回到 1.4s 档）")
+    p.add_argument("--combat-sims", type=int, default=20000,
+                   help="战斗 ISMCTS 每个平行未来的模拟次数。默认 20000（2026-09-11 "
+                        "预算调优实验：与 50000 决策一致率 95.5%、每决策 2.3s；"
+                        "50000 为过度预算）。对战延迟敏感可传 8000（86.4%、0.85s）")
     p.add_argument("--determinizations", type=int, default=16,
                    help="战斗 ISMCTS 平行未来数 K（2026-09-11 拉满档：16）")
     p.add_argument("--log-dir", default=_DEFAULT_LOG_DIR,
