@@ -42,6 +42,18 @@ _ROOT = os.path.dirname(os.path.abspath(__file__))
 # Mod 拉起时 cwd 是游戏目录；切到项目根，保证相对路径（日志/last_state.json）落在这里
 os.chdir(_ROOT)
 
+# ---- C++ 层 stderr 洪泛保护（2026-09-11 青铜自动机 BOSS 战卡死血案）----
+# 模拟器（sts_lightspeed）在"Stasis 卡无效 / 无效卡进手牌"等异常态下，会用
+# std::cerr 打印**整个 BattleContext**（单次数 MB）。高频触发时输出数百 MB，
+# 搜索被打印拖死——真机实测：一个决策卡死 6 分钟+，进程内存涨到 646MB。
+# C++ 的输出不经 Python logging，只能把进程 fd 2 重定向到 devnull 兜底。
+# 需要调试 C++ 层时，注释掉本块即可（日志本身走 sts_agent_debug.log，不受影响）。
+try:
+    _devnull_fd = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(_devnull_fd, 2)
+except Exception:
+    pass
+
 logging.basicConfig(
     filename="sts_agent_debug.log",
     level=logging.DEBUG,

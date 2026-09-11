@@ -57,6 +57,24 @@ def _norm_card_id(name) -> str:
     return str(name).strip().lower()
 
 
+# 2026-09-11 青铜自动机 BOSS 战卡死修复：帧里存在 Stasis（青铜球蓄能）怪时，
+# 模拟器对"被吸走的牌"处理有缺陷（打印洪泛/崩溃），此类战斗直接跳过 MCTS。
+def _has_stasis_monster(state: dict) -> bool:
+    """帧里是否存在带 Stasis power 的怪（任何字段异常都视为 False，不影响主流程）。"""
+    try:
+        monsters = ((state.get("game_state") or {}).get("combat_state")
+                    or {}).get("monsters") or []
+        for m in monsters:
+            if not isinstance(m, dict):
+                continue
+            for p in (m.get("powers") or []):
+                if isinstance(p, dict) and str(p.get("id")) == "Stasis":
+                    return True
+    except Exception:
+        pass
+    return False
+
+
 def _first_alive_target(state: dict):
     """真实状态里第一个**还活着**的怪物下标（0-based）。
 
@@ -221,6 +239,15 @@ class CombatBrain:
             bc0.init_from_json(gc, json.dumps(_clean))
             self._bc = bc0
 
+            # 2.5（2026-09-11 青铜自动机卡死修复）：帧里存在 Stasis（青铜球蓄能）怪时
+            # 跳过 MCTS——模拟器对"被吸走的牌（stasis card）"处理有缺陷（灌入为
+            # INVALID，归还/清理时触发打印洪泛（单次数 MB）乃至进程崩溃）。
+            # 真机实测：BOSS 战一个决策卡死 6 分钟+、进程内存涨到 646MB。
+            # 直接回退规则出牌；球死光后本检测自动失效、恢复 MCTS。
+            if _has_stasis_monster(state):
+                log.info("检测到 Stasis 怪：跳过 MCTS，回退规则（模拟器已知雷区）")
+                return None
+
             # 2. randomize_rng 不可用 → v1 单次搜索（绑定未编译时的降级）
             if not self._supports_determinization(bc0):
                 log.info("randomize_rng 不可用，降级 v1 单次搜索")
@@ -248,14 +275,15 @@ class CombatBrain:
         floor = int(getattr(gc, "floor_num", 0) or 0)
         return (seed + floor * 1000 + turn) & 0xFFFFFFFFFFFFFFFF
 
-    def _ismcts_decide(self, state: dict, gc, bc0, searcher_cls):
+    def _ismcts_decide(self, state: dict, gc, bc0, searcher_cls, sims=None):
         base_seed = self._base_seed(state, gc)
+        _sims = sims or self.sim_count
         votes = OrderedDict()   # key -> 得票数（保序，平票取先出现者）
         winners = {}            # key -> 该 key 首次出现的 action
         for k in range(self.determinizations):
             bc_k = sts.BattleContext(bc0)          # 拷贝构造
             bc_k.randomize_rng(base_seed + k)      # 重洗抽牌堆 + 重设 RNG
-            action = searcher_cls(bc_k, self.sim_count).best_action
+            action = searcher_cls(bc_k, _sims).best_action
             if callable(action):
                 action = action()
             if action is None:
@@ -288,8 +316,8 @@ class CombatBrain:
 
     # ---- v1 单次搜索（降级路径） ----
 
-    def _v1_search(self, bc0, searcher_cls, state=None):
-        action = searcher_cls(bc0, self.sim_count).best_action
+    def _v1_search(self, bc0, searcher_cls, state=None, sims=None):
+        action = searcher_cls(bc0, sims or self.sim_count).best_action
         if callable(action):
             action = action()
         if action is None:
