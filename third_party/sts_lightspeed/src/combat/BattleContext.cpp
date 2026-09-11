@@ -148,7 +148,10 @@ void BattleContext::initFromJson(const GameContext &gc, const nlohmann::json &js
     cards.discardPile.clear();
     cards.exhaustPile.clear();
     cards.cardsInHand = 0;
-    cards.stasisCards = { CardId::INVALID, CardId::INVALID };
+    // NOTE: stasisCards are populated inside initMonstersFromJson (called above at L135),
+    // so we must NOT reset them to INVALID here — doing so was the root cause of the
+    // Bronze Orb Stasis crash (returnStasisCard received an INVALID card). They are reset
+    // to INVALID at the start of initMonstersFromJson instead to stay safe on re-init.
     cards.handNormalityCount = 0;
     cards.handPainCount = 0;
     cards.strikeCount = 0;
@@ -189,6 +192,9 @@ void BattleContext::initFromJson(const GameContext &gc, const nlohmann::json &js
 }
 
 void BattleContext::initMonstersFromJson(const nlohmann::json &jsonMonsters, int &uniqueCardId) {
+    // sts-agent: reset stasis slots to INVALID before populating, so a re-init of the same
+    // BattleContext does not leak stale stasis cards from a previous frame.
+    cards.stasisCards = { CardId::INVALID, CardId::INVALID };
     int monstersIdx = 0;
     int preplacedIdx = computePreplacedIdx(jsonMonsters);
     for (int i = 0; i < static_cast<int>(jsonMonsters.size()); ++i) {

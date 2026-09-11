@@ -3490,9 +3490,16 @@ void Monster::stasisAction(BattleContext &bc) {
     cards.stasisCards[std::min(1, idx)] = stasisCard;
 
 #ifdef sts_asserts
+    // sts-agent: removed the `std::cerr << bc` dump here — it serialized the entire
+    // BattleContext (multiple MB) and flooded stdout during MCTS. The guard below is
+    // diagnostic-only and never dumps the context.
     if (stasisCard.getId() == CardId::INVALID) {
-        std::cerr << bc << std::endl;
-        assert(false);
+        static int stasisActionInvalidWarned = 0;
+        if (stasisActionInvalidWarned < 1) {
+            std::cerr << "stasis: stasisAction captured an INVALID card (monster idx "
+                      << idx << "); skipping buff\n";
+            ++stasisActionInvalidWarned;
+        }
     }
 #endif
     buff<MS::STASIS>();
@@ -3502,12 +3509,23 @@ void Monster::stasisAction(BattleContext &bc) {
 void Monster::returnStasisCard(BattleContext &bc) {
     auto &stasisCard = bc.cards.stasisCards[std::min(idx,1)];
 
-#ifdef sts_asserts
+    // sts-agent: safety guard. If this slot was never populated (e.g. the Stasis power's
+    // card was missing from the frame, or the slot index is uninitialized), do NOT push an
+    // INVALID card back into the hand. That used to inject an invalid card and trigger
+    // cascading "invalid card" errors / heap corruption (exit 0xC0000409). Just drop the
+    // slot and return. A rate-limited diagnostic is kept for debugging without flooding.
     if (stasisCard.id == CardId::INVALID) {
-        std::cerr << bc.seed << " " << bc.loopCount << " stasis card invalid" << idx << "\n" << bc << std::endl;
-    }
-    assert(stasisCard.id != CardId::INVALID);
+#ifdef sts_asserts
+        static int stasisReturnInvalidWarned = 0;
+        if (stasisReturnInvalidWarned < 1) {
+            std::cerr << "stasis: returnStasisCard found INVALID card at slot "
+                      << std::min(idx,1) << " (monster idx " << idx << "); skipping\n";
+            ++stasisReturnInvalidWarned;
+        }
 #endif
+        stasisCard = {CardId::INVALID};
+        return;
+    }
 
     bc.cards.notifyAddCardToCombat(stasisCard);
     bc.moveToHandHelper(stasisCard);

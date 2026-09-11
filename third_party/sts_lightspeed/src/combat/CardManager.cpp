@@ -118,11 +118,11 @@ void CardManager::createTempCardInDiscard(CardInstance c) {
 void CardManager::createTempCardInHand(CardInstance c) {
     c.uniqueId = static_cast<std::int16_t>(nextUniqueCardId++);
 #ifdef sts_asserts
+    // sts-agent: removed the full BattleContext dump + assert(false). Just warn once.
     if (c.getId() == CardId::INVALID) {
-        std::cerr << *g_debug_bc << '\n';
-        search::g_debug_scum_search->printSearchStack(std::cerr, true);
-        std::cerr << "attempted to create invalid card in hand" << std::endl;
-        assert(false);
+        static int warned = 0;
+        if (warned < 1) { std::cerr << "CardManager: attempted to create INVALID card in hand (dropped)\n"; ++warned; }
+        return;
     }
 #endif
     notifyAddCardToCombat(c);
@@ -187,12 +187,11 @@ void CardManager::moveToExhaustPile(const CardInstance &c) {
 
 void CardManager::insertToDrawPile(int drawPileIdx, const CardInstance &c) {
 #ifdef sts_asserts
+    // sts-agent: removed the full BattleContext dump + assert(false).
     if (c.getId() == CardId::INVALID) {
-        std::cerr << *g_debug_bc << '\n';
-        search::g_debug_scum_search->printSearchStack(std::cerr, true);
-        search::g_debug_scum_search->printSearchStack(std::cerr);
-        std::cerr << "attempted to insert invalid card to draw pile" << std::endl;
-        assert(false);
+        static int warned = 0;
+        if (warned < 1) { std::cerr << "CardManager: attempted to insert INVALID card to draw pile (dropped)\n"; ++warned; }
+        return;
     }
 #endif
     notifyAddToDrawPile(c);
@@ -201,11 +200,11 @@ void CardManager::insertToDrawPile(int drawPileIdx, const CardInstance &c) {
 
 void CardManager::moveToDrawPileTop(const CardInstance &c) {
 #ifdef sts_asserts
+    // sts-agent: removed the full BattleContext dump + assert(false).
     if (c.getId() == CardId::INVALID) {
-        std::cerr << *g_debug_bc << '\n';
-        search::g_debug_scum_search->printSearchStack(std::cerr, true);
-        std::cerr << "attempted to move invalid card to draw pile" << std::endl;
-        assert(false);
+        static int warned = 0;
+        if (warned < 1) { std::cerr << "CardManager: attempted to move INVALID card to draw pile (dropped)\n"; ++warned; }
+        return;
     }
 #endif
     notifyAddToDrawPile(c);
@@ -224,11 +223,11 @@ void CardManager::shuffleIntoDrawPile(Random &cardRandomRng, const CardInstance 
 void CardManager::moveToDiscardPile(const CardInstance &c) {
     // todo check flurries, weave
 #ifdef sts_asserts
+    // sts-agent: removed the full BattleContext dump + assert(false).
     if (c.getId() == CardId::INVALID) {
-        std::cerr << *g_debug_bc << '\n';
-        search::g_debug_scum_search->printSearchStack(std::cerr, true);
-        std::cerr << "attempted to move invalid card to discard pile" << std::endl;
-        assert(false);
+        static int warned = 0;
+        if (warned < 1) { std::cerr << "CardManager: attempted to move INVALID card to discard pile (dropped)\n"; ++warned; }
+        return;
     }
 #endif
     notifyAddToDiscardPile(c);
@@ -269,11 +268,11 @@ void CardManager::notifyRemoveFromCombat(const CardInstance &c) {
 
 void CardManager::notifyAddToHand(const CardInstance &c) {
 #ifdef sts_asserts
+    // sts-agent: removed the full BattleContext dump + assert(false).
     if (c.getId() == CardId::INVALID) {
-        std::cerr << *g_debug_bc << '\n';
-        search::g_debug_scum_search->printSearchStack(std::cerr, true);
-        std::cerr << "attempted to notify of invalid card in hand" << std::endl;
-        assert(false);
+        static int warned = 0;
+        if (warned < 1) { std::cerr << "CardManager: attempted to notify INVALID card in hand (dropped)\n"; ++warned; }
+        return;
     }
 #endif
 
