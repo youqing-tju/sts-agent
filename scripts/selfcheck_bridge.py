@@ -108,6 +108,10 @@ def _state_stuck():
 def main():
     log_dir = tempfile.mkdtemp(prefix="selfcheck_")
     print(f"[selfcheck] 日志目录: {log_dir}")
+    # C++ stderr 已被 main.py 重定向到 devnull（打印洪泛隔离，2026-09-11），
+    # guard 消息改从 debug 日志文件读取。记录跑前大小，只认本次新增行。
+    _dbg_path = os.path.join(_ROOT, "sts_agent_debug.log")
+    _dbg_size0 = os.path.getsize(_dbg_path) if os.path.exists(_dbg_path) else 0
     b = Bridge(log_dir)
     ok = True
 
@@ -153,7 +157,14 @@ def main():
         if not b.proc.poll() is None:
             break
     time.sleep(1.0)
-    guard_msg = [l for l in b.err if "[guard]" in l]
+    new_lines = []
+    try:
+        with open(_dbg_path, encoding="utf-8", errors="replace") as f:
+            f.seek(_dbg_size0)
+            new_lines = f.read().splitlines()
+    except Exception:
+        pass
+    guard_msg = [l for l in new_lines if "[guard]" in l]
     check("触发防卡死守卫", len(guard_msg) >= 1,
           f"guard 消息 {len(guard_msg)} 条")
     if guard_msg:

@@ -1666,18 +1666,20 @@ def main(argv=None):
                 if brain.log:
                     brain.log.event("stall", strikes=strikes, prev_cmd=cmd,
                                     forced=alt, screen=screen)
-                print(f"[guard] 卡死检测：状态连续 {strikes} 次未变，"
-                      f"强制换动作 {cmd!r} -> {alt!r} (screen={screen})",
-                      file=sys.stderr, flush=True)
+                # stderr 已被顶部重定向到 devnull（C++ 打印洪泛隔离，2026-09-11），
+                # 消息改写日志文件（selfcheck 从 sts_agent_debug.log 读取）。
+                log.warning("[guard] 卡死检测：状态连续 %s 次未变，"
+                            "强制换动作 %r -> %r (screen=%s)",
+                            strikes, cmd, alt, screen)
                 cmd = alt
                 if strikes >= guard.hard_limit:
                     guard.gave_up = True
                     if brain.log:
                         brain.log.event("stall_giveup", strikes=strikes,
                                         screen=screen)
-                    print(f"[guard] 卡死 {strikes} 次仍无法恢复，转入 keep-alive："
-                          f"只回 STATE 等人工接管/状态变化（进程不退出）。",
-                          file=sys.stderr, flush=True)
+                    log.warning("[guard] 卡死 %s 次仍无法恢复，转入 keep-alive："
+                                "只回 STATE 等人工接管/状态变化（进程不退出）。",
+                                strikes)
                     cmd = "STATE"
 
         # 节奏与去重：真机实测 167ms/条会打断游戏过场 → 界面闪烁；见 CommandPacer
