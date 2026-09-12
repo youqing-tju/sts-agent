@@ -408,7 +408,10 @@ double search::BattleScumSearcher2::evaluateEndState(const BattleContext &bc) {
     double potionScore = bc.potionCount * 4;
 
     if (bc.outcome == Outcome::PLAYER_VICTORY) {
-        return 100 * (35 + bc.player.curHp + potionScore - (bc.turn * 0.01));
+        // sts-agent: penalize leftover energy so the search prefers efficient (lower-waste)
+        // wins. energyWasted accumulates player.energy at each endTurn() (src/combat/BattleContext.cpp),
+        // i.e. unspent energy per turn summed across the battle. 1 wasted energy ~= 0.05 hp.
+        return 100 * (35 + bc.player.curHp + potionScore - (bc.turn * 0.01)) - 0.05 * bc.energyWasted;
 
     } else {
 //        double statusScore =

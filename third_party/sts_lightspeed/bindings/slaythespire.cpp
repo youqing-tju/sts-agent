@@ -459,7 +459,23 @@ PYBIND11_MODULE(slaythespire, m) {
         }, "the first action of the best action sequence found by MCTS")
         .def_property_readonly("best_action_sequence", [](const search::BattleScumSearcher2 &s) {
             return s.bestActionSequence;
-        }, "the full best action sequence found by MCTS");
+        }, "the full best action sequence found by MCTS")
+        .def_property_readonly("root_action_stats", [](const search::BattleScumSearcher2 &s) {
+            // sts-agent: UCB statistics over the root node's outgoing edges.
+            // Each entry is (action, visits, avg_eval) where
+            //   avg_eval = evaluationSum / max(1, simulationCount).
+            // This is the proper root-statistic view, distinct from `best_action`
+            // (which is the first step of the single highest-scoring playout sequence).
+            std::vector<std::tuple<search::Action, std::int64_t, double>> out;
+            out.reserve(s.root.edges.size());
+            for (const auto &edge : s.root.edges) {
+                const std::int64_t denom = edge.node.simulationCount > 0 ? edge.node.simulationCount : 1;
+                const double avg = edge.node.evaluationSum / static_cast<double>(denom);
+                out.emplace_back(edge.action, edge.node.simulationCount, avg);
+            }
+            return out;
+        }, "list of (action, visits, avg_eval) over root.edges; avg_eval = evaluationSum / max(1, simulationCount). "
+           "The proper UCB root statistic, unlike best_action (first step of the single best playout).");
 
     pybind11::class_<RelicInstance> relic(m, "Relic");
     relic.def_readwrite("id", &RelicInstance::id)

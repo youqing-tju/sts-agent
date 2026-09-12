@@ -188,6 +188,7 @@ class CombatBrain:
         self.determinizations = determinizations  # 平行未来数量 K
         self._bc = None
         self.last_votes = None  # 最近一次决策的得票分布（观测/调试用）
+        self.last_root_stats = None  # 合并后的根边统计 {key: (visits, avg_eval)}
         self._hand_fields_logged = False  # 一次性诊断：手牌字段究竟叫什么
 
     def decide(self, state: dict, gc):
@@ -258,10 +259,19 @@ class CombatBrain:
         _sims = sims or self.sim_count
         votes = OrderedDict()   # key -> 得票数（保序，平票取先出现者）
         winners = {}            # key -> 该 key 首次出现的 action
+        # 2026-09-12：同时收集每个未来的"根边统计"（visits / avg_eval）。
+        # 原因：`best_action` = bestActionSequence[0] 是"整个搜索中单次 playout
+        # 评估最高的轨迹的第一步"——不是 UCB 统计意义上的最优动作（真机上表现为
+        # 偶尔"留 1 费直接结束回合"等令人困惑的选择）。改为**合并 K 个未来的
+        # 根边访问次数**，取"访问最多者"（robust child——证据最多的动作）。
+        merged_visits = OrderedDict()   # key -> 累计 visits
+        merged_enum = {}                # key -> Σ(avg_eval × visits)
+        merged_den = {}                 # key -> Σ visits（加权平均分母）
         for k in range(self.determinizations):
             bc_k = sts.BattleContext(bc0)          # 拷贝构造
             bc_k.randomize_rng(base_seed + k)      # 重洗抽牌堆 + 重设 RNG
-            action = searcher_cls(bc_k, _sims).best_action
+            searcher = searcher_cls(bc_k, _sims)
+            action = searcher.best_action
             if callable(action):
                 action = action()
             if action is None:
@@ -270,13 +280,38 @@ class CombatBrain:
             key = self._vote_key(action, bc0)
             votes[key] = votes.get(key, 0) + 1
             winners.setdefault(key, action)
+            try:
+                stats = searcher.root_action_stats
+            except Exception:
+                stats = None
+            if stats:
+                for act, vis, avg_eval in stats:
+                    if not vis or vis <= 0:
+                        continue
+                    kk = self._vote_key(act, bc0)
+                    merged_visits[kk] = merged_visits.get(kk, 0) + int(vis)
+                    merged_enum[kk] = merged_enum.get(kk, 0.0) + float(avg_eval) * int(vis)
+                    merged_den[kk] = merged_den.get(kk, 0) + int(vis)
+                    winners.setdefault(kk, act)
 
         self.last_votes = dict(votes)
+        self.last_root_stats = {
+            kk: (v, merged_enum[kk] / max(1, merged_den[kk]))
+            for kk, v in merged_visits.items()
+        }
         log.info("ISMCTS votes: %s", dict(votes))
-        if not votes:
+        if merged_visits:
+            # 统计选择：合并所有未来的根边访问次数，取访问最多者（robust child）
+            winner_key = max(merged_visits, key=lambda kk: merged_visits[kk])
+            log.info("ISMCTS root-stats 选择: %s（visits=%s / 总 %s，键数 %s）",
+                     winner_key, merged_visits[winner_key],
+                     sum(merged_visits.values()), len(merged_visits))
+        elif votes:
+            # 兜底：拿不到根边统计时沿用"得票最高"（同一 AI 的另一层聚合，
+            # 不是规则兜底）
+            winner_key = max(votes, key=lambda kk: votes[kk])
+        else:
             return None
-        # max 对平票返回先出现的 key（OrderedDict 保序）
-        winner_key = max(votes, key=lambda kk: votes[kk])
         return self._to_comm(winners[winner_key], state)
 
     @staticmethod
