@@ -13,3 +13,8 @@ logs/
 # 运行时产物（每次运行重生，不入库）
 sts_agent_debug.log
 last_state.json
+
+# 外部数据（人类 .run 数据集克隆；体积大、可按需重新拉取）
+data/external/
+# 由 training/human_data.py 重新生成的 BC 数据集
+data/human_bc/
