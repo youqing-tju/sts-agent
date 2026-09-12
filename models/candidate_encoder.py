@@ -3,40 +3,50 @@
 把 env.base_env.Candidate 编码成定长特征向量，给打分网络用。
 纯函数：不 import slaythespire，不持有状态；同一输入必然得到同一输出。
 
-维度布局（总计 347；0–270 段布局与 443 维版完全一致，末尾 271–346 为三段 KB 段）：
+维度布局（总计 369；0–333 段布局与 347 维版一致，[333,353) 为事件 KB 段，
+[353,369) 为 V10 新增的 SKIP 专用牌组质量上下文段）：
   [0,   10)  kind one-hot（KIND_LIST）
   [10,  22)  卡牌属性：CardType one-hot(5) + CardRarity one-hot(5)
              + 费用归一化(1, cost/3 截断到 [0,1]，cost=0 时回退查卡牌字典 base_cost)
              + 是否升级(1)；非卡牌候选全零
   [22, 132)  卡牌精确 one-hot(110)：用 CARD_INDEX_MAP[card.name] 定位，
              与观测里 110 卡牌空间严格对齐；取代原 88 桶 crc32 哈希
-  [132,170)  卡牌语义(38)：从 card_data.EFFECT_KEYS 取 42 字段，剔除
+  [132,176)  卡牌语义(44)：从 card_data.EFFECT_KEYS 取 48 字段，剔除
              铁甲卡池恒为 0 的 4 个死字段（DEAD_FIELDS），按 EFFECT_KEYS
-             原序排列；数值字段归一化，布尔/rarity_score 直接写值
-  [170,205)  流派交叉项(35)：a(5) ⊕ d(5) ⊕ outer(a,d)(25)，
+             原序排列；数值字段归一化，布尔/rarity_score 直接写值；
+             V10 在末尾追加 6 个防战/复利可分辨维度（per_turn_strength /
+             block_per_turn_amt / block_leverage / couples_to_block /
+             payoff_delay / exhaust_block_gain）
+  [176,211)  流派交叉项(35)：a(5) ⊕ d(5) ⊕ outer(a,d)(25)，
              a=候选卡五流派归属，d=牌组流派强度（由外部传入 deck_arch），
              外积让"卡 × 牌组"协同直接成激活特征
-  [205,215)  地图节点 Room 类型 one-hot（ROOM_LIST）；非地图节点全零
-  [215,223)  数值特征（由 GameAction.bits 解码，见 decode_action_bits）：
+  [211,221)  地图节点 Room 类型 one-hot（ROOM_LIST）；非地图节点全零
+  [221,229)  数值特征（由 GameAction.bits 解码，见 decode_action_bits）：
              idx1/255, idx2/255, idx3/255, reward_type/6,
              is_potion, is_potion_discard, 2 维保留（绑定层拿不到价格，置 0）
-  [223,271)  地图路径前瞻（map-lookahead）：向下 12 层，每层 4 维 one-hot
+  [229,277)  地图路径前瞻（map-lookahead）：向下 12 层，每层 4 维 one-hot
              ELITE/REST/SHOP/OTHER（由调用方预计算 lookahead_rooms 序列传入）
-  ───── 以下为三段知识库段（原 0–270 段偏移一字未动） ─────
-  [271,295)  药水知识库特征（24 维，models.potion_kb）：
+  ───── 以下为三段知识库段（与 347 维版一致，仅因语义段 +6 整体后移） ─────
+  [277,301)  药水知识库特征（24 维，models.potion_kb）：
              候选对应药水奖励/商品时填充；potion_name→get_potion_features(name)，
              其余候选整段全零
-  [295,327)  遗物知识库特征（32 维，models.relic_kb）：
+  [301,333)  遗物知识库特征（32 维，models.relic_kb）：
              候选对应遗物时填充（含 BOSS_RELIC 屏全部候选），
              relic_name→get_relic_features(name)；其余全零
-  [327,347)  事件知识库特征（20 维，models.event_kb）：
+  [333,353)  事件知识库特征（20 维，models.event_kb）：
              kind=EVENT_OPTION 时，event_key(=event_name)+event_option_idx(=bits.idx1)
              →get_event_option_features；其余全零
+  [353,369)  SKIP 专用牌组质量上下文(16)：仅 kind=SKIP 候选填充，
+             内容为 encode_skip_deck_context 返回的 16 维
+             （牌组流派强度5 + 牌组派生统计8 + 局势3：楼层/血量比/牌组规模），
+             由训练侧(env)与真机侧(_rl_pick)共用同一函数构造，单一事实来源。
+             解决"RL 不会跳牌"表征根因——旧 SKIP 向量仅 kind+reward_type 2 维非零。
 
 注：流派交叉项需要"牌组流派强度" deck_arch，由 env/lightspeed_env.py 每步
 预计算后传入；本模块保持纯函数，deck_arch=None 时交叉项 35 维全零。
 KB 三段均为纯查询（models.potion_kb/relic_kb/event_kb），不持有状态；
 传入的 name/key 为 None 时对应段全零，保持纯函数特性。
+SKIP 牌组上下文段为纯函数：传入 deck_ctx（16 维 list）时填充，否则整段全零。
 """
 from dataclasses import dataclass
 
@@ -51,7 +61,7 @@ from .potion_kb import get_potion_features, POTION_FEATURE_DIM
 from .relic_kb import get_relic_features, RELIC_FEATURE_DIM
 from .event_kb import get_event_option_features, EVENT_KB_DIM
 
-DESC_VEC_DIM = 347
+DESC_VEC_DIM = 369
 
 KIND_LIST = [
     "MAP_NODE", "CARD_REWARD", "REWARD", "SKIP", "SHOP_ITEM",
@@ -79,15 +89,17 @@ SEMANTIC_DIM = len(SEMANTIC_KEYS)  # 38
 _OFF_KIND = 0
 _OFF_CARD = 10            # 卡牌属性段：12 维
 _OFF_CARD_ONEHOT = 22    # 卡牌精确 one-hot：110 维（= CARD_INDEX_SIZE）
-_OFF_SEMANTIC = 132       # 卡牌语义：38 维
-_OFF_CROSS = 170          # 流派交叉项：35 维
-_OFF_ROOM = 205           # 房间类型 one-hot：10 维
-_OFF_NUM = 215            # 数值特征：8 维
-_OFF_LOOKAHEAD = 223      # 地图前瞻：48 维（12 层 × 4）
-_OFF_POTION = 271         # 药水 KB：24 维（models.potion_kb）
-_OFF_RELIC = 295          # 遗物 KB：32 维（models.relic_kb）
-_OFF_EVENT = 327          # 事件 KB：20 维（models.event_kb）
-# 末尾 = 327 + 20 = 347 = DESC_VEC_DIM
+_OFF_SEMANTIC = 132       # 卡牌语义：44 维（38 旧 + 6 V10 新增）
+_OFF_CROSS = 176          # 流派交叉项：35 维
+_OFF_ROOM = 211           # 房间类型 one-hot：10 维
+_OFF_NUM = 221            # 数值特征：8 维
+_OFF_LOOKAHEAD = 229      # 地图前瞻：48 维（12 层 × 4）
+_OFF_POTION = 277         # 药水 KB：24 维（models.potion_kb）
+_OFF_RELIC = 301          # 遗物 KB：32 维（models.relic_kb）
+_OFF_EVENT = 333          # 事件 KB：20 维（models.event_kb）
+_OFF_SKIP_CTX = 353       # SKIP 专用牌组质量上下文：16 维（V10 新增）
+# 末尾 = 353 + 16 = 369 = DESC_VEC_DIM
+_SKIP_CTX_DIM = 16
 
 _CARD_ATTR_DIM = 12
 _CARD_ONEHOT_DIM = CARD_INDEX_SIZE          # 110
@@ -112,6 +124,11 @@ _NUMERIC_NORM = {
     "base_cost": 3.0,
     "num_hits": 5.0,
     "draw_count": 5.0,
+    # V10 新增（防战/复利可分辨维度）
+    "per_turn_strength": 10.0,
+    "block_per_turn_amt": 10.0,
+    "block_leverage": 3.0,
+    "exhaust_block_gain": 10.0,
 }
 
 
@@ -289,7 +306,7 @@ def _encode_relic_kb(vec: list, name):
 
 
 def _encode_event_kb(vec: list, event_key, option_idx):
-    """事件知识库段 [327,347)：event_key+option_idx→get_event_option_features（20 维）。
+    """事件知识库段 [333,353)：event_key+option_idx→get_event_option_features（20 维）。
 
     event_key 或 option_idx 为 None 时整段保持全零，保持纯函数。
     event_key 为 C++ 返回的 event_name（显示名风格），由 event_kb 内部
@@ -302,17 +319,35 @@ def _encode_event_kb(vec: list, event_key, option_idx):
         vec[_OFF_EVENT + i] = v
 
 
+def _encode_skip_ctx(vec: list, deck_ctx):
+    """SKIP 专用牌组质量上下文段 [353,369)：16 维。
+
+    deck_ctx 为 encode_skip_deck_context 返回的 16 维（牌组流派5 + 牌组统计8
+    + 局势3）。仅 kind=SKIP 候选传入；其余候选或 deck_ctx=None 时整段全零。
+    训练侧(env)与真机侧(_rl_pick)共用同一 encode_skip_deck_context 构造，
+    保证 SKIP 向量单一事实来源。
+    """
+    if not deck_ctx:
+        return
+    base = _OFF_SKIP_CTX
+    for i, v in enumerate(deck_ctx[:_SKIP_CTX_DIM]):
+        vec[base + i] = float(v)
+
+
 def encode_candidate(candidate, *, card: CardInfo = None,
                      room: str = None, bits: int = None,
                      lookahead_rooms=None, deck_arch=None,
                      potion_name: str = None, relic_name: str = None,
-                     event_key: str = None, event_option_idx: int = None) -> list:
-    """把 Candidate 编码为 347 维特征向量（纯函数）。
+                     event_key: str = None, event_option_idx: int = None,
+                     deck_ctx: list = None) -> list:
+    """把 Candidate 编码为 369 维特征向量（纯函数）。
 
-    原 0–270 段布局不变；末尾 [271,347) 三段知识库特征按需填充：
-      - 药水 KB [271,295)：potion_name 非 None 时填充
-      - 遗物 KB [295,327)：relic_name 非 None 时填充（含 BOSS_RELIC 屏候选）
-      - 事件 KB [327,347)：event_key+event_option_idx 均非 None 时填充
+    原 0–333 段布局不变；末尾 [333,353) 事件 KB 段按需填充；[353,369) 为 V10
+    新增的 SKIP 专用牌组质量上下文段（仅 kind=SKIP 填充）：
+      - 药水 KB [277,301)：potion_name 非 None 时填充
+      - 遗物 KB [301,333)：relic_name 非 None 时填充（含 BOSS_RELIC 屏候选）
+      - 事件 KB [333,353)：event_key+event_option_idx 均非 None 时填充
+      - SKIP 上下文 [353,369)：deck_ctx 非 None 且 kind=SKIP 时填充
     所有新参数默认 None → 对应段全零，保持纯函数。
 
     candidate: env.base_env.Candidate（读 kind/label）。
@@ -325,6 +360,8 @@ def encode_candidate(candidate, *, card: CardInfo = None,
         由 env 每步预计算传入；None 时交叉项段全零。
     potion_name / relic_name / event_key / event_option_idx:
         KB 三段的可选键；None 时对应段全零（纯函数）。
+    deck_ctx: SKIP 专用 16 维牌组质量上下文（encode_skip_deck_context 产出）；
+        仅 kind=SKIP 候选填充，其余候选整段全零（纯函数）。
     """
     vec = [0.0] * DESC_VEC_DIM
     _encode_kind(vec, candidate.kind)
@@ -343,5 +380,8 @@ def encode_candidate(candidate, *, card: CardInfo = None,
     _encode_potion_kb(vec, potion_name)
     _encode_relic_kb(vec, relic_name)
     _encode_event_kb(vec, event_key, event_option_idx)
+    # SKIP 专用牌组质量上下文段（仅 SKIP 填充）
+    if candidate.kind == "SKIP":
+        _encode_skip_ctx(vec, deck_ctx)
     return vec
 

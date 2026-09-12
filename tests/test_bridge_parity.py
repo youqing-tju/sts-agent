@@ -7,14 +7,14 @@
 本测试用模拟器生成真实决策点，断言两条路径产出**逐元素相同**的：
   1. 观测向量（477 维，含 enhance_observation 的增强段）
   2. 牌组流派强度（5 维，供候选交叉项）
-  3. 候选描述向量（347 维，含 KB 三段）
+  3. 候选描述向量（369 维，含 KB 三段 + V10 SKIP 牌组上下文段）
 
 这样"真机与训练一致"就不再靠人工比对，而是可回归验证的。
 """
 import pytest
 
-from models.candidate_encoder import encode_candidate
-from models.obs_encoder import enhance_observation, encode_deck_stats
+from models.candidate_encoder import encode_candidate, DESC_VEC_DIM
+from models.obs_encoder import enhance_observation, encode_deck_stats, encode_skip_deck_context
 from models.card_index import CARD_INDEX
 from models.card_data import CARD_ARCHETYPE, CARD_EFFECTS
 from models.candidate_kb import candidate_kind, resolve_candidate_kb
@@ -84,7 +84,7 @@ def test_deck_arch_parity(decisions):
 
 
 def test_candidate_parity(decisions):
-    """候选向量（347 维）必须逐元素相同。
+    """候选向量（369 维）必须逐元素相同。
 
     桥接路径 = 共享的 candidate_kind/resolve_candidate_kb + env 的
     card/room/lookahead 解析器重建候选，再与 env.candidates() 的 desc_vec 比对。
@@ -101,12 +101,17 @@ def test_candidate_parity(decisions):
         deck_arch = encode_deck_stats(raw, card_index=CARD_INDEX,
                                       arch_table=CARD_ARCHETYPE,
                                       card_effects=CARD_EFFECTS)[:5]
+        # V10：与训练侧 env 共用同一函数构造 SKIP 牌组上下文
+        deck_ctx = encode_skip_deck_context(raw, card_index=CARD_INDEX,
+                                            arch_table=CARD_ARCHETYPE,
+                                            card_effects=CARD_EFFECTS)
         for i, (a, ref_cand) in enumerate(zip(actions, cands)):
             d = decode_action_bits(a.bits)
             kb = resolve_candidate_kb(screen, d, gc)
             label = a.describe(gc) or f"action_0x{a.bits:08x}"
             proto = Candidate(idx=i, kind=candidate_kind(screen, d),
                               desc_vec=[], label=label)
+            ctx = deck_ctx if candidate_kind(screen, d) == "SKIP" else None
             bridge = encode_candidate(
                 proto,
                 card=env._candidate_card(screen, d),
@@ -114,11 +119,12 @@ def test_candidate_parity(decisions):
                 bits=a.bits,
                 lookahead_rooms=env._candidate_lookahead(screen, d),
                 deck_arch=deck_arch,
+                deck_ctx=ctx,
                 **kb,
             )
             assert bridge == list(ref_cand.desc_vec), (
                 f"候选不一致 screen={screen} idx={i} kind={proto.kind}")
-            assert len(bridge) == 347
+            assert len(bridge) == DESC_VEC_DIM
             n_checked += 1
     assert n_checked > 0
 

@@ -32,7 +32,11 @@ from models.candidate_encoder import (
 )
 from models.card_data import CARD_ARCHETYPE, CARD_EFFECTS
 from models.card_index import CARD_INDEX
-from models.obs_encoder import encode_deck_stats, enhance_observation
+from models.obs_encoder import (
+    encode_deck_stats,
+    encode_skip_deck_context,
+    enhance_observation,
+)
 
 from .base_env import Obs, Candidate, StepResult, StsEnv
 
@@ -107,6 +111,11 @@ class LightspeedEnv(StsEnv):
         # 牌组流派强度每步算一次，供所有候选的交叉项复用（保持编码器纯函数）
         raw_obs = self._raw_nn_vec()
         deck_arch = self._deck_arch(raw_obs)
+        # V10：SKIP 候选专用牌组质量上下文（16 维），仅 SKIP 候选填充；
+        # 用与真机侧相同的 encode_skip_deck_context 构造，单一事实来源。
+        deck_ctx = encode_skip_deck_context(
+            raw_obs, card_index=CARD_INDEX,
+            arch_table=CARD_ARCHETYPE, card_effects=CARD_EFFECTS)
         # KB 内容每屏只取一次（按屏分发，非对应屏为 None 安全跳过）
         # 实测映射规则见 candidate_encoder 段表注释与项目报告：
         #   REWARDS:  reward_type 区分类别，idx1 = 该类别子列表下标
@@ -167,6 +176,7 @@ class LightspeedEnv(StsEnv):
                     relic_name=relic_name,
                     event_key=event_key,
                     event_option_idx=event_option_idx,
+                    deck_ctx=deck_ctx,
                 ),
                 label=label,
             ))

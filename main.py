@@ -8,7 +8,7 @@
 决策架构：
 - 宏观决策（选路/卡牌奖励/篝火/事件/商店/遗物/药水）：
   真实游戏 JSON → GameContext.init_from_json 灌入模拟器 → get_all_actions
-  枚举动作 → **477 维观测 + 347 维候选** → Scorer 打分 argmax →
+  枚举动作 → **477 维观测 + 369 维候选(V10)** → Scorer 打分 argmax →
   把选中的 GameAction.bits 翻译成 Communication Mod 命令发回真实游戏。
 - 战斗出牌：CombatBrain（ISMCTS：K 个平行未来 + 按卡牌身份投票），
   失败回退 main_rule 的启发式。
@@ -80,7 +80,8 @@ from models.candidate_kb import (
 )
 from models.card_data import CARD_ARCHETYPE, CARD_EFFECTS
 from models.card_index import CARD_INDEX
-from models.obs_encoder import OBS_DIM, encode_deck_stats, enhance_observation
+from models.obs_encoder import (OBS_DIM, encode_deck_stats,
+                                  encode_skip_deck_context, enhance_observation)
 from models.scorer import Scorer
 from env.base_env import Candidate
 from combat_brain import CombatBrain
@@ -428,9 +429,21 @@ class SimBrain:
         self.scorer = None
         if os.path.exists(checkpoint_path):
             try:
+                state_dict = torch.load(checkpoint_path, weights_only=True)
+                # V10 维度校验：候选/观测维度已变更，旧权重必须显式报错，
+                # 不能静默跑错维度（load_state_dict 形状不匹配会抛晦涩错误）。
+                expected_in = obs_dim + cand_dim
+                first_w = state_dict.get("mlp.0.weight")
+                if first_w is not None:
+                    actual_in = int(first_w.shape[1])
+                    if actual_in != expected_in:
+                        raise ValueError(
+                            f"checkpoint 维度不兼容: 预期输入维度 {expected_in} "
+                            f"(obs={obs_dim} + cand={cand_dim})，但权重第一层实际 "
+                            f"{actual_in}。V10 表征已变更（候选 347→{cand_dim}），"
+                            f"旧权重需重训，勿用旧 checkpoint。")
                 self.scorer = Scorer(obs_dim=obs_dim, cand_dim=cand_dim,
                                      hidden=tuple(hidden))
-                state_dict = torch.load(checkpoint_path, weights_only=True)
                 self.scorer.load_state_dict(state_dict)
                 self.scorer.eval()
                 log.info("scorer loaded: %s (obs=%d cand=%d hidden=%s)",
@@ -581,10 +594,14 @@ class SimBrain:
                                        scores=[round(v, 3) for v in _rl_scores],
                                        chosen=_rl_sel,
                                        cards=[c.get("id") for c in _cards])
-                    cmd = f"CHOOSE {_rl_sel}"
+                    # V10：_rl_sel == -1 表示 RL 选了 SKIP 候选（真机真正跳牌）
+                    if _rl_sel == -1:
+                        cmd = "SKIP"
+                    else:
+                        cmd = f"CHOOSE {_rl_sel}"
                     self._log_decision(state, screen="CARD_REWARD",
                                        kind="CARD_RL", cmd=cmd,
-                                       n_cands=len(_cards),
+                                       n_cands=len(_cards) + 1,
                                        scores=[round(v, 3) for v in _rl_scores],
                                        chosen_idx=_rl_sel, degraded=False)
                     self._last_cmd = cmd
@@ -1017,16 +1034,23 @@ class SimBrain:
         deck_arch = encode_deck_stats(raw, card_index=CARD_INDEX,
                                       arch_table=CARD_ARCHETYPE,
                                       card_effects=CARD_EFFECTS)[:5]
+        # V10：SKIP 候选专用牌组质量上下文（与训练侧 env 共用同一函数）
+        deck_ctx = encode_skip_deck_context(raw, card_index=CARD_INDEX,
+                                             arch_table=CARD_ARCHETYPE,
+                                             card_effects=CARD_EFFECTS)
         vecs = []
         for sp in specs:
             proto = Candidate(idx=sp["idx"], kind=sp["kind"],
                               desc_vec=[], label=sp["label"])
+            # 仅 SKIP 候选注入 deck_ctx（其余候选该段恒零，保持纯函数）
+            ctx = deck_ctx if sp.get("kind") == "SKIP" else None
             vecs.append(encode_candidate(
                 proto,
                 card=sp.get("card"),
                 room=sp.get("room"),
                 bits=sp.get("bits"),
                 deck_arch=deck_arch,
+                deck_ctx=ctx,
                 event_key=sp.get("event_key"),
                 event_option_idx=sp.get("event_option_idx"),
             ))

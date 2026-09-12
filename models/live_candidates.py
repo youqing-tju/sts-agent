@@ -45,6 +45,12 @@ def build_card_reward_candidates(gs: dict) -> list:
 
     每个规格含：idx（候选序号）/select_idx（CHOOSE 用的下标）/kind/label/
     card/bits。bits 按训练语义构造（reward_type=0 卡牌、idx2=卡下标）。
+
+    V10 修复：真正把 SKIP 候选加进列表（旧版只循环 3 张卡，真机结构上无法跳牌）。
+    SKIP 候选的 kind="SKIP"、bits=0x30000000（reward_type=6，与训练侧
+    env/lightspeed_env 生成的 SKIP 完全一致）、select_idx=-1（哨兵，由 main.py
+    F4 分支识别为 "SKIP" 命令）。deck_ctx 由 _rl_pick 在打分时按帧灌入，
+    与训练侧共用 encode_skip_deck_context，保证 SKIP 向量单一事实来源。
     """
     cards = ((gs.get("screen_state") or {}).get("cards") or [])
     out = []
@@ -59,6 +65,14 @@ def build_card_reward_candidates(gs: dict) -> list:
             "card": _card_info_from_json(c),
             "bits": ((0 & 0x7) << 27) | ((i & 0xFF) << 8),
         })
+    # V10：补 SKIP 候选（让真机 RL 真正能跳牌）
+    out.append({
+        "idx": len(out),
+        "select_idx": -1,   # 哨兵：F4 分支识别为 "SKIP" 命令
+        "kind": "SKIP",
+        "label": "SKIP",
+        "bits": (6 & 0x7) << 27,   # 0x30000000 → reward_type=6（与训练侧一致）
+    })
     return out
 
 

@@ -338,6 +338,43 @@ def encode_deck_stats(
     return arch + stats
 
 
+# SKIP 候选专用牌组质量上下文维度（= 5 流派 + 8 牌组统计 + 3 局势 = 16）
+SKIP_CTX_DIM = DECK_ARCH_DIM + DECK_STATS_DIM + 3  # 16
+
+
+def encode_skip_deck_context(
+    obs412: Sequence,
+    card_index: Optional[Sequence[str]] = None,
+    arch_table: Optional[Dict[str, Sequence[float]]] = None,
+    card_effects: Optional[Dict[str, dict]] = None,
+) -> List[float]:
+    """返回 16 维 SKIP 候选专用牌组质量上下文（V10 新增）。
+
+    内容 = encode_deck_stats(obs412, ...)（13 维：5 流派强度 + 8 牌组统计）
+         + 局势量（3 维）：
+            楼层归一化  floor/60
+            血量比      cur_hp / max_hp
+            牌组规模    total/40（与牌组统计[0]同源，强化强调）
+    仅 kind=SKIP 候选填充；训练侧(env/lightspeed_env.candidates)与真机侧
+    (main.py SimBrain._rl_pick)必须共用本函数构造，保证 SKIP 向量单一事实来源。
+
+    obs412 为 C++ 原始 412 维观测（obs[3]=楼层, obs[0]=HP, obs[1]=最大HP,
+    obs[14:234]=牌组计数）。依赖缺失时牌组段安静填 0，但局势量仍按 obs 填充。
+    """
+    ds = encode_deck_stats(
+        obs412, card_index=card_index,
+        arch_table=arch_table, card_effects=card_effects,
+    )
+    floor = obs412[3] if len(obs412) > 3 else 0
+    hp = obs412[0] if len(obs412) > 0 else 0
+    maxhp = obs412[1] if len(obs412) > 1 else 1
+    floor_norm = max(0.0, min(1.0, float(floor) / 60.0))
+    hp_ratio = max(0.0, min(1.0, float(hp) / float(maxhp))) if maxhp else 0.0
+    deck_size_norm = max(0.0, min(1.0, float(ds[0])))  # ds[0] = total/40
+    return list(ds) + [floor_norm, hp_ratio, deck_size_norm]
+
+
+
 def _upgraded_count(obs: Sequence, i: int) -> int:
     base = DECK_OFFSET + i * DECK_STRIDE + 1  # 已升级那一维
     if base >= len(obs):

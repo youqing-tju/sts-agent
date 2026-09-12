@@ -67,7 +67,7 @@ def test_get_base_cost():
 
 def test_coverage_and_keys():
     assert len(CARD_EFFECTS) == 75          # 全部 75 张卡收录（含 clothesline）
-    assert len(EFFECT_KEYS) == 42           # 效果字段 16 → 42
+    assert len(EFFECT_KEYS) == 48           # 效果字段 16 → 42 → 48（V10 增 6 防战维度）
     # 所有字典值字段必须是 EFFECT_KEYS 子集
     for name, e in CARD_EFFECTS.items():
         assert set(e.keys()) <= set(EFFECT_KEYS), f"{name} 含未知字段"

@@ -20,24 +20,27 @@ from models.candidate_encoder import (
     _OFF_POTION,
     _OFF_RELIC,
     _OFF_EVENT,
+    _OFF_SKIP_CTX,
+    _SKIP_CTX_DIM,
     compute_map_lookahead,
     decode_action_bits,
     encode_candidate,
 )
 
-# 各段偏移（与 candidate_encoder 内部一致）
+# 各段偏移（与 candidate_encoder 内部一致；V10 语义段 +6、末尾新增 SKIP 段）
 _OFF_KIND = 0
 _OFF_CARD = 10
 _OFF_CARD_ONEHOT = 22
 _OFF_SEMANTIC = 132
-_OFF_CROSS = 170
-_OFF_ROOM = 205
-_OFF_NUM = 215
-_OFF_LOOKAHEAD = 223
-# KB 三段偏移（443→347 删掉 label 哈希段后，KB 段前移到 271 起）
-_OFF_KB_POTION = _OFF_POTION      # 271
-_OFF_KB_RELIC = _OFF_RELIC        # 295
-_OFF_KB_EVENT = _OFF_EVENT        # 327
+_OFF_CROSS = 176
+_OFF_ROOM = 211
+_OFF_NUM = 221
+_OFF_LOOKAHEAD = 229
+# KB 三段偏移（语义段 +6 整体后移）
+_OFF_KB_POTION = _OFF_POTION      # 277
+_OFF_KB_RELIC = _OFF_RELIC        # 301
+_OFF_KB_EVENT = _OFF_EVENT        # 333
+_OFF_KB_SKIP = _OFF_SKIP_CTX      # 353
 
 # 卡牌精确 one-hot 维度（= CARD_INDEX_SIZE）
 _CARD_ONEHOT_DIM = 110
@@ -48,6 +51,7 @@ _LOOKAHEAD_LAYERS = 12
 _POTION_KB_DIM = 24
 _RELIC_KB_DIM = 32
 _EVENT_KB_DIM = 20
+_SKIP_CTX_DIM_CHECK = 16
 
 
 def _cand(kind="ACTION", label="action_0x00000000", idx=0):
@@ -56,36 +60,42 @@ def _cand(kind="ACTION", label="action_0x00000000", idx=0):
 
 # ---- 维度 ----
 
-def test_dim_is_347():
+def test_dim_is_369():
     vec = encode_candidate(_cand())
-    assert len(vec) == 347
+    assert len(vec) == 369
     assert len(vec) == DESC_VEC_DIM
-    # 0–270 段布局未变：语义段 38 维、交叉项 35 维
-    assert SEMANTIC_DIM == 38
+    # V10：语义段 44 维（38 旧 + 6 新增）、交叉项 35 维
+    assert SEMANTIC_DIM == 44
     assert _CROSS_DIM == 35
     # KB 段偏移/维度自检
-    assert _OFF_KB_POTION == 271
-    assert _OFF_KB_RELIC == 295
-    assert _OFF_KB_EVENT == 327
+    assert _OFF_KB_POTION == 277
+    assert _OFF_KB_RELIC == 301
+    assert _OFF_KB_EVENT == 333
     assert _POTION_KB_DIM == 24
     assert _RELIC_KB_DIM == 32
     assert _EVENT_KB_DIM == 20
+    # SKIP 上下文段（V10 新增）
+    assert _OFF_KB_SKIP == 353
+    assert _SKIP_CTX_DIM == 16
+    assert _SKIP_CTX_DIM_CHECK == 16
 
 
 def test_layout_offsets_sum_to_dim():
-    # 段 1..8（0–270）偏移与维度自检
+    # 段 1..8（0–333）偏移与维度自检
     assert _OFF_SEMANTIC - _OFF_CARD_ONEHOT == _CARD_ONEHOT_DIM   # 110
-    assert _OFF_CROSS - _OFF_SEMANTIC == SEMANTIC_DIM            # 38
+    assert _OFF_CROSS - _OFF_SEMANTIC == SEMANTIC_DIM            # 44
     assert _OFF_ROOM - _OFF_CROSS == _CROSS_DIM                 # 35
     assert _OFF_NUM - _OFF_ROOM == len(ROOM_LIST)               # 10
     assert _OFF_LOOKAHEAD - _OFF_NUM == 8                       # 8
     assert _OFF_KB_POTION - _OFF_LOOKAHEAD == _LOOKAHEAD_LAYERS * 4  # 48
-    assert _OFF_KB_POTION == 271
+    assert _OFF_KB_POTION == 277
     # 三段紧贴，末尾回到总维
     assert _OFF_KB_RELIC - _OFF_KB_POTION == _POTION_KB_DIM     # 24
     assert _OFF_KB_EVENT - _OFF_KB_RELIC == _RELIC_KB_DIM       # 32
-    assert DESC_VEC_DIM - _OFF_KB_EVENT == _EVENT_KB_DIM        # 20
-    assert DESC_VEC_DIM == 347
+    assert _OFF_KB_SKIP - _OFF_KB_EVENT == _EVENT_KB_DIM        # 20
+    # V10 SKIP 上下文段紧贴事件段之后
+    assert DESC_VEC_DIM - _OFF_KB_SKIP == _SKIP_CTX_DIM         # 16
+    assert DESC_VEC_DIM == 369
 
 
 # ---- 确定性 ----
@@ -123,7 +133,7 @@ def test_unknown_kind_raises():
 
 def test_zero_input_no_crash():
     vec = encode_candidate(_cand("ACTION", label=""), bits=None)
-    assert len(vec) == 347
+    assert len(vec) == DESC_VEC_DIM
     assert sum(vec[:10]) == 1.0            # kind 仍有 one-hot
     assert all(x == 0.0 for x in vec[10:])  # 其余（含 KB 三段）全零
 
@@ -217,10 +227,13 @@ def test_card_semantic_body_slam():
     assert seg[20] == 1.0                        # block_to_damage
     assert seg[32] == 1.0                        # conditional_play
     assert seg[35] == 1.0                        # is_attack
-    # 仅这 4 个非零
+    # V10 新增两位：Body Slam 的价值依赖当前格挡（伤害=格挡值）、且收益非即时
+    assert seg[41] == 1.0                         # couples_to_block
+    assert seg[42] == pytest.approx(0.3)          # payoff_delay
+    # 仅这 6 个非零（V10 前为 4；新增 couples_to_block / payoff_delay）
     nz = [(i, v) for i, v in enumerate(seg) if v != 0.0]
-    assert len(nz) == 4
-    assert sum(seg) == pytest.approx(1.0 / 3.0 + 1.0 + 1.0 + 1.0)
+    assert len(nz) == 6
+    assert sum(seg) == pytest.approx(1.0 / 3.0 + 1.0 + 1.0 + 1.0 + 1.0 + 0.3)
 
 
 def test_card_semantic_immolate_numeric_and_rarity():
@@ -377,7 +390,7 @@ def test_compute_map_lookahead_greedy():
     assert out == ["ELITE", "SHOP"]
 
 
-# ---- KB 三段 [271,347)（手算期望值，None 时全零）----
+# ---- KB 三段 [277,353)（手算期望值，None 时全零）----
 
 def test_kb_segments_zero_when_none():
     """未传 KB 参数时，271+ 三段整段全零（纯函数）。"""
