@@ -117,7 +117,7 @@ def test_potion_translation_use():
 
 
 def test_potion_translation_rejects_unusable():
-    """can_use=false 的槽位不翻译；requires_target 的药水暂不翻译（都回退规则）。"""
+    """can_use=false 不翻译；requires_target 药水按"活怪序列"映射目标后翻译。"""
     from combat_brain import CombatBrain
 
     class _Act:
@@ -128,9 +128,22 @@ def test_potion_translation_rejects_unusable():
     st_no = {"game_state": {"potions": [{"id": "Block Potion", "can_use": False,
                                          "requires_target": False}]}}
     assert CombatBrain._to_comm(_Act(), st_no) is None
+    # 2026-09-12：requires_target 药水已支持翻译（此前直接放弃 → 真机上
+    # "MCTS 投票最高的药水"永远喝不到，只能回退规则）。
+    # 无 combat_state（目标未知）→ 沿用模拟器给的 target_idx
     st_tgt = {"game_state": {"potions": [{"id": "FearPotion", "can_use": True,
                                           "requires_target": True}]}}
-    assert CombatBrain._to_comm(_Act(), st_tgt) is None
+    assert CombatBrain._to_comm(_Act(), st_tgt) == "POTION Use 0 0"
+    # 有怪物列表：模拟器 target 0 = 第一只**活着**的（真机下标 1）
+    st_tgt2 = {"game_state": {
+        "potions": [{"id": "FearPotion", "can_use": True, "requires_target": True}],
+        "combat_state": {"monsters": [{"is_gone": True}, {"is_gone": False}]}}}
+    assert CombatBrain._to_comm(_Act(), st_tgt2) == "POTION Use 0 1"
+    # 场上无活怪 → 不翻译（回退规则）
+    st_tgt3 = {"game_state": {
+        "potions": [{"id": "FearPotion", "can_use": True, "requires_target": True}],
+        "combat_state": {"monsters": [{"is_gone": True}]}}}
+    assert CombatBrain._to_comm(_Act(), st_tgt3) is None
 
 
 # ---------- F4：选牌打分 ----------

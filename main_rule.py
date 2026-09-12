@@ -53,7 +53,7 @@ def combat_action(state: dict) -> str:
                 return f"PLAY {i + 1} {target}"
             return f"PLAY {i + 1}"
 
-    # 没牌可出时用药水（Communication Mod：POTION USE <槽位> [目标]）
+    # 没牌可出时用药水（Communication Mod：POTION Use <槽位> [目标]）
     for i, p in enumerate(game.get("potions", [])):
         if not p.get("can_use") or p.get("id") in (None, "Potion Slot"):
             continue
@@ -63,8 +63,8 @@ def combat_action(state: dict) -> str:
                 if m.get("current_hp", 0) > 0 and not m.get("is_gone", False):
                     target = j
                     break
-            return f"POTION USE {i} {target}"
-        return f"POTION USE {i}"
+            return f"POTION Use {i} {target}"
+        return f"POTION Use {i}"
     return "END"
 
 

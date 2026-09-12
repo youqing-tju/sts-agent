@@ -341,9 +341,10 @@ class CombatBrain:
         if action_type == "POTION":
             # F3（2026-09-11）：MCTS 经常给药水投票（2-3 票）却从未被执行。
             # Comm Mod 官方语法：POTION Use|Discard PotionSlot [TargetIndex]
-            # 插槽暂按 0-based（与游戏 potions 数组一致）；requires_target 的
-            # 目标语义未验证，本版跳过（回退规则）。用真实状态校验 can_use，
+            # 插槽按 0-based（与游戏 potions 数组一致）；用真实状态校验 can_use，
             # 避免喝空槽/错槽。
+            # 2026-09-12：补上 requires_target 药水的翻译——此前直接放弃，
+            # 导致真机上"MCTS 投票最高的药水"永远喝不到（只能回退规则）。
             slot = getattr(action, "source_idx", None)
             if slot is None or int(slot) < 0:
                 log.warning("POTION 动作缺 source_idx，回退规则")
@@ -361,9 +362,21 @@ class CombatBrain:
                     log.warning("POTION 槽 %s 不可用（can_use=false），回退规则", slot)
                     return None
                 if p.get("requires_target"):
-                    log.warning("POTION %s 需要目标，v1 暂不翻译，回退规则",
-                                p.get("id"))
-                    return None
+                    # 模拟器的 target_idx 是"活怪序列"下标，须映射回真机完整
+                    # 数组下标（与 CARD 动作同一套翻译）。
+                    target_idx = _translate_target(
+                        state or {}, getattr(action, "target_idx", None))
+                    if target_idx is None:
+                        log.warning("POTION %s 需要目标但场上无活怪，回退规则",
+                                    p.get("id"))
+                        return None
+                    if target_idx == "unknown":
+                        target_idx = getattr(action, "target_idx", 0)
+                        if not isinstance(target_idx, int) or target_idx < 0:
+                            target_idx = 0
+                    log.info("MCTS 选择药水：POTION Use %d %d（%s，需目标）",
+                             slot, target_idx, p.get("id"))
+                    return f"POTION Use {slot} {target_idx}"
             log.info("MCTS 选择药水：POTION Use %d", slot)
             return f"POTION Use {slot}"
 
