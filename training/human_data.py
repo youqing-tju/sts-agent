@@ -339,9 +339,10 @@ class SampleBuilder:
 def load_runs(character="IRONCLAD", only_wins=False, limit=None):
     """按 `character_chosen` 字段筛选（**不能按目录名**——部分铁甲局落在
     非 IRONCLAD 命名的目录里，按目录会漏掉约一半）。"""
-    pat = os.path.join(_ROOT, "data/external/Slay-the-Spire-data/runs/*/*/*.run")
-    files = sorted(glob.glob(pat)) or sorted(glob.glob(
-        os.path.join(_ROOT, "data/external/Slay-the-Spire-data/runs/*/*/*/*.run")))
+    base = os.path.join(_ROOT, "data/external/Slay-the-Spire-data/runs")
+    # 取并集：.run 分布在 3 层与 4 层两种目录深度（早先用 `or` 会漏掉一层）
+    files = sorted(set(glob.glob(base + "/*/*/*.run"))
+                   | set(glob.glob(base + "/*/*/*/*.run")))
     out = []
     for f in files:
         try:

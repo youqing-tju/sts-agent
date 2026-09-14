@@ -39,6 +39,12 @@ def main():
                    help="从已有 checkpoint 继续训练（仅 reinforce 支持与 (128,128) 兼容的 ckpt）")
     p.add_argument("--win-bonus", type=float, default=50,
                    help="通关奖励：G = final_floor + win_bonus * win")
+    p.add_argument("--save-every-n", type=int, default=0,
+                   help="每 N 局额外保存带局号的独立快照（不覆盖主 checkpoint）。"
+                        "训练非单调、峰值常在中前期，用它避免丢峰值")
+    p.add_argument("--entropy-coef", type=float, default=0.01,
+                   help="PPO 熵正则系数（越大探索越强）。默认 0.01；"
+                        "策略过早收敛/训练曲线平台化时可提到 0.03~0.05")
     p.add_argument("--seed", type=int, default=None,
                    help="随机种子。设定后 random/torch 同时播种，两次运行会走完全"
                         "相同的对局序列与网络初始化，可做配对 A/B（唯一变量是表征）")
@@ -88,6 +94,7 @@ def main():
         trainer = PPOTrainer(scorer, value_net, lr=lr, mcts_sim=args.mcts_sim,
                              log_dir=args.log_dir, win_bonus=args.win_bonus,
                              batch_games=args.batch_games,
+                             entropy_coef=args.entropy_coef,
                              device=args.device or _auto_device())
     else:
         scorer = Scorer(obs_dim=OBS_DIM, cand_dim=DESC_VEC_DIM, hidden=(128, 128))
@@ -125,6 +132,15 @@ def main():
         def _save_fn(game_idx):
             _torch.save(scorer.state_dict(), args.checkpoint)
             _torch.save(value_net.state_dict(), args.checkpoint + ".value.pt")
+            # 训练是「非单调」的（实测峰值常出现在中前期，见 logs/v10-final-report.md），
+            # 若只覆盖单个文件会丢失沿途最好状态。--save-every-n N 额外保留带局号的
+            # 独立快照，便于事后对多个 checkpoint 各自评估、择优。
+            _n = getattr(args, "save_every_n", 0)
+            if _n and i > 0 and i % _n == 0:
+                snap = args.checkpoint[:-3] + "_g%d.pt" % i if args.checkpoint.endswith(".pt") else args.checkpoint + "_g%d.pt" % i
+                _torch.save(scorer.state_dict(), snap)
+                _torch.save(value_net.state_dict(), snap + ".value.pt")
+                print("[snapshot] %s" % snap)
         hist = trainer.train(n_games=args.games, log_fn=log_fn,
                              save_fn=(lambda i: _save_fn(i) if i % 400 == 0 else None),
                              workers=workers)

@@ -41,12 +41,14 @@ def _load(path):
 
 def _split_by_file(meta, val_frac, seed):
     """按 .run 文件分组划分——同一局的样本不能跨 train/val（否则泄漏）。"""
-    files = sorted({m["file"] for m in meta})
+    # 兼容两种数据来源：人类数据 meta 用 "file"，自对弈数据用 "seed"
+    files = sorted({m.get("file") or f"seed{m.get('seed')}" for m in meta})
     rng = np.random.default_rng(seed)
     perm = rng.permutation(len(files))
     n_val = max(1, int(round(len(files) * val_frac)))
     val_files = {files[i] for i in perm[:n_val]}
-    is_val = np.array([m["file"] in val_files for m in meta])
+    is_val = np.array([(m.get("file") or f"seed{m.get('seed')}") in val_files
+                       for m in meta])
     return ~is_val, is_val, len(val_files)
 
 
