@@ -26,8 +26,7 @@ N_SEEDS = int(os.environ.get("N_SEEDS", "30"))
 MCTS = int(os.environ.get("MCTS", "20000"))
 HIDDEN = (512, 256)
 
-CKPTS = [("checkpoints/v10_selfplay_rl.pt", "自对弈BC + RL3000"),
-         ("checkpoints/v10_seg3.pt", "段3（当前最佳）")]
+CKPTS = [("checkpoints/v10_seg3.pt", "段3 + 新战斗评估")]
 
 
 def main():

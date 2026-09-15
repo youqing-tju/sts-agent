@@ -414,14 +414,39 @@ double search::BattleScumSearcher2::evaluateEndState(const BattleContext &bc) {
         return 100 * (35 + bc.player.curHp + potionScore - (bc.turn * 0.01)) - 0.05 * bc.energyWasted;
 
     } else {
-//        double statusScore =
-//                (bc.player.getStatus<PS::STRENGTH>() * .5);
+        // PLAYER_DEFEAT (this branch is only reached for Outcome::PLAYER_DEFEAT;
+        // isTerminalState() returns true for any non-UNDECIDED outcome).
+        //
+        // Two goals, both addressing the Act3-boss bottleneck:
+        //   1) Keep ANY defeat strictly below ANY victory. Min victory score is
+        //      ~100*(35+1) ~= 3600, so a negative baseline guarantees the search
+        //      never prefers dying. (Old code returned a small POSITIVE ~0..15.)
+        //   2) Give a DENSE progress signal toward the kill. In hard Act3 boss
+        //      fights (DONU_AND_DECA / AWAKENED_ONE / TIME_EATER) random leaf
+        //      playouts usually end in death, so the old flat score had ~no
+        //      gradient and MCTS could not steer toward the winning line. That
+        //      is the likely cause of the 5/9 full-HP Act3-boss deaths (a tactics
+        //      problem, not path/HP loss). Rewarding boss-HP removed + monsters
+        //      killed gives the search a gradient toward the kill -- exactly what
+        //      snowball bosses require (kill fast or lose). Max defeat score stays
+        //      far below the min victory (~3600), so living is still always preferred.
         const bool couldHaveSpikers = bc.encounter == MonsterEncounter::THREE_SHAPES || bc.encounter == MonsterEncounter::FOUR_SHAPES;
         double energyPenalty = bc.energyWasted * -0.2 * (couldHaveSpikers ? 0 : 1);
         double drawBonus = bc.cardsDrawn * 0.03;
-        double aliveScore = bc.monsters.monstersAlive*-1;
 
-        return (1-getNonMinionMonsterCurHpRatio(bc))*10 + aliveScore + energyPenalty + drawBonus + potionScore / 2 + (bc.turn * .2);
+        // dense progress signal (up to ~300 from boss-HP + alive/kill terms)
+        double bossDamageProgress = (1 - getNonMinionMonsterCurHpRatio(bc)) * 300.0;
+        double alivePenalty       = bc.monsters.monstersAlive * -20.0;              // -20 per living monster
+        double killProgress       = (bc.monsters.monsterCount - bc.monsters.monstersAlive) * 150.0; // +150 per killed monster
+
+        return -100.0
+               + bossDamageProgress
+               + alivePenalty
+               + killProgress
+               + energyPenalty
+               + drawBonus
+               + potionScore / 2
+               + (bc.turn * 0.2);   // fighting longer on a loss = more chance to draw the kill
     }
 }
 
