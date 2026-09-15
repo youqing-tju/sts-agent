@@ -6,7 +6,13 @@
   ratio = exp(logp_new - logp_old)，clip eps=0.2；
 - 批量更新：攒满 batch_games 局才 update 一次。
 
-奖励纯终局：G = final_floor + win_bonus * win（gamma=1，每步共享同一 G）。
+奖励纯终局：G = final_floor + win_bonus * win
+            + upgrade_bonus * upgrade_count + relic_bonus * relic_count
+（gamma=1，每步共享同一 G）。upgrade_count / relic_count 为终局牌组
+升级卡数 / 遗物数，作为终局加成引导 agent 为长期收益忍受短期风险
+（诊断见 logs/deck-strength-report.md：通关组升级卡 6.07 vs 3.63、
+遗物 10.82 vs 9.58，而稀有卡/牌组厚度无差异）。两 bonus 默认 0，
+完全向后兼容——不放任何规则，纯粹从奖励信号学。
 loss = policy_loss + 0.5 * value_loss - entropy_coef * mean(entropy)。
 
 【懒加载】LightspeedEnv / RunLogger 只在 train 内部导入：单测用 FakeEnv，
@@ -27,10 +33,34 @@ _MAX_STEPS = 500
 _WIN_OUTCOME = "PLAYER_VICTORY"
 
 
+def _count_upgraded(deck):
+    """牌组里升级卡数。
+
+    元素为 C++ 绑定的 Card 对象（实测，见 _tmp_probe_deck_fields.py）：
+    升级字段是 int 型的 `upgrade_count`（>0 即升级），同时也有 bool 的
+    `upgraded`。两字段等价（实测每个种子计数一致）。为稳妥用兼容写法：
+    优先 upgrade_count>0，否则回退 upgraded 布尔。
+    """
+    n = 0
+    for c in deck:
+        uc = getattr(c, "upgrade_count", None)
+        if isinstance(uc, int) and uc > 0:
+            n += 1
+        elif getattr(c, "upgraded", False):
+            n += 1
+    return n
+
+
+def _count_relics(relics):
+    """遗物数：relics 是可迭代对象，元素为 Relic（含 .id.name）。"""
+    return len(list(relics))
+
+
 class PPOTrainer:
     def __init__(self, scorer, value_net, lr=3e-4, clip_eps=0.2,
                  entropy_coef=0.01, win_bonus=50, mcts_sim=2000,
-                 epochs=4, batch_games=16, device="cpu", log_dir=None):
+                 epochs=4, batch_games=16, device="cpu", log_dir=None,
+                 upgrade_bonus=0.0, relic_bonus=0.0):
         self.scorer = scorer.to(device)
         self.value_net = value_net.to(device)
         self.device = device
@@ -40,6 +70,8 @@ class PPOTrainer:
         self.clip_eps = clip_eps
         self.entropy_coef = entropy_coef
         self.win_bonus = win_bonus
+        self.upgrade_bonus = upgrade_bonus
+        self.relic_bonus = relic_bonus
         self.mcts_sim = mcts_sim
         self.epochs = epochs
         self.batch_games = batch_games
@@ -55,11 +87,12 @@ class PPOTrainer:
         return self.value_net(obs)
 
     def collect_episode(self, env, seed=None, logger=None):
-        """玩一局，返回 (trajectory, final_floor, win)。
+        """玩一局，返回 (trajectory, final_floor, win, upgrade_count, relic_count)。
 
         seed 非空时先 env.reset(seed)，否则从 env 当前状态继续。
         trajectory 元素为 (obs_vec, cand_vecs, chosen_pos, logp_old)，
         logp_old 为采样时策略下所选候选的 log 概率（detached）。
+        upgrade_count / relic_count 为终局牌组升级卡数 / 遗物数（int）。
         """
         return _run_episode(seed, self.scorer, env, logger=logger,
                             device=self.device)
@@ -82,8 +115,11 @@ class PPOTrainer:
         # ---- 展平 batch：每步一条样本（批量装箱，不做逐条 Python 循环）----
         obs_list, cand_lists, pos_list, logp_list, g_list = [], [], [], [], []
         floors, wins = [], []
-        for traj, final_floor, win in episodes:
-            g = float(final_floor) + float(self.win_bonus) * float(win)
+        for traj, final_floor, win, upgrade_count, relic_count in episodes:
+            g = (float(final_floor)
+                 + float(self.win_bonus) * float(win)
+                 + float(self.upgrade_bonus) * float(upgrade_count)
+                 + float(self.relic_bonus) * float(relic_count))
             floors.append(float(final_floor))
             wins.append(float(win))
             for obs_vec, cand_vecs, pos, logp_old in traj:
@@ -262,9 +298,18 @@ def _run_episode(seed, scorer, env, logger=None, device="cpu"):
         steps += 1
     final_floor = obs.floor
     win = bool(res and res.info.get("outcome") == _WIN_OUTCOME)
+    # 终局牌组/遗物计数（奖励塑形加成用；返回 int，多进程可 pickle）。
+    # 真实环境 env.gc 必存在；测试用 FakeEnv 可能无 gc，缺省记 0 不报错。
+    gc = getattr(env, "gc", None)
+    if gc is not None:
+        upgrade_count = _count_upgraded(gc.deck)
+        relic_count = _count_relics(gc.relics)
+    else:
+        upgrade_count = 0
+        relic_count = 0
     if logger:
         logger.finish(final_floor=final_floor, win=win)
-    return traj, final_floor, win
+    return traj, final_floor, win, upgrade_count, relic_count
 
 
 def _collect_worker(args):

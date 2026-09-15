@@ -14,10 +14,12 @@ def _rand_vec(n):
     return [random.gauss(0, 1) for _ in range(n)]
 
 
-def _fake_episode(n_steps=3, n_cands=4, final_floor=10, win=False, logp_old=-1.5):
+def _fake_episode(n_steps=3, n_cands=4, final_floor=10, win=False, logp_old=-1.5,
+                  upgrade_count=0, relic_count=0):
     traj = [(_rand_vec(OBS_DIM), [_rand_vec(DESC_VEC_DIM) for _ in range(n_cands)], 1, logp_old)
             for _ in range(n_steps)]
-    return (traj, final_floor, win)
+    # 与 training/ppo.py:_run_episode 的新返回一致：(traj, floor, win, up, rel)
+    return (traj, final_floor, win, upgrade_count, relic_count)
 
 
 class FakeEnv:
@@ -63,7 +65,7 @@ def test_value_net_shapes():
 def test_collect_episode_stores_logp_old():
     random.seed(0)
     tr, _, _ = _make_trainer()
-    traj, final_floor, win = tr.collect_episode(FakeEnv())
+    traj, final_floor, win, upgrade_count, relic_count = tr.collect_episode(FakeEnv())
     assert len(traj) == 3
     for obs_vec, cand_vecs, pos, logp_old in traj:
         assert len(obs_vec) == 477
@@ -73,6 +75,28 @@ def test_collect_episode_stores_logp_old():
         assert math.isfinite(logp_old) and logp_old < 0  # log 概率恒负
     assert isinstance(final_floor, int)
     assert win is False
+    # FakeEnv 无 gc：升级/遗物计数缺省为 0（真实环境有 gc，才会实测计数）
+    assert upgrade_count == 0 and relic_count == 0
+
+
+def test_reward_includes_upgrade_relic_bonus():
+    """奖励塑形：update() 解包新的 5 元组 (traj, floor, win, up, rel) 且两 bonus 已接线。
+
+    G 公式（见 training/ppo.py update()）：
+        g = final_floor + win_bonus*win + upgrade_bonus*upgrade_count
+            + relic_bonus*relic_count
+    端到端数值证据另见 _tmp_bonus_evidence.py。
+    """
+    random.seed(0)
+    tr, _, _ = _make_trainer(win_bonus=50, upgrade_bonus=1.0, relic_bonus=1.0)
+    assert tr.upgrade_bonus == 1.0 and tr.relic_bonus == 1.0
+    # 5 元组：floor=20, win=True, upgrade_count=3, relic_count=2
+    ep = _fake_episode(final_floor=20, win=True, upgrade_count=3, relic_count=2)
+    # 解包 5 元组不应抛错；mean_floor 只记 floor，win_rate 只记 win
+    stats = tr.update([ep])
+    assert stats["mean_floor"] == 20.0
+    assert stats["win_rate"] == 1.0
+    assert math.isfinite(stats["loss"])
 
 
 def test_collect_episode_with_seed_resets_env():

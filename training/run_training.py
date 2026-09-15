@@ -39,6 +39,12 @@ def main():
                    help="从已有 checkpoint 继续训练（仅 reinforce 支持与 (128,128) 兼容的 ckpt）")
     p.add_argument("--win-bonus", type=float, default=50,
                    help="通关奖励：G = final_floor + win_bonus * win")
+    p.add_argument("--upgrade-bonus", type=float, default=0.0,
+                   help="奖励塑形：终局升级卡数加成（每升级卡 +N 分）。"
+                        "默认 0（完全向后兼容）。诊断见 logs/deck-strength-report.md")
+    p.add_argument("--relic-bonus", type=float, default=0.0,
+                   help="奖励塑形：终局遗物数加成（每遗物 +N 分）。"
+                        "默认 0（完全向后兼容）")
     p.add_argument("--save-every-n", type=int, default=0,
                    help="每 N 局额外保存带局号的独立快照（不覆盖主 checkpoint）。"
                         "训练非单调、峰值常在中前期，用它避免丢峰值")
@@ -95,6 +101,8 @@ def main():
                              log_dir=args.log_dir, win_bonus=args.win_bonus,
                              batch_games=args.batch_games,
                              entropy_coef=args.entropy_coef,
+                             upgrade_bonus=args.upgrade_bonus,
+                             relic_bonus=args.relic_bonus,
                              device=args.device or _auto_device())
     else:
         scorer = Scorer(obs_dim=OBS_DIM, cand_dim=DESC_VEC_DIM, hidden=(128, 128))
