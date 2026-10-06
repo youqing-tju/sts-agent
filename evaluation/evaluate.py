@@ -44,7 +44,7 @@ class RandomPolicy:
         return random.choice(candidates).idx
 
 
-def run_one(seed, policy, mcts_sim=200, log_dir=None):
+def run_one(seed, policy, mcts_sim=200, log_dir=None, env_kwargs=None):
     """用 policy 打完整局，返回 {"final_floor": int, "win": bool}。
 
     log_dir 非空时用 RunLogger 记录每个宏观决策
@@ -52,7 +52,7 @@ def run_one(seed, policy, mcts_sim=200, log_dir=None):
     """
     from env.lightspeed_env import LightspeedEnv
 
-    env = LightspeedEnv(mcts_simulations=mcts_sim)
+    env = LightspeedEnv(mcts_simulations=mcts_sim, **(env_kwargs or {}))
     obs = env.reset(seed)
     logger = None
     if log_dir:
@@ -85,18 +85,19 @@ def run_one(seed, policy, mcts_sim=200, log_dir=None):
 
 def _run_one_worker(args):
     """ProcessPoolExecutor worker：顶层函数，参数全部可序列化。"""
-    seed, policy, mcts_sim, log_dir = args
-    return run_one(seed, policy, mcts_sim=mcts_sim, log_dir=log_dir)
+    seed, policy, mcts_sim, log_dir, env_kwargs = args
+    return run_one(seed, policy, mcts_sim=mcts_sim, log_dir=log_dir,
+                   env_kwargs=env_kwargs)
 
 
-def evaluate(policy, n_seeds, workers, mcts_sim=200, log_dir=None):
+def evaluate(policy, n_seeds, workers, mcts_sim=200, log_dir=None, env_kwargs=None):
     """在 n_seeds 个留出种子上并行评估 policy，返回与种子顺序一致的结果列表。
 
     policy 实例会随任务 pickle 到子进程，必须顶层可序列化。
     一进程一局（max_tasks_per_child=1），见模块 docstring 的进程模型说明。
     """
     seeds = make_eval_seeds(n_seeds)
-    args = [(s, policy, mcts_sim, log_dir) for s in seeds]
+    args = [(s, policy, mcts_sim, log_dir, env_kwargs) for s in seeds]
     with ProcessPoolExecutor(max_workers=workers,
                              max_tasks_per_child=1) as pool:
         return list(pool.map(_run_one_worker, args))
@@ -166,6 +167,11 @@ def main(argv=None):
     p.add_argument("--hidden", default="512,256",
                    help="Scorer 隐藏层，逗号分隔。PPO=512,256；REINFORCE=128,128")
     p.add_argument("--log-dir", default=None, help="可选：JSONL 日志目录")
+    p.add_argument("--combat-solver", choices=["mcts", "beam"], default="mcts",
+                   help="战斗求解器（与训练侧同名参数一致）")
+    p.add_argument("--beam-width", type=int, default=2, help="Beam 束宽")
+    p.add_argument("--beam-depth", type=int, default=6, help="Beam 最大深度")
+    p.add_argument("--beam-max-nodes", type=int, default=300, help="Beam 单次最大展开节点数")
     args = p.parse_args(argv)
 
     if args.checkpoint:
@@ -176,8 +182,14 @@ def main(argv=None):
     else:
         policy = _make_policy(args.policy)
         pname = args.policy
+    env_kwargs = {}
+    if args.combat_solver == "beam":
+        env_kwargs = {"combat_solver": "beam", "beam_width": args.beam_width,
+                      "beam_depth": args.beam_depth,
+                      "beam_max_nodes": args.beam_max_nodes}
     results = evaluate(policy, n_seeds=args.seeds, workers=args.workers,
-                       mcts_sim=args.mcts_sim, log_dir=args.log_dir)
+                       mcts_sim=args.mcts_sim, log_dir=args.log_dir,
+                       env_kwargs=env_kwargs)
     s = summarize(results)
     print(f"policy={pname} n={s['n']} mcts_sim={args.mcts_sim}")
     print(f"avg_floor={s['avg_floor']:.1f} std_floor={s['std_floor']:.1f} "
