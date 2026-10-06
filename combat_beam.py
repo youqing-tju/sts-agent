@@ -137,16 +137,20 @@ def legal_actions(bc: "sts.BattleContext") -> list[tuple[str, int, int]]:
     return out
 
 
-_ACTION_TYPE = {
+#: 动作类型名 → sts.ActionType。
+#: **对外公开**：`env/lightspeed_env.py` 的 Beam 战斗循环（_run_combat_beam）要用它
+#: 把 BeamSolver 返回的 `(type_name, idx1, idx2)` 还原成可执行动作。
+ACTION_TYPE_BY_NAME = {
     "CARD": sts.ActionType.CARD,
     "POTION": sts.ActionType.POTION,
     "END_TURN": sts.ActionType.END_TURN,
 }
+_ACTION_TYPE = ACTION_TYPE_BY_NAME   # 兼容旧名（内部使用）
 
 
 def _make(act: tuple[str, int, int]) -> "sts.BattleAction":
     t, i, j = act
-    return sts.BattleAction(_ACTION_TYPE[t], i, j)
+    return sts.BattleAction(ACTION_TYPE_BY_NAME[t], i, j)
 
 
 # --------------------------------------------------------------------------
@@ -302,4 +306,4 @@ class BeamSolver:
         return plan[0] if plan else None
 
 
-__all__ = ["BeamSolver", "fingerprint", "legal_actions", "evaluate"]
+__all__ = ["BeamSolver", "fingerprint", "legal_actions", "evaluate", "ACTION_TYPE_BY_NAME"]

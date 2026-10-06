@@ -60,7 +60,9 @@ class PPOTrainer:
     def __init__(self, scorer, value_net, lr=3e-4, clip_eps=0.2,
                  entropy_coef=0.01, win_bonus=50, mcts_sim=2000,
                  epochs=4, batch_games=16, device="cpu", log_dir=None,
-                 upgrade_bonus=0.0, relic_bonus=0.0):
+                 upgrade_bonus=0.0, relic_bonus=0.0,
+                 combat_solver="mcts", beam_width=4, beam_depth=8,
+                 beam_max_nodes=3000):
         self.scorer = scorer.to(device)
         self.value_net = value_net.to(device)
         self.device = device
@@ -73,6 +75,11 @@ class PPOTrainer:
         self.upgrade_bonus = upgrade_bonus
         self.relic_bonus = relic_bonus
         self.mcts_sim = mcts_sim
+        # 战斗求解器："mcts"（C++ Agent 自动打，默认）| "beam"（Python Beam Search 接管）
+        self.combat_solver = combat_solver
+        self.beam_width = beam_width
+        self.beam_depth = beam_depth
+        self.beam_max_nodes = beam_max_nodes
         self.epochs = epochs
         self.batch_games = batch_games
         self.log_dir = log_dir
@@ -211,7 +218,11 @@ class PPOTrainer:
         from logging.run_logger import RunLogger
 
         log_dir = log_dir if log_dir is not None else self.log_dir
-        env = LightspeedEnv(mcts_simulations=self.mcts_sim)
+        env = LightspeedEnv(mcts_simulations=self.mcts_sim,
+                            combat_solver=self.combat_solver,
+                            beam_width=self.beam_width,
+                            beam_depth=self.beam_depth,
+                            beam_max_nodes=self.beam_max_nodes)
         history = []
         parallel = bool(workers and workers > 1)
 
@@ -221,6 +232,10 @@ class PPOTrainer:
                 "cand_dim": getattr(self.scorer, "cand_dim", DESC_VEC_DIM),
                 "hidden": tuple(getattr(self.scorer, "hidden", (512, 256))),
                 "mcts_sim": self.mcts_sim,
+                "combat_solver": self.combat_solver,
+                "beam_width": self.beam_width,
+                "beam_depth": self.beam_depth,
+                "beam_max_nodes": self.beam_max_nodes,
             }
             seeds_all = [random.randrange(2 ** 31) for _ in range(n_games)]
             nw = max(1, min(int(workers), self.batch_games))
@@ -336,5 +351,9 @@ def _collect_worker(args):
                     hidden=tuple(cfg["hidden"]))
     scorer.load_state_dict(state)
     scorer.eval()
-    env = LightspeedEnv(mcts_simulations=cfg["mcts_sim"])
+    env = LightspeedEnv(mcts_simulations=cfg["mcts_sim"],
+                        combat_solver=cfg.get("combat_solver", "mcts"),
+                        beam_width=cfg.get("beam_width", 4),
+                        beam_depth=cfg.get("beam_depth", 8),
+                        beam_max_nodes=cfg.get("beam_max_nodes", 3000))
     return _run_episode(seed, scorer, env, device="cpu")

@@ -63,6 +63,11 @@ def main():
                    help="每攒满多少局做一次 PPO update；进程池大小被它封顶"
                         "（nw = min(workers, batch_games)），所以要用 >16 worker "
                         "必须同时抬高本值")
+    p.add_argument("--combat-solver", choices=["mcts", "beam"], default="mcts",
+                   help="战斗求解器：mcts（C++ Agent 自动打，默认）| beam（Python Beam Search 接管）")
+    p.add_argument("--beam-width", type=int, default=4, help="Beam 束宽（仅 --combat-solver beam）")
+    p.add_argument("--beam-depth", type=int, default=8, help="Beam 最大搜索深度")
+    p.add_argument("--beam-max-nodes", type=int, default=3000, help="Beam 单次求解最大展开节点数")
     p.add_argument("--hidden", default="512,256",
                    help="Scorer 隐藏层，逗号分隔。V6=(512,256)；"
                         "V7 试过 (1024,512) 但实测无增益")
@@ -103,6 +108,10 @@ def main():
                              entropy_coef=args.entropy_coef,
                              upgrade_bonus=args.upgrade_bonus,
                              relic_bonus=args.relic_bonus,
+                             combat_solver=args.combat_solver,
+                             beam_width=args.beam_width,
+                             beam_depth=args.beam_depth,
+                             beam_max_nodes=args.beam_max_nodes,
                              device=args.device or _auto_device())
     else:
         scorer = Scorer(obs_dim=OBS_DIM, cand_dim=DESC_VEC_DIM, hidden=(128, 128))

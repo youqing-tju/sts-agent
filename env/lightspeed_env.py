@@ -58,16 +58,36 @@ _KIND_BY_SCREEN = {
 
 # 防御性上限：playout 推进循环的最大迭代次数，防止异常状态下死循环
 _MAX_ADVANCE_ROUNDS = 10000
+_MAX_COMBAT_STEPS = 2000      # Beam 驱动战斗时的单场最大决策步数（防死循环）
 
 # NNInterface 单例缓存（C++ 所有权 bug 已修复，缓存仅为减少调用开销）
 _nni_singleton = None
 
 
 class LightspeedEnv(StsEnv):
-    def __init__(self, mcts_simulations: int = 200):
+    def __init__(self, mcts_simulations: int = 200,
+                 combat_solver: str = "mcts",
+                 beam_width: int = 4,
+                 beam_depth: int = 8,
+                 beam_max_nodes: int = 3000):
+        """combat_solver: `"mcts"`（默认，C++ Agent 自动打完战斗）| `"beam"`（Python Beam 接管）。
+
+        beam_* 仅在 combat_solver="beam" 时生效。**训练用小预算**：
+        Beam 单决策耗时 ≈ O(W × depth × 合法动作数)，W=4/depth=8 约 50~150ms；
+        一局约 10~30 场战斗 × 3~10 决策 → 数秒/局（8 workers 下可接受）。
+        """
         self._agent = sts.Agent()
         self._agent.simulation_count_base = mcts_simulations
         self._agent.pause_on_noncombat = True  # 非战斗决策点交还控制权（核心开关）
+        self._combat_solver = combat_solver
+        # Beam 模式：让 playout 在**战斗入口**也暂停（pause_on_combat），
+        # 改由 Python 的 _run_combat_beam 驱动战斗循环。
+        self._agent.pause_on_combat = (combat_solver == "beam")
+        self._beam = None
+        if combat_solver == "beam":
+            from combat_beam import BeamSolver   # 延迟 import：避免无关场景加载
+            self._beam = BeamSolver(beam_width=beam_width, max_depth=beam_depth,
+                                    max_nodes=beam_max_nodes)
         self.gc = None
         self._actions = []  # candidates() 缓存的动作列表，step 按 idx 取用
         self._ascension = 0
@@ -205,17 +225,50 @@ class LightspeedEnv(StsEnv):
     # ---- 内部辅助 ----
 
     def _advance(self):
-        """循环 playout 直到宏观决策点（有可选动作）或终局。"""
+        """循环推进直到宏观决策点（有可选动作）或终局。
+
+        combat_solver="beam" 时，playout 会在**战斗入口**暂停（pause_on_combat），
+        此时改由 `_run_combat_beam` 用 Beam Search 驱动整场战斗。
+        """
         gc = self.gc
         for _ in range(_MAX_ADVANCE_ROUNDS):
             if gc.outcome != sts.GameOutcome.UNDECIDED:
                 return
+            if self._beam is not None and gc.screen_state == sts.ScreenState.BATTLE:
+                self._run_combat_beam(gc)
+                continue
             self._agent.playout(gc)
             if gc.outcome != sts.GameOutcome.UNDECIDED:
                 return
             if sts.get_all_actions(gc):
                 return
         raise RuntimeError("_advance 超过迭代上限，状态可能异常")
+
+    def _run_combat_beam(self, gc):
+        """用 Beam Search 驱动一场战斗（Python 侧逐决策），结束后写回 gc。
+
+        骨架取自 sts-agent-v2 `engine/runner_sim._run_combat`：
+        建 BattleContext → 逐决策 execute → exit_battle 写回 GameContext。
+        Beam 给出的是**跨回合完整路线**，但这里只执行第一步并重新求解
+        （因为真实推进可能因模拟器与游戏差异而偏离预测）。
+        """
+        from combat_beam import ACTION_TYPE_BY_NAME
+        bc = sts.BattleContext()
+        bc.init_from_gc(gc)
+        for _ in range(_MAX_COMBAT_STEPS):
+            if bc.is_terminal():
+                break
+            plan = self._beam.solve(bc)
+            if not plan:
+                break
+            t, i, j = plan[0]
+            act = sts.BattleAction(ACTION_TYPE_BY_NAME[t], i, j)
+            if not act.is_valid(bc):
+                act = sts.BattleAction(sts.ActionType.END_TURN, 0, 0)
+                if not act.is_valid(bc):
+                    break
+            act.execute(bc)
+        bc.exit_battle(gc)
 
     def _raw_nn_vec(self) -> list:
         """取 C++ 原始 412 维 NN 观测。
