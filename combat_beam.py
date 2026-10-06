@@ -220,7 +220,11 @@ class BeamSolver:
         root = _Node(bc=sts.BattleContext(bc), path=(), score=evaluate(bc), depth=0)
         beam: list[_Node] = [root]
         best_terminal: _Node | None = None
-        best_open: _Node = root
+        # ⚠️ best_open **不能**以 root 初始化：root 是"尚未行动"的局面（能量/手牌未消耗、
+        # 血未掉），而 evaluate 里 `hp×30000` 权重最大 —— 任何一次行动后分数都会低于它。
+        # 若以 root 为初值，则所有后代都赢不过 root → chosen 永远是 root → solve 返回空方案
+        # → 调用方拿不到动作而死锁（实测：energy=0 只能 END_TURN 的帧上 100% 复现）。
+        best_open: _Node | None = None
         nodes = 0
 
         for _ in range(self.max_depth):
@@ -246,7 +250,7 @@ class BeamSolver:
                             best_terminal = child
                     else:
                         expanded.append(child)
-                        if child.score > best_open.score:
+                        if best_open is None or child.score > best_open.score:
                             best_open = child
 
             if best_terminal is not None:
@@ -271,6 +275,16 @@ class BeamSolver:
             beam = expanded[:self.beam_width]
 
         chosen = best_terminal if best_terminal is not None else best_open
+        if chosen is None:
+            # 极端兜底：本层一个可展开节点都没有（例如全部动作都会立即终局且非胜利）。
+            # 至少要返回一个合法动作，否则调用方会「无动作」死锁。
+            acts = legal_actions(root.bc)
+            if not acts:
+                self.last_stats = {"nodes": nodes, "ms": (time.perf_counter() - t0) * 1000.0,
+                                   "depth": 0, "score": float("nan"), "won": False,
+                                   "outcome": str(bc.outcome), "plan_len": 0, "dead_end": True}
+                return []
+            chosen = _Node(bc=root.bc, path=(acts[0],), score=float("nan"), depth=1)
         self.last_stats = {
             "nodes": nodes,
             "ms": (time.perf_counter() - t0) * 1000.0,
