@@ -18,3 +18,6 @@ last_state.json
 data/external/
 # 由 training/human_data.py 重新生成的 BC 数据集
 data/human_bc/
+
+# 外部参考源码（CombatSolver / RandomForeseer，只读，勿提交）
+reference/

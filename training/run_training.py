@@ -144,13 +144,20 @@ def main():
             # 若只覆盖单个文件会丢失沿途最好状态。--save-every-n N 额外保留带局号的
             # 独立快照，便于事后对多个 checkpoint 各自评估、择优。
             _n = getattr(args, "save_every_n", 0)
-            if _n and i > 0 and i % _n == 0:
-                snap = args.checkpoint[:-3] + "_g%d.pt" % i if args.checkpoint.endswith(".pt") else args.checkpoint + "_g%d.pt" % i
+            if _n and game_idx > 0 and game_idx % _n == 0:
+                snap = (args.checkpoint[:-3] + "_g%d.pt" % game_idx
+                        if args.checkpoint.endswith(".pt")
+                        else args.checkpoint + "_g%d.pt" % game_idx)
                 _torch.save(scorer.state_dict(), snap)
                 _torch.save(value_net.state_dict(), snap + ".value.pt")
                 print("[snapshot] %s" % snap)
+        # save_every_n 同时决定「主 checkpoint + 带局号快照」的保存间隔；未指定时沿用 400。
+        # 注意坑：若外层仍固定按 400 调用 _save_fn，而只在内部判 i % save_every_n == 0，
+        # 那么当 save_every_n 不是 400 的倍数时（如 1000），i 永远取不到 1000 这类值，
+        # 快照间隔会被静默放大到 lcm(400, n)（1000 → 实际 2000）。故间隔必须在外层统一。
+        _save_mod = args.save_every_n if args.save_every_n else 400
         hist = trainer.train(n_games=args.games, log_fn=log_fn,
-                             save_fn=(lambda i: _save_fn(i) if i % 400 == 0 else None),
+                             save_fn=(lambda i: _save_fn(i) if i % _save_mod == 0 else None),
                              workers=workers)
     else:
         hist = trainer.train(n_games=args.games, eval_every=args.eval_every,
