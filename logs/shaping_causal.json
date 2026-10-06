@@ -1,0 +1,1716 @@
+{
+ "n_seeds": 60,
+ "mcts_sim": 20000,
+ "pair": "楼层配对差 +1.15 (SE 1.97, t=+0.59) | 胜 23 / 负 17",
+ "table": [
+  "| 分层 | 指标 | E1 | V11 | 差(B-A) |",
+  "|---|---|---|---|---|",
+  "| 通关局 | 进Act3时升级数 | 5.70 (n=27) | 5.63 (n=30) | -0.07 |",
+  "| 通关局 | 进Act3时遗物数 | 10.93 (n=27) | 11.77 (n=30) | +0.84 |",
+  "| 通关局 | 进Act3时牌组张数 | 28.89 (n=27) | 32.47 (n=30) | +3.58 |",
+  "| 通关局 | 楼层 | 51.0 | 50.8 | -0.2 |",
+  "| Act3死亡局 | 进Act3时升级数 | 5.47 (n=19) | 5.00 (n=16) | -0.47 |",
+  "| Act3死亡局 | 进Act3时遗物数 | 9.84 (n=19) | 11.25 (n=16) | +1.41 |",
+  "| Act3死亡局 | 进Act3时牌组张数 | 28.26 (n=19) | 30.81 (n=16) | +2.55 |",
+  "| Act3死亡局 | 楼层 | 47.2 | 48.1 | +1.0 |",
+  "| 前期死亡局 | 楼层 | 26.7 | 28.2 | +1.5 |"
+ ],
+ "data": {
+  "E1": [
+   {
+    "seed": 856258841,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 28,
+     "n_upgraded": 1,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 4,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 809721117,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 26,
+     "n_upgraded": 10,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 33,
+     "n_upgraded": 12,
+     "n_relics": 18
+    }
+   },
+   {
+    "seed": 1270809863,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 28,
+     "n_upgraded": 2,
+     "n_relics": 7
+    },
+    "final": {
+     "n_cards": 33,
+     "n_upgraded": 3,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 1953131477,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 33,
+     "n_upgraded": 6,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 48,
+     "n_upgraded": 19,
+     "n_relics": 15
+    }
+   },
+   {
+    "seed": 335776950,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 24,
+     "n_upgraded": 9,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 32,
+     "n_upgraded": 16,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 1894911376,
+    "floor": 42,
+    "win": false,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 3,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 34,
+     "n_upgraded": 6,
+     "n_relics": 10
+    }
+   },
+   {
+    "seed": 1751539841,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 26,
+     "n_upgraded": 11,
+     "n_relics": 13
+    },
+    "final": {
+     "n_cards": 32,
+     "n_upgraded": 14,
+     "n_relics": 19
+    }
+   },
+   {
+    "seed": 365587230,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 2,
+     "n_relics": 13
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 7,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 1576371696,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 33,
+     "n_upgraded": 2,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 43,
+     "n_upgraded": 7,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1362355165,
+    "floor": 25,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 23,
+     "n_upgraded": 5,
+     "n_relics": 8
+    }
+   },
+   {
+    "seed": 979457375,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 26,
+     "n_upgraded": 13,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 34,
+     "n_upgraded": 17,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1806356305,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 3,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 7,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 1127414655,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 23,
+     "n_upgraded": 0,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 30,
+     "n_upgraded": 3,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 659654897,
+    "floor": 44,
+    "win": false,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 3,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 35,
+     "n_upgraded": 4,
+     "n_relics": 10
+    }
+   },
+   {
+    "seed": 1148947236,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 30,
+     "n_upgraded": 3,
+     "n_relics": 10
+    }
+   },
+   {
+    "seed": 1628527396,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 11,
+     "n_relics": 14
+    },
+    "final": {
+     "n_cards": 43,
+     "n_upgraded": 23,
+     "n_relics": 19
+    }
+   },
+   {
+    "seed": 210282334,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 27,
+     "n_upgraded": 9,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 32,
+     "n_upgraded": 12,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 554853888,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 28,
+     "n_upgraded": 4,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 35,
+     "n_upgraded": 10,
+     "n_relics": 13
+    }
+   },
+   {
+    "seed": 418447160,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 28,
+     "n_upgraded": 13,
+     "n_relics": 8
+    }
+   },
+   {
+    "seed": 962921090,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 34,
+     "n_upgraded": 3,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 40,
+     "n_upgraded": 5,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 112435878,
+    "floor": 41,
+    "win": false,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 2,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 33,
+     "n_upgraded": 5,
+     "n_relics": 9
+    }
+   },
+   {
+    "seed": 845618723,
+    "floor": 42,
+    "win": false,
+    "act3": {
+     "n_cards": 25,
+     "n_upgraded": 1,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 29,
+     "n_upgraded": 8,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 1416556708,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 10,
+     "n_relics": 13
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 13,
+     "n_relics": 18
+    }
+   },
+   {
+    "seed": 486692374,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 28,
+     "n_upgraded": 1,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 35,
+     "n_upgraded": 4,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1956478492,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 2,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 4,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1728583236,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 27,
+     "n_upgraded": 3,
+     "n_relics": 11
+    }
+   },
+   {
+    "seed": 422302494,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 31,
+     "n_upgraded": 1,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 3,
+     "n_relics": 11
+    }
+   },
+   {
+    "seed": 1287368787,
+    "floor": 47,
+    "win": false,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 5,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 13,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1633311429,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 26,
+     "n_upgraded": 3,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 35,
+     "n_upgraded": 9,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 1446021769,
+    "floor": 47,
+    "win": false,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 6,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 35,
+     "n_upgraded": 10,
+     "n_relics": 11
+    }
+   },
+   {
+    "seed": 1909461404,
+    "floor": 11,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 17,
+     "n_upgraded": 2,
+     "n_relics": 5
+    }
+   },
+   {
+    "seed": 889242453,
+    "floor": 45,
+    "win": false,
+    "act3": {
+     "n_cards": 26,
+     "n_upgraded": 4,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 34,
+     "n_upgraded": 8,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 2078294763,
+    "floor": 16,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 17,
+     "n_upgraded": 0,
+     "n_relics": 4
+    }
+   },
+   {
+    "seed": 1843324520,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 28,
+     "n_upgraded": 13,
+     "n_relics": 7
+    },
+    "final": {
+     "n_cards": 36,
+     "n_upgraded": 18,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 1387113317,
+    "floor": 27,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 23,
+     "n_upgraded": 2,
+     "n_relics": 7
+    }
+   },
+   {
+    "seed": 1372008756,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 9,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 37,
+     "n_upgraded": 17,
+     "n_relics": 15
+    }
+   },
+   {
+    "seed": 1039381627,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 23,
+     "n_upgraded": 5,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 31,
+     "n_upgraded": 14,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1915394801,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 31,
+     "n_upgraded": 2,
+     "n_relics": 7
+    }
+   },
+   {
+    "seed": 1149301607,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 3,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 42,
+     "n_upgraded": 7,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 357950431,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 25,
+     "n_upgraded": 1,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 31,
+     "n_upgraded": 7,
+     "n_relics": 11
+    }
+   },
+   {
+    "seed": 589158997,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 25,
+     "n_upgraded": 4,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 35,
+     "n_upgraded": 9,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 1176128080,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 31,
+     "n_upgraded": 14,
+     "n_relics": 14
+    },
+    "final": {
+     "n_cards": 37,
+     "n_upgraded": 19,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 1477598823,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 31,
+     "n_upgraded": 2,
+     "n_relics": 9
+    }
+   },
+   {
+    "seed": 1399171887,
+    "floor": 23,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 20,
+     "n_upgraded": 1,
+     "n_relics": 7
+    }
+   },
+   {
+    "seed": 368253205,
+    "floor": 8,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 15,
+     "n_upgraded": 0,
+     "n_relics": 4
+    }
+   },
+   {
+    "seed": 115289469,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 35,
+     "n_upgraded": 4,
+     "n_relics": 13
+    },
+    "final": {
+     "n_cards": 43,
+     "n_upgraded": 11,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1424942079,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 1,
+     "n_relics": 14
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 6,
+     "n_relics": 19
+    }
+   },
+   {
+    "seed": 1707934661,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 38,
+     "n_upgraded": 20,
+     "n_relics": 18
+    },
+    "final": {
+     "n_cards": 53,
+     "n_upgraded": 34,
+     "n_relics": 21
+    }
+   },
+   {
+    "seed": 660679222,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 28,
+     "n_upgraded": 3,
+     "n_relics": 13
+    },
+    "final": {
+     "n_cards": 37,
+     "n_upgraded": 8,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 533703408,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 25,
+     "n_upgraded": 3,
+     "n_relics": 6
+    }
+   },
+   {
+    "seed": 948595518,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 1,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 37,
+     "n_upgraded": 4,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 799912235,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 28,
+     "n_upgraded": 15,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 26,
+     "n_relics": 15
+    }
+   },
+   {
+    "seed": 1944820541,
+    "floor": 38,
+    "win": false,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 3,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 32,
+     "n_upgraded": 4,
+     "n_relics": 11
+    }
+   },
+   {
+    "seed": 186695766,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 24,
+     "n_upgraded": 14,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 33,
+     "n_upgraded": 19,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 1325687627,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 32,
+     "n_upgraded": 11,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 13,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 1798799476,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 6,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 13,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 778383504,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 28,
+     "n_upgraded": 1,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 33,
+     "n_upgraded": 6,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 1603946738,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 27,
+     "n_upgraded": 3,
+     "n_relics": 13
+    },
+    "final": {
+     "n_cards": 36,
+     "n_upgraded": 7,
+     "n_relics": 18
+    }
+   },
+   {
+    "seed": 1960152876,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 30,
+     "n_upgraded": 1,
+     "n_relics": 6
+    }
+   },
+   {
+    "seed": 271314226,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 27,
+     "n_upgraded": 1,
+     "n_relics": 9
+    }
+   }
+  ],
+  "V11": [
+   {
+    "seed": 856258841,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 32,
+     "n_upgraded": 0,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 44,
+     "n_upgraded": 6,
+     "n_relics": 13
+    }
+   },
+   {
+    "seed": 809721117,
+    "floor": 23,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 22,
+     "n_upgraded": 2,
+     "n_relics": 6
+    }
+   },
+   {
+    "seed": 1270809863,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 32,
+     "n_upgraded": 3,
+     "n_relics": 8
+    }
+   },
+   {
+    "seed": 1953131477,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 36,
+     "n_upgraded": 7,
+     "n_relics": 13
+    },
+    "final": {
+     "n_cards": 50,
+     "n_upgraded": 25,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 335776950,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 25,
+     "n_upgraded": 10,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 37,
+     "n_upgraded": 19,
+     "n_relics": 19
+    }
+   },
+   {
+    "seed": 1894911376,
+    "floor": 38,
+    "win": false,
+    "act3": {
+     "n_cards": 34,
+     "n_upgraded": 3,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 37,
+     "n_upgraded": 5,
+     "n_relics": 10
+    }
+   },
+   {
+    "seed": 1751539841,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 33,
+     "n_upgraded": 4,
+     "n_relics": 17
+    },
+    "final": {
+     "n_cards": 44,
+     "n_upgraded": 39,
+     "n_relics": 25
+    }
+   },
+   {
+    "seed": 365587230,
+    "floor": 48,
+    "win": true,
+    "act3": {
+     "n_cards": 33,
+     "n_upgraded": 2,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 41,
+     "n_upgraded": 39,
+     "n_relics": 15
+    }
+   },
+   {
+    "seed": 1576371696,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 39,
+     "n_upgraded": 6,
+     "n_relics": 14
+    },
+    "final": {
+     "n_cards": 50,
+     "n_upgraded": 9,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 1362355165,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 11,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 43,
+     "n_upgraded": 22,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 979457375,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 34,
+     "n_upgraded": 5,
+     "n_relics": 16
+    },
+    "final": {
+     "n_cards": 55,
+     "n_upgraded": 10,
+     "n_relics": 22
+    }
+   },
+   {
+    "seed": 1806356305,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 4,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 40,
+     "n_upgraded": 36,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1127414655,
+    "floor": 40,
+    "win": false,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 4,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 32,
+     "n_upgraded": 5,
+     "n_relics": 11
+    }
+   },
+   {
+    "seed": 659654897,
+    "floor": 47,
+    "win": false,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 5,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 40,
+     "n_upgraded": 33,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 1148947236,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 2,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 4,
+     "n_relics": 13
+    }
+   },
+   {
+    "seed": 1628527396,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 32,
+     "n_upgraded": 14,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 47,
+     "n_upgraded": 47,
+     "n_relics": 19
+    }
+   },
+   {
+    "seed": 210282334,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 36,
+     "n_upgraded": 5,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 46,
+     "n_upgraded": 9,
+     "n_relics": 12
+    }
+   },
+   {
+    "seed": 554853888,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 31,
+     "n_upgraded": 4,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 41,
+     "n_upgraded": 11,
+     "n_relics": 15
+    }
+   },
+   {
+    "seed": 418447160,
+    "floor": 20,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 22,
+     "n_upgraded": 1,
+     "n_relics": 5
+    }
+   },
+   {
+    "seed": 962921090,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 31,
+     "n_upgraded": 2,
+     "n_relics": 14
+    },
+    "final": {
+     "n_cards": 40,
+     "n_upgraded": 36,
+     "n_relics": 18
+    }
+   },
+   {
+    "seed": 112435878,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 34,
+     "n_upgraded": 5,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 44,
+     "n_upgraded": 13,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 845618723,
+    "floor": 21,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 21,
+     "n_upgraded": 1,
+     "n_relics": 4
+    }
+   },
+   {
+    "seed": 1416556708,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 37,
+     "n_upgraded": 14,
+     "n_relics": 11
+    }
+   },
+   {
+    "seed": 486692374,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 30,
+     "n_upgraded": 1,
+     "n_relics": 9
+    }
+   },
+   {
+    "seed": 1956478492,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 1,
+     "n_relics": 15
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 32,
+     "n_relics": 22
+    }
+   },
+   {
+    "seed": 1728583236,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 31,
+     "n_upgraded": 3,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 8,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 422302494,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 38,
+     "n_upgraded": 5,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 47,
+     "n_upgraded": 10,
+     "n_relics": 15
+    }
+   },
+   {
+    "seed": 1287368787,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 32,
+     "n_upgraded": 6,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 41,
+     "n_upgraded": 39,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 1633311429,
+    "floor": 55,
+    "win": false,
+    "act3": {
+     "n_cards": 31,
+     "n_upgraded": 5,
+     "n_relics": 8
+    },
+    "final": {
+     "n_cards": 45,
+     "n_upgraded": 42,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 1446021769,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 27,
+     "n_upgraded": 4,
+     "n_relics": 7
+    },
+    "final": {
+     "n_cards": 42,
+     "n_upgraded": 13,
+     "n_relics": 11
+    }
+   },
+   {
+    "seed": 1909461404,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 33,
+     "n_upgraded": 7,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 43,
+     "n_upgraded": 12,
+     "n_relics": 13
+    }
+   },
+   {
+    "seed": 889242453,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 3,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 8,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 2078294763,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 4,
+     "n_relics": 15
+    },
+    "final": {
+     "n_cards": 38,
+     "n_upgraded": 9,
+     "n_relics": 21
+    }
+   },
+   {
+    "seed": 1843324520,
+    "floor": 29,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 33,
+     "n_upgraded": 7,
+     "n_relics": 9
+    }
+   },
+   {
+    "seed": 1387113317,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 10,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 36,
+     "n_upgraded": 13,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1372008756,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 9,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 46,
+     "n_upgraded": 16,
+     "n_relics": 19
+    }
+   },
+   {
+    "seed": 1039381627,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 26,
+     "n_upgraded": 6,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 34,
+     "n_upgraded": 14,
+     "n_relics": 13
+    }
+   },
+   {
+    "seed": 1915394801,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 39,
+     "n_upgraded": 3,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 45,
+     "n_upgraded": 5,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 1149301607,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 34,
+     "n_upgraded": 3,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 45,
+     "n_upgraded": 9,
+     "n_relics": 13
+    }
+   },
+   {
+    "seed": 357950431,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 36,
+     "n_upgraded": 9,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 49,
+     "n_upgraded": 44,
+     "n_relics": 15
+    }
+   },
+   {
+    "seed": 589158997,
+    "floor": 29,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 25,
+     "n_upgraded": 2,
+     "n_relics": 9
+    }
+   },
+   {
+    "seed": 1176128080,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 9,
+     "n_relics": 14
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 15,
+     "n_relics": 19
+    }
+   },
+   {
+    "seed": 1477598823,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 2,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 42,
+     "n_upgraded": 7,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 1399171887,
+    "floor": 44,
+    "win": true,
+    "act3": {
+     "n_cards": 33,
+     "n_upgraded": 4,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 7,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 368253205,
+    "floor": 50,
+    "win": false,
+    "act3": {
+     "n_cards": 33,
+     "n_upgraded": 2,
+     "n_relics": 14
+    },
+    "final": {
+     "n_cards": 47,
+     "n_upgraded": 5,
+     "n_relics": 21
+    }
+   },
+   {
+    "seed": 115289469,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 2,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 42,
+     "n_upgraded": 10,
+     "n_relics": 17
+    }
+   },
+   {
+    "seed": 1424942079,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 11,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 40,
+     "n_upgraded": 19,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1707934661,
+    "floor": 24,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 22,
+     "n_upgraded": 5,
+     "n_relics": 9
+    }
+   },
+   {
+    "seed": 660679222,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 29,
+     "n_upgraded": 3,
+     "n_relics": 7
+    }
+   },
+   {
+    "seed": 533703408,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 28,
+     "n_upgraded": 8,
+     "n_relics": 8
+    }
+   },
+   {
+    "seed": 948595518,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 38,
+     "n_upgraded": 4,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 51,
+     "n_upgraded": 6,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 799912235,
+    "floor": 55,
+    "win": true,
+    "act3": {
+     "n_cards": 34,
+     "n_upgraded": 26,
+     "n_relics": 13
+    },
+    "final": {
+     "n_cards": 42,
+     "n_upgraded": 41,
+     "n_relics": 20
+    }
+   },
+   {
+    "seed": 1944820541,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 37,
+     "n_upgraded": 6,
+     "n_relics": 15
+    },
+    "final": {
+     "n_cards": 54,
+     "n_upgraded": 44,
+     "n_relics": 19
+    }
+   },
+   {
+    "seed": 186695766,
+    "floor": 33,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 27,
+     "n_upgraded": 13,
+     "n_relics": 9
+    }
+   },
+   {
+    "seed": 1325687627,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 1,
+     "n_relics": 12
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 3,
+     "n_relics": 16
+    }
+   },
+   {
+    "seed": 1798799476,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 10,
+     "n_relics": 10
+    },
+    "final": {
+     "n_cards": 39,
+     "n_upgraded": 20,
+     "n_relics": 14
+    }
+   },
+   {
+    "seed": 778383504,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 29,
+     "n_upgraded": 1,
+     "n_relics": 11
+    },
+    "final": {
+     "n_cards": 40,
+     "n_upgraded": 5,
+     "n_relics": 15
+    }
+   },
+   {
+    "seed": 1603946738,
+    "floor": 23,
+    "win": false,
+    "act3": null,
+    "final": {
+     "n_cards": 23,
+     "n_upgraded": 3,
+     "n_relics": 5
+    }
+   },
+   {
+    "seed": 1960152876,
+    "floor": 51,
+    "win": true,
+    "act3": {
+     "n_cards": 34,
+     "n_upgraded": 2,
+     "n_relics": 7
+    },
+    "final": {
+     "n_cards": 44,
+     "n_upgraded": 4,
+     "n_relics": 13
+    }
+   },
+   {
+    "seed": 271314226,
+    "floor": 45,
+    "win": false,
+    "act3": {
+     "n_cards": 30,
+     "n_upgraded": 3,
+     "n_relics": 9
+    },
+    "final": {
+     "n_cards": 37,
+     "n_upgraded": 5,
+     "n_relics": 14
+    }
+   }
+  ]
+ }
+}

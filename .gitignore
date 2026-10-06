@@ -8,7 +8,10 @@ logs/*.jsonl
 third_party/sts_lightspeed/build/
 .pytest_cache/
 checkpoints/
-logs/
+# logs/：运行期日志（*.jsonl / 大体积原始数据）不入库，但**分析报告（*.md）必须入库**
+# —— 此前用 `logs/` 整目录忽略，导致所有诊断报告从未被提交（只在工作区，有丢失风险）。
+logs/*
+!logs/*.md
 
 # 运行时产物（每次运行重生，不入库）
 sts_agent_debug.log

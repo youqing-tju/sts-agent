@@ -1,0 +1,755 @@
+{
+  "meta": {
+    "generated_at": "2026-09-10T12:43:10",
+    "num_games": 40,
+    "mcts_simulations": 200,
+    "policy": "RulePolicy",
+    "desc_vec_dim": 443,
+    "wins": 0
+  },
+  "total_candidates": 6036,
+  "kind_distribution": {
+    "ACTION": {
+      "count": 547,
+      "ratio_pct": 9.06
+    },
+    "BOSS_RELIC": {
+      "count": 24,
+      "ratio_pct": 0.4
+    },
+    "CARD_REWARD": {
+      "count": 1647,
+      "ratio_pct": 27.29
+    },
+    "EVENT_OPTION": {
+      "count": 371,
+      "ratio_pct": 6.15
+    },
+    "MAP_NODE": {
+      "count": 848,
+      "ratio_pct": 14.05
+    },
+    "REST_OPTION": {
+      "count": 271,
+      "ratio_pct": 4.49
+    },
+    "REWARD": {
+      "count": 905,
+      "ratio_pct": 14.99
+    },
+    "SHOP_ITEM": {
+      "count": 401,
+      "ratio_pct": 6.64
+    },
+    "SKIP": {
+      "count": 946,
+      "ratio_pct": 15.67
+    },
+    "TREASURE": {
+      "count": 76,
+      "ratio_pct": 1.26
+    }
+  },
+  "potion_seg": {
+    "global_activation_pct": 7.11,
+    "per_kind": {
+      "ACTION": {
+        "count": 547,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "BOSS_RELIC": {
+        "count": 24,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "CARD_REWARD": {
+        "count": 1647,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "EVENT_OPTION": {
+        "count": 371,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "MAP_NODE": {
+        "count": 848,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "REST_OPTION": {
+        "count": 271,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "REWARD": {
+        "count": 905,
+        "nz": 330,
+        "activation_pct": 36.46
+      },
+      "SHOP_ITEM": {
+        "count": 401,
+        "nz": 99,
+        "activation_pct": 24.69
+      },
+      "SKIP": {
+        "count": 946,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "TREASURE": {
+        "count": 76,
+        "nz": 0,
+        "activation_pct": 0.0
+      }
+    }
+  },
+  "relic_seg": {
+    "global_activation_pct": 3.15,
+    "per_kind": {
+      "ACTION": {
+        "count": 547,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "BOSS_RELIC": {
+        "count": 24,
+        "nz": 18,
+        "activation_pct": 75.0
+      },
+      "CARD_REWARD": {
+        "count": 1647,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "EVENT_OPTION": {
+        "count": 371,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "MAP_NODE": {
+        "count": 848,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "REST_OPTION": {
+        "count": 271,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "REWARD": {
+        "count": 905,
+        "nz": 124,
+        "activation_pct": 13.7
+      },
+      "SHOP_ITEM": {
+        "count": 401,
+        "nz": 48,
+        "activation_pct": 11.97
+      },
+      "SKIP": {
+        "count": 946,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "TREASURE": {
+        "count": 76,
+        "nz": 0,
+        "activation_pct": 0.0
+      }
+    }
+  },
+  "event_seg": {
+    "global_activation_pct": 5.65,
+    "per_kind": {
+      "ACTION": {
+        "count": 547,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "BOSS_RELIC": {
+        "count": 24,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "CARD_REWARD": {
+        "count": 1647,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "EVENT_OPTION": {
+        "count": 371,
+        "nz": 341,
+        "activation_pct": 91.91
+      },
+      "MAP_NODE": {
+        "count": 848,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "REST_OPTION": {
+        "count": 271,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "REWARD": {
+        "count": 905,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "SHOP_ITEM": {
+        "count": 401,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "SKIP": {
+        "count": 946,
+        "nz": 0,
+        "activation_pct": 0.0
+      },
+      "TREASURE": {
+        "count": 76,
+        "nz": 0,
+        "activation_pct": 0.0
+      }
+    }
+  },
+  "label_deprecated": {
+    "global": 100.0,
+    "per_kind": {
+      "ACTION": {
+        "count": 547,
+        "hex": 547,
+        "pct": 100.0
+      },
+      "BOSS_RELIC": {
+        "count": 24,
+        "hex": 24,
+        "pct": 100.0
+      },
+      "CARD_REWARD": {
+        "count": 1647,
+        "hex": 1647,
+        "pct": 100.0
+      },
+      "EVENT_OPTION": {
+        "count": 371,
+        "hex": 371,
+        "pct": 100.0
+      },
+      "MAP_NODE": {
+        "count": 848,
+        "hex": 848,
+        "pct": 100.0
+      },
+      "REST_OPTION": {
+        "count": 271,
+        "hex": 271,
+        "pct": 100.0
+      },
+      "REWARD": {
+        "count": 905,
+        "hex": 905,
+        "pct": 100.0
+      },
+      "SHOP_ITEM": {
+        "count": 401,
+        "hex": 401,
+        "pct": 100.0
+      },
+      "SKIP": {
+        "count": 946,
+        "hex": 946,
+        "pct": 100.0
+      },
+      "TREASURE": {
+        "count": 76,
+        "hex": 76,
+        "pct": 100.0
+      }
+    }
+  },
+  "label_hash_redundancy": {
+    "card_nonzero_total": 1628,
+    "card_nonzero_and_label_nonzero": 1628,
+    "card_nonzero_and_label_nonzero_pct": 100.0,
+    "kb_all_zero_and_card_zero_total": 3448,
+    "kb_all_zero_and_card_zero_and_label_nonzero": 3448,
+    "kb_all_zero_and_card_zero_and_label_nonzero_pct": 100.0,
+    "kb_all_zero_and_card_zero_and_num_nonzero": 2919,
+    "kb_all_zero_and_card_zero_and_num_nonzero_pct": 84.66
+  },
+  "content_names": {
+    "potion_names_sorted": [
+      "Ancient Potion",
+      "Attack Potion",
+      "Blessing Of The Forge",
+      "Block Potion",
+      "Blood Potion",
+      "Colorless Potion",
+      "Cultist Potion",
+      "Dexterity Potion",
+      "Distilled Chaos",
+      "Duplication Potion",
+      "Elixir Potion",
+      "Energy Potion",
+      "Essence Of Steel",
+      "Explosive Potion",
+      "Fairy Potion",
+      "Fear Potion",
+      "Fire Potion",
+      "Flex Potion",
+      "Fruit Juice",
+      "Gamblers Brew",
+      "Heart Of Iron",
+      "Liquid Bronze",
+      "Liquid Memories",
+      "Power Potion",
+      "Regen Potion",
+      "Skill Potion",
+      "Smoke Bomb",
+      "Snecko Oil",
+      "Speed Potion",
+      "Strength Potion",
+      "Swift Potion",
+      "Weak Potion"
+    ],
+    "relic_names_sorted": [
+      "Akabeko",
+      "Anchor",
+      "Ancient Tea Set",
+      "Art Of War",
+      "Astrolabe",
+      "Bag Of Preparation",
+      "Black Blood",
+      "Black Star",
+      "Blood Vial",
+      "Blue Candle",
+      "Bronze Scales",
+      "Calipers",
+      "Captains Wheel",
+      "Centennial Puzzle",
+      "Ceramic Fish",
+      "Champion Belt",
+      "Chemical X",
+      "Clockwork Souvenir",
+      "Coffee Dripper",
+      "Darkstone Periapt",
+      "Dollys Mirror",
+      "Dream Catcher",
+      "Eternal Feather",
+      "Frozen Egg",
+      "Fusion Hammer",
+      "Gremlin Horn",
+      "Hand Drill",
+      "Happy Flower",
+      "Horn Cleat",
+      "Kunai",
+      "Lantern",
+      "Lees Waffle",
+      "Magic Flower",
+      "Mark Of Pain",
+      "Matryoshka",
+      "Maw Bank",
+      "Meat On The Bone",
+      "Medical Kit",
+      "Mummified Hand",
+      "Nilrys Codex",
+      "Odd Mushroom",
+      "Oddly Smooth Stone",
+      "Omamori",
+      "Orange Pellets",
+      "Orichalcum",
+      "Orrery",
+      "Pantograph",
+      "Paper Phrog",
+      "Peace Pipe",
+      "Pear",
+      "Pen Nib",
+      "Potion Belt",
+      "Preserved Insect",
+      "Prismatic Shard",
+      "Red Skull",
+      "Regal Pillow",
+      "Runic Cube",
+      "Runic Pyramid",
+      "Self Forming Clay",
+      "Singing Bowl",
+      "Slavers Collar",
+      "Sling Of Courage",
+      "Snecko Eye",
+      "Sozu",
+      "Strange Spoon",
+      "Strike Dummy",
+      "Sundial",
+      "The Boot",
+      "The Courier",
+      "Thread And Needle",
+      "Tiny Chest",
+      "Tiny House",
+      "Toolbox",
+      "Toxic Egg",
+      "Toy Ornithopter",
+      "Unceasing Top",
+      "Vajra",
+      "Velvet Choker",
+      "War Paint",
+      "White Beast Statue"
+    ],
+    "event_names_sorted": [
+      "Big Fish",
+      "Cursed Tome",
+      "Dead Adventurer",
+      "Face Trader",
+      "Forgotten Altar",
+      "Golden Idol",
+      "Golden Shrine",
+      "Hypnotizing Colored Mushrooms",
+      "Living Wall",
+      "NEOW",
+      "Note For Yourself",
+      "Old Beggar",
+      "Ominous Forge",
+      "Purifier",
+      "Scrap Ooze",
+      "Shining Light",
+      "The Cleric",
+      "The Ssssserpent",
+      "The Woman in Blue",
+      "Transmorgrifier",
+      "Upgrade Shrine",
+      "We Meet Again!",
+      "Wheel of Change",
+      "Wing Statue",
+      "World of Goop"
+    ],
+    "potion_name_count": 32,
+    "relic_name_count": 80,
+    "event_name_count": 25,
+    "potion_name_but_kb_zero": 9,
+    "relic_name_but_kb_zero": 0,
+    "event_name_but_kb_zero": 30,
+    "potion_zero_but_name": 0,
+    "relic_zero_but_name": 0,
+    "potion_names_missed_in_kb": [
+      "Elixir Potion",
+      "Fairy Potion"
+    ],
+    "relic_names_missed_in_kb": [],
+    "event_names_missed_in_kb": [
+      "Cursed Tome",
+      "Old Beggar",
+      "Transmorgrifier"
+    ]
+  },
+  "name_none": {
+    "potion_applicable": 438,
+    "potion_applicable_none": 0,
+    "potion_applicable_none_pct": 0.0,
+    "relic_applicable": 196,
+    "relic_applicable_none": 6,
+    "relic_applicable_none_pct": 3.06,
+    "event_applicable": 371,
+    "event_applicable_none": 0,
+    "event_applicable_none_pct": 0.0
+  },
+  "kb_unqueried": {
+    "potion_kb_total": 33,
+    "potion_queried": 30,
+    "potion_never_queried": 3,
+    "relic_kb_total": 180,
+    "relic_queried": 80,
+    "relic_never_queried": 100,
+    "event_kb_total": 43,
+    "event_queried": 22,
+    "event_never_queried": 21
+  },
+  "segment_zero_global_pct": {
+    "potion": 92.89,
+    "relic": 96.85,
+    "event": 94.35
+  },
+  "games": [
+    {
+      "game": 0,
+      "seed": 1000,
+      "steps": 58,
+      "candidates": 201,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 1,
+      "seed": 1007,
+      "steps": 73,
+      "candidates": 247,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 2,
+      "seed": 1014,
+      "steps": 42,
+      "candidates": 139,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 3,
+      "seed": 1021,
+      "steps": 62,
+      "candidates": 195,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 4,
+      "seed": 1028,
+      "steps": 51,
+      "candidates": 161,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 5,
+      "seed": 1035,
+      "steps": 24,
+      "candidates": 84,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 6,
+      "seed": 1042,
+      "steps": 25,
+      "candidates": 81,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 7,
+      "seed": 1049,
+      "steps": 46,
+      "candidates": 151,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 8,
+      "seed": 1056,
+      "steps": 42,
+      "candidates": 139,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 9,
+      "seed": 1063,
+      "steps": 49,
+      "candidates": 173,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 10,
+      "seed": 1070,
+      "steps": 48,
+      "candidates": 139,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 11,
+      "seed": 1077,
+      "steps": 28,
+      "candidates": 77,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 12,
+      "seed": 1084,
+      "steps": 57,
+      "candidates": 199,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 13,
+      "seed": 1091,
+      "steps": 57,
+      "candidates": 183,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 14,
+      "seed": 1098,
+      "steps": 44,
+      "candidates": 140,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 15,
+      "seed": 1105,
+      "steps": 41,
+      "candidates": 155,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 16,
+      "seed": 1112,
+      "steps": 31,
+      "candidates": 93,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 17,
+      "seed": 1119,
+      "steps": 46,
+      "candidates": 137,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 18,
+      "seed": 1126,
+      "steps": 43,
+      "candidates": 127,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 19,
+      "seed": 1133,
+      "steps": 43,
+      "candidates": 148,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 20,
+      "seed": 1140,
+      "steps": 46,
+      "candidates": 134,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 21,
+      "seed": 1147,
+      "steps": 46,
+      "candidates": 150,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 22,
+      "seed": 1154,
+      "steps": 52,
+      "candidates": 170,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 23,
+      "seed": 1161,
+      "steps": 44,
+      "candidates": 124,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 24,
+      "seed": 1168,
+      "steps": 43,
+      "candidates": 152,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 25,
+      "seed": 1175,
+      "steps": 57,
+      "candidates": 187,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 26,
+      "seed": 1182,
+      "steps": 48,
+      "candidates": 146,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 27,
+      "seed": 1189,
+      "steps": 36,
+      "candidates": 120,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 28,
+      "seed": 1196,
+      "steps": 54,
+      "candidates": 171,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 29,
+      "seed": 1203,
+      "steps": 52,
+      "candidates": 179,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 30,
+      "seed": 1210,
+      "steps": 43,
+      "candidates": 132,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 31,
+      "seed": 1217,
+      "steps": 49,
+      "candidates": 149,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 32,
+      "seed": 1224,
+      "steps": 31,
+      "candidates": 102,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 33,
+      "seed": 1231,
+      "steps": 47,
+      "candidates": 156,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 34,
+      "seed": 1238,
+      "steps": 43,
+      "candidates": 138,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 35,
+      "seed": 1245,
+      "steps": 56,
+      "candidates": 186,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 36,
+      "seed": 1252,
+      "steps": 54,
+      "candidates": 161,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 37,
+      "seed": 1259,
+      "steps": 61,
+      "candidates": 203,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 38,
+      "seed": 1266,
+      "steps": 64,
+      "candidates": 218,
+      "outcome": "PLAYER_LOSS"
+    },
+    {
+      "game": 39,
+      "seed": 1273,
+      "steps": 25,
+      "candidates": 89,
+      "outcome": "PLAYER_LOSS"
+    }
+  ]
+}
