@@ -34,7 +34,24 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
-_HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _find_project_root(start):
+    """从 start 向上逐级查找含 .git 的目录作为项目根。
+
+    本脚本已移入 scripts/probes/，不能再假设 __file__ 所在即项目根；
+    根目录下才有 logs/、checkpoints/ 与可导入的包。
+    """
+    d = os.path.dirname(os.path.abspath(start))
+    while not os.path.isdir(os.path.join(d, ".git")):
+        parent = os.path.dirname(d)
+        if parent == d:            # 到盘根仍未找到，退回脚本所在目录
+            return os.path.dirname(os.path.abspath(start))
+        d = parent
+    return d
+
+
+_HERE = _find_project_root(__file__)   # 项目根（含 logs/、checkpoints/）
 sys.path.insert(0, _HERE)
 
 import numpy as np
@@ -42,8 +59,8 @@ import numpy as np
 from evaluation.evaluate import GreedyScorerPolicy, make_eval_seeds
 
 MODELS = [
-    ("checkpoints/v10_scratch.pt", "E1"),    # 无塑形基线
-    ("checkpoints/v11_shaped.pt", "V11"),    # 有塑形
+    (os.path.join(_HERE, "checkpoints", "v10_scratch.pt"), "E1"),   # 无塑形基线
+    (os.path.join(_HERE, "checkpoints", "v11_shaped.pt"), "V11"),   # 有塑形
 ]
 N = int(os.environ.get("N_SEEDS", "60"))
 MCTS = int(os.environ.get("MCTS", "20000"))

@@ -23,7 +23,24 @@ import sys
 import time
 
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
-_HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _find_project_root(start):
+    """从 start 向上逐级查找含 .git 的目录作为项目根。
+
+    本脚本已移入 scripts/probes/，不能再假设 __file__ 所在即项目根；
+    根目录下才有 logs/（含 realtime/、mcts_budget_probe.json）与 combat_beam 包。
+    """
+    d = os.path.dirname(os.path.abspath(start))
+    while not os.path.isdir(os.path.join(d, ".git")):
+        parent = os.path.dirname(d)
+        if parent == d:            # 到盘根仍未找到，退回脚本所在目录
+            return os.path.dirname(os.path.abspath(start))
+        d = parent
+    return d
+
+
+_HERE = _find_project_root(__file__)   # 项目根（含 logs/）
 sys.path.insert(0, _HERE)
 
 import slaythespire as sts

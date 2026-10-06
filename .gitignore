@@ -30,3 +30,7 @@ _tmp_*.log
 _tmp_*.txt
 *.pyd.bak*
 data/self_play/
+
+# 临时探针脚本（历史遗留，已归位到 scripts/probes/）
+_tmp_*.py
+tmp_*.py

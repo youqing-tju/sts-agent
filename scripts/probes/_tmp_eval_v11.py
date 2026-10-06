@@ -15,7 +15,25 @@ import sys
 import time
 
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
-sys.path.insert(0, os.getcwd())
+
+
+def _find_project_root(start):
+    """从 start 向上逐级查找含 .git 的目录作为项目根。
+
+    本脚本已移入 scripts/probes/，不能再依赖 CWD；
+    根目录下才有可导入的包与 checkpoints/、logs/。
+    """
+    d = os.path.dirname(os.path.abspath(start))
+    while not os.path.isdir(os.path.join(d, ".git")):
+        parent = os.path.dirname(d)
+        if parent == d:            # 到盘根仍未找到，退回脚本所在目录
+            return os.path.dirname(os.path.abspath(start))
+        d = parent
+    return d
+
+
+_ROOT = _find_project_root(__file__)   # 项目根（含 checkpoints/、logs/）
+sys.path.insert(0, _ROOT)
 
 import numpy as np
 
@@ -26,9 +44,9 @@ MCTS = int(os.environ.get("MCTS", "20000"))
 WORKERS = int(os.environ.get("WORKERS", "8"))
 
 CKPTS = [
-    ("checkpoints/v10_scratch.pt", "E1基线(从零7984局,无塑形)"),
-    ("checkpoints/v11_shaped.pt", "V11塑形(8000局,up/relic=1.0)"),
-    ("checkpoints/v11_shaped_g6000.pt", "V11_g6000快照"),
+    (os.path.join(_ROOT, "checkpoints", "v10_scratch.pt"), "E1基线(从零7984局,无塑形)"),
+    (os.path.join(_ROOT, "checkpoints", "v11_shaped.pt"), "V11塑形(8000局,up/relic=1.0)"),
+    (os.path.join(_ROOT, "checkpoints", "v11_shaped_g6000.pt"), "V11_g6000快照"),
 ]
 
 
@@ -71,10 +89,11 @@ def main():
             print(f"  {nm:<32} 楼层差 {d.mean():+6.2f} (SE {se:.2f}, t={t:+.2f}) | "
                   f"通关率 {wn*100:+.1f}pp | 胜 {int((d > 0).sum())} / 负 {int((d < 0).sum())}")
 
-    os.makedirs("logs", exist_ok=True)
+    os.makedirs(os.path.join(_ROOT, "logs"), exist_ok=True)
     json.dump({"n_seeds": N_SEEDS, "mcts_sim": MCTS, "results": out},
-              open("logs/v11_vs_e1_eval.json", "w", encoding="utf-8"), indent=1)
-    print("\n已保存 logs/v11_vs_e1_eval.json")
+              open(os.path.join(_ROOT, "logs", "v11_vs_e1_eval.json"), "w", encoding="utf-8"),
+              indent=1)
+    print("已保存 " + os.path.join(_ROOT, "logs", "v11_vs_e1_eval.json"))
 
 
 if __name__ == "__main__":
