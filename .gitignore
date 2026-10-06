@@ -24,3 +24,9 @@ data/human_bc/
 
 # 外部参考源码（CombatSolver / RandomForeseer，只读，勿提交）
 reference/
+
+# 探针临时日志 / DLL 历史备份 / 自对弈数据（体积大，不入库）
+_tmp_*.log
+_tmp_*.txt
+*.pyd.bak*
+data/self_play/
