@@ -12,6 +12,12 @@ checkpoints/
 # —— 此前用 `logs/` 整目录忽略，导致所有诊断报告从未被提交（只在工作区，有丢失风险）。
 logs/*
 !logs/*.md
+# 关键实验原始数据（体积小、被分析报告直接引用）——显式白名单，不用 !logs/*.json 通配
+# （通配会一并放行 dim_ablation.json 等 8MB+ 的探针原始数据与临时文件）
+!logs/beam_vs_mcts.json
+!logs/kb_coverage_probe.json
+!logs/shaping_causal.json
+!logs/v11_vs_e1_eval.json
 
 # 运行时产物（每次运行重生，不入库）
 sts_agent_debug.log
@@ -31,6 +37,8 @@ _tmp_*.txt
 *.pyd.bak*
 data/self_play/
 
-# 临时探针脚本（历史遗留，已归位到 scripts/probes/）
-_tmp_*.py
-tmp_*.py
+# 根目录的临时探针脚本（防止再次堆积到根目录）
+# ⚠️ 用前导 `/` 限定为根目录：scripts/probes/ 下已归档的历史探针脚本**要被跟踪**，
+#    此前写成 `_tmp_*.py` 无前导斜杠，会按文件名匹配到任意层级、误伤归档脚本。
+/_tmp_*.py
+/tmp_*.py
