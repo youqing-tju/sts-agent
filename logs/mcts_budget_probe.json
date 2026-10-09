@@ -1,0 +1,1374 @@
+[
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 5,
+  "turn": 1,
+  "energy": 3,
+  "hp": 80,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 4",
+   "8000": "PLAY 1",
+   "50000": "PLAY 1",
+   "200000": "PLAY 1"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'defend_red')": 12,
+   "('CARD', 'strike_red')": 4
+  },
+  "ms": {
+   "2000": 305.9,
+   "8000": 1183.6,
+   "50000": 8842.9,
+   "200000": 23170.8
+  },
+  "stability": {
+   "winners": [
+    "('CARD', 'defend_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'defend_red')",
+    "('CARD', 'strike_red')"
+   ],
+   "consistent": false,
+   "agreement": 0.6
+  },
+  "elapsed_s": 67.6
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 12,
+  "turn": 2,
+  "energy": 0,
+  "hp": 79,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "OFFERING",
+    "cost": 0,
+    "playable": false
+   },
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "END",
+   "8000": "END",
+   "50000": "END",
+   "200000": "END"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('END_TURN', 'END_TURN')": 14,
+   "('CARD', 'offering')": 2
+  },
+  "ms": {
+   "2000": 187.4,
+   "8000": 702.7,
+   "50000": 2833.3,
+   "200000": 7923.2
+  },
+  "stability": {
+   "winners": [
+    "('END_TURN', 'END_TURN')",
+    "('END_TURN', 'END_TURN')",
+    "('END_TURN', 'END_TURN')",
+    "('END_TURN', 'END_TURN')",
+    "('END_TURN', 'END_TURN')"
+   ],
+   "consistent": true,
+   "agreement": 1.0
+  },
+  "elapsed_s": 25.1
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 27,
+  "turn": 1,
+  "energy": 3,
+  "hp": 80,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "OFFERING",
+    "cost": 0,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 3 0",
+   "8000": "PLAY 3 0",
+   "50000": "PLAY 3 0",
+   "200000": "PLAY 3 0"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'defend_red')": 5,
+   "('CARD', 'strike_red')": 11
+  },
+  "ms": {
+   "2000": 234.3,
+   "8000": 917.9,
+   "50000": 5753.5,
+   "200000": 23479.5
+  },
+  "stability": {
+   "winners": [
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')"
+   ],
+   "consistent": true,
+   "agreement": 1.0
+  },
+  "elapsed_s": 59.2
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 116,
+  "turn": 4,
+  "energy": 0,
+  "hp": 59,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   },
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": null,
+   "8000": null,
+   "50000": null
+  },
+  "end_with_playable": null,
+  "votes": {
+   "('POTION', 'POTION')": 12,
+   "('END_TURN', 'END_TURN')": 4
+  },
+  "ms": {
+   "2000": 77.3,
+   "8000": 299.2,
+   "50000": 1821.2
+  },
+  "stability": {
+   "winners": [
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')"
+   ],
+   "consistent": true,
+   "agreement": 1.0
+  },
+  "elapsed_s": 11.5
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 6,
+  "turn": 1,
+  "energy": 2,
+  "hp": 80,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 1",
+   "8000": "PLAY 1",
+   "50000": "PLAY 1"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'defend_red')": 11,
+   "('CARD', 'strike_red')": 5
+  },
+  "ms": {
+   "2000": 305.3,
+   "8000": 1218.4,
+   "50000": 5643.5
+  },
+  "stability": {
+   "winners": [
+    "('CARD', 'defend_red')",
+    "('CARD', 'defend_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'defend_red')"
+   ],
+   "consistent": false,
+   "agreement": 0.6
+  },
+  "elapsed_s": 35.8
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 144,
+  "turn": 5,
+  "energy": 0,
+  "hp": 36,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "BLOOD_FOR_BLOOD",
+    "cost": 0,
+    "playable": false
+   },
+   {
+    "id": "WOUND",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "POTION Use 1",
+   "8000": "POTION Use 1",
+   "50000": "PLAY 1 0"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'blood_for_blood')": 9,
+   "('POTION', 'POTION')": 6,
+   "('END_TURN', 'END_TURN')": 1
+  },
+  "ms": {
+   "2000": 292.4,
+   "8000": 1155.6,
+   "50000": 7359.8
+  },
+  "stability": {
+   "winners": [
+    "('CARD', 'blood_for_blood')",
+    "('POTION', 'POTION')",
+    "('CARD', 'blood_for_blood')",
+    "('CARD', 'blood_for_blood')",
+    "('POTION', 'POTION')"
+   ],
+   "consistent": false,
+   "agreement": 0.6
+  },
+  "elapsed_s": 45.8
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 28,
+  "turn": 1,
+  "energy": 2,
+  "hp": 80,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "OFFERING",
+    "cost": 0,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 2",
+   "8000": "PLAY 3 1",
+   "50000": "PLAY 1 0"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'defend_red')": 7,
+   "('CARD', 'strike_red')": 9
+  },
+  "ms": {
+   "2000": 213.9,
+   "8000": 832.5,
+   "50000": 5293.9
+  },
+  "stability": {
+   "winners": [
+    "('CARD', 'strike_red')",
+    "('CARD', 'defend_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')"
+   ],
+   "consistent": false,
+   "agreement": 0.8
+  },
+  "elapsed_s": 32.5
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 240,
+  "turn": 2,
+  "energy": 0,
+  "hp": 76,
+  "monster_count": 3,
+  "hand": [
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   },
+   {
+    "id": "WOUND",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": null,
+   "8000": "POTION Use 1",
+   "50000": null
+  },
+  "end_with_playable": null,
+  "votes": {
+   "('POTION', 'POTION')": 16
+  },
+  "ms": {
+   "2000": 457.7,
+   "8000": 1868.5,
+   "50000": 12043.9
+  },
+  "stability": {
+   "winners": [
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')"
+   ],
+   "consistent": true,
+   "agreement": 1.0
+  },
+  "elapsed_s": 74.3
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 7,
+  "turn": 1,
+  "energy": 1,
+  "hp": 80,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 2 0",
+   "8000": "PLAY 2 0",
+   "50000": "PLAY 2 0"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'strike_red')": 12,
+   "('CARD', 'defend_red')": 4
+  },
+  "ms": {
+   "2000": 300.0,
+   "8000": 1124.1,
+   "50000": 5480.6
+  },
+  "stability": {
+   "winners": [
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')",
+    "('CARD', 'strike_red')"
+   ],
+   "consistent": true,
+   "agreement": 1.0
+  },
+  "elapsed_s": 34.4
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 145,
+  "turn": 5,
+  "energy": 0,
+  "hp": 36,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "WOUND",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": null,
+   "8000": null,
+   "50000": "END"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('END_TURN', 'END_TURN')": 8,
+   "('POTION', 'POTION')": 8
+  },
+  "ms": {
+   "2000": 279.2,
+   "8000": 1121.1,
+   "50000": 7066.9
+  },
+  "stability": {
+   "winners": [
+    "('END_TURN', 'END_TURN')",
+    "('POTION', 'POTION')",
+    "('POTION', 'POTION')",
+    "('END_TURN', 'END_TURN')",
+    "('POTION', 'POTION')"
+   ],
+   "consistent": false,
+   "agreement": 0.6
+  },
+  "elapsed_s": 43.8
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 29,
+  "turn": 1,
+  "energy": 1,
+  "hp": 80,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "OFFERING",
+    "cost": 0,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 1 1",
+   "8000": "PLAY 1 1",
+   "50000": "PLAY 1 1"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('END_TURN', 'END_TURN')": 3,
+   "('CARD', 'strike_red')": 13
+  },
+  "ms": {
+   "2000": 204.7,
+   "8000": 806.8,
+   "50000": 4989.4
+  },
+  "stability": null,
+  "elapsed_s": 6.0
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 247,
+  "turn": 4,
+  "energy": 1,
+  "hp": 59,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "POTION Use 1",
+   "8000": "POTION Use 1",
+   "50000": null
+  },
+  "end_with_playable": null,
+  "votes": {
+   "('POTION', 'POTION')": 16
+  },
+  "ms": {
+   "2000": 339.9,
+   "8000": 1405.8,
+   "50000": 8437.2
+  },
+  "stability": null,
+  "elapsed_s": 10.2
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 8,
+  "turn": 1,
+  "energy": 0,
+  "hp": 80,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "END",
+   "8000": "END",
+   "50000": "END"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('END_TURN', 'END_TURN')": 16
+  },
+  "ms": {
+   "2000": 270.4,
+   "8000": 1014.4,
+   "50000": 4982.0
+  },
+  "stability": null,
+  "elapsed_s": 6.3
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 152,
+  "turn": 7,
+  "energy": 0,
+  "hp": 35,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "BURN",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "WOUND",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "END",
+   "8000": null,
+   "50000": null
+  },
+  "end_with_playable": null,
+  "votes": {
+   "('POTION', 'POTION')": 8,
+   "('END_TURN', 'END_TURN')": 8
+  },
+  "ms": {
+   "2000": 133.6,
+   "8000": 521.6,
+   "50000": 3202.9
+  },
+  "stability": null,
+  "elapsed_s": 3.9
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 30,
+  "turn": 1,
+  "energy": 0,
+  "hp": 80,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "OFFERING",
+    "cost": 0,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "END",
+   "8000": "END",
+   "50000": "END"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('END_TURN', 'END_TURN')": 16
+  },
+  "ms": {
+   "2000": 169.7,
+   "8000": 671.3,
+   "50000": 4149.9
+  },
+  "stability": null,
+  "elapsed_s": 5.0
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 250,
+  "turn": 5,
+  "energy": 1,
+  "hp": 50,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "WOUND",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": null,
+   "8000": null,
+   "50000": null
+  },
+  "end_with_playable": null,
+  "votes": {
+   "('POTION', 'POTION')": 13,
+   "('END_TURN', 'END_TURN')": 3
+  },
+  "ms": {
+   "2000": 288.5,
+   "8000": 1164.3,
+   "50000": 7303.3
+  },
+  "stability": null,
+  "elapsed_s": 8.8
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 9,
+  "turn": 2,
+  "energy": 3,
+  "hp": 79,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "OFFERING",
+    "cost": 0,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 4 0",
+   "8000": "PLAY 4 0",
+   "50000": "PLAY 4 0"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'strike_red')": 10,
+   "('CARD', 'bash')": 5,
+   "('CARD', 'offering')": 1
+  },
+  "ms": {
+   "2000": 243.7,
+   "8000": 919.1,
+   "50000": 3878.0
+  },
+  "stability": null,
+  "elapsed_s": 5.0
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 674,
+  "turn": 7,
+  "energy": 0,
+  "hp": 58,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   },
+   {
+    "id": "INJURY",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "POTION Use 1",
+   "8000": "POTION Use 1",
+   "50000": "POTION Use 1"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('END_TURN', 'END_TURN')": 2,
+   "('POTION', 'POTION')": 14
+  },
+  "ms": {
+   "2000": 163.1,
+   "8000": 617.4,
+   "50000": 3498.2
+  },
+  "stability": null,
+  "elapsed_s": 4.3
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 31,
+  "turn": 2,
+  "energy": 3,
+  "hp": 79,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 5",
+   "8000": "PLAY 5",
+   "50000": "PLAY 5"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'defend_red')": 9,
+   "('CARD', 'strike_red')": 7
+  },
+  "ms": {
+   "2000": 153.1,
+   "8000": 596.0,
+   "50000": 3573.3
+  },
+  "stability": null,
+  "elapsed_s": 4.3
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 254,
+  "turn": 6,
+  "energy": 0,
+  "hp": 46,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "WOUND",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "POTION Use 1",
+   "8000": "POTION Use 1",
+   "50000": "POTION Use 1"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('POTION', 'POTION')": 16
+  },
+  "ms": {
+   "2000": 178.2,
+   "8000": 694.0,
+   "50000": 4021.4
+  },
+  "stability": null,
+  "elapsed_s": 4.9
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 10,
+  "turn": 2,
+  "energy": 2,
+  "hp": 79,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "OFFERING",
+    "cost": 0,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 4 0",
+   "8000": "PLAY 3 0",
+   "50000": "PLAY 4 0"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'bash')": 7,
+   "('CARD', 'strike_red')": 8,
+   "('CARD', 'offering')": 1
+  },
+  "ms": {
+   "2000": 234.4,
+   "8000": 841.8,
+   "50000": 3562.2
+  },
+  "stability": null,
+  "elapsed_s": 4.6
+ },
+ {
+  "file": "0911_022209_states.jsonl",
+  "frame_idx": 553,
+  "turn": 1,
+  "energy": 1,
+  "hp": 34,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "INJURY",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "END",
+   "8000": "END",
+   "50000": "END"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('END_TURN', 'END_TURN')": 8,
+   "('POTION', 'POTION')": 8
+  },
+  "ms": {
+   "2000": 169.0,
+   "8000": 687.7,
+   "50000": 4184.4
+  },
+  "stability": null,
+  "elapsed_s": 5.0
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 32,
+  "turn": 2,
+  "energy": 2,
+  "hp": 79,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 3",
+   "8000": "PLAY 3",
+   "50000": "PLAY 3"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'defend_red')": 9,
+   "('CARD', 'strike_red')": 7
+  },
+  "ms": {
+   "2000": 148.9,
+   "8000": 569.7,
+   "50000": 3566.0
+  },
+  "stability": null,
+  "elapsed_s": 4.3
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 263,
+  "turn": 8,
+  "energy": 0,
+  "hp": 37,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "WOUND",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "WOUND",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": null,
+   "8000": null,
+   "50000": null
+  },
+  "end_with_playable": null,
+  "votes": {
+   "('POTION', 'POTION')": 16
+  },
+  "ms": {
+   "2000": 16.1,
+   "8000": 61.3,
+   "50000": 380.6
+  },
+  "stability": null,
+  "elapsed_s": 0.5
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 11,
+  "turn": 2,
+  "energy": 1,
+  "hp": 79,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "OFFERING",
+    "cost": 0,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 2 0",
+   "8000": "PLAY 2 0",
+   "50000": "PLAY 2 0"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'strike_red')": 11,
+   "('CARD', 'offering')": 3,
+   "('END_TURN', 'END_TURN')": 2
+  },
+  "ms": {
+   "2000": 215.3,
+   "8000": 803.7,
+   "50000": 3328.7
+  },
+  "stability": null,
+  "elapsed_s": 4.4
+ },
+ {
+  "file": "0911_022209_states.jsonl",
+  "frame_idx": 567,
+  "turn": 4,
+  "energy": 0,
+  "hp": 28,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "INJURY",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": null,
+   "8000": null,
+   "50000": null
+  },
+  "end_with_playable": null,
+  "votes": {
+   "('POTION', 'POTION')": 11,
+   "('END_TURN', 'END_TURN')": 5
+  },
+  "ms": {
+   "2000": 114.7,
+   "8000": 428.6,
+   "50000": 2223.5
+  },
+  "stability": null,
+  "elapsed_s": 2.8
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 33,
+  "turn": 2,
+  "energy": 1,
+  "hp": 79,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "BASH",
+    "cost": 2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 2",
+   "8000": "PLAY 2",
+   "50000": "PLAY 2"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'defend_red')": 16
+  },
+  "ms": {
+   "2000": 127.4,
+   "8000": 485.7,
+   "50000": 3170.3
+  },
+  "stability": null,
+  "elapsed_s": 3.8
+ },
+ {
+  "file": "0911_013551_states.jsonl",
+  "frame_idx": 454,
+  "turn": 3,
+  "energy": 0,
+  "hp": 57,
+  "monster_count": 2,
+  "hand": [
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   },
+   {
+    "id": "DAZED",
+    "cost": -2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "END",
+   "8000": "END",
+   "50000": "END"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('END_TURN', 'END_TURN')": 16
+  },
+  "ms": {
+   "2000": 333.7,
+   "8000": 1342.6,
+   "50000": 8271.9
+  },
+  "stability": null,
+  "elapsed_s": 10.0
+ },
+ {
+  "file": "0911_001847_states.jsonl",
+  "frame_idx": 13,
+  "turn": 3,
+  "energy": 3,
+  "hp": 79,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "STRIKE_RED",
+    "cost": 1,
+    "playable": false
+   },
+   {
+    "id": "DEFEND_RED",
+    "cost": 1,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 5",
+   "8000": "PLAY 5",
+   "50000": "PLAY 5"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'defend_red')": 12,
+   "('CARD', 'strike_red')": 4
+  },
+  "ms": {
+   "2000": 205.5,
+   "8000": 819.6,
+   "50000": 4973.2
+  },
+  "stability": null,
+  "elapsed_s": 6.0
+ },
+ {
+  "file": "0911_022209_states.jsonl",
+  "frame_idx": 698,
+  "turn": 3,
+  "energy": 2,
+  "hp": 44,
+  "monster_count": 1,
+  "hand": [
+   {
+    "id": "SEVER_SOUL",
+    "cost": 2,
+    "playable": false
+   }
+  ],
+  "any_playable": false,
+  "cmd_by_sims": {
+   "2000": "PLAY 1 0",
+   "8000": "PLAY 1 0",
+   "50000": "PLAY 1 0"
+  },
+  "end_with_playable": false,
+  "votes": {
+   "('CARD', 'sever_soul')": 12,
+   "('POTION', 'POTION')": 4
+  },
+  "ms": {
+   "2000": 198.9,
+   "8000": 757.3,
+   "50000": 3801.8
+  },
+  "stability": null,
+  "elapsed_s": 4.8
+ }
+]

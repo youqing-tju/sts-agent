@@ -1,44 +1,73 @@
+# ============================================================
+#  .gitignore · sts-agent
+#  策略（2026-10-09 重做）：
+#    原则 = 按【文件类型】忽略，**不用「整目录忽略」**。
+#    原因 = 整目录被忽略时，git 不会遍历该目录，其内部的 `!` 白名单规则**失效**。
+#           此前用 `logs/*` 整目录忽略 → 23 份分析报告、11 个被报告引用的数据文件
+#           全部静默丢失（本地还在，但仓库里没有，clone 后证据链断裂）。
+#    目标 = ① clone 后**开箱可运行**  ② 分析报告的证据链**不断**
+# ============================================================
+
+# ---------- Python / 构建产物 ----------
 .venv/
 __pycache__/
 *.pyc
-build/
-logs/*.jsonl
-*.so
-*.pyd
-third_party/sts_lightspeed/build/
 .pytest_cache/
-checkpoints/
-# logs/：运行期日志（*.jsonl / 大体积原始数据）不入库，但**分析报告（*.md）必须入库**
-# —— 此前用 `logs/` 整目录忽略，导致所有诊断报告从未被提交（只在工作区，有丢失风险）。
-logs/*
-!logs/*.md
-# 关键实验原始数据（体积小、被分析报告直接引用）——显式白名单，不用 !logs/*.json 通配
-# （通配会一并放行 dim_ablation.json 等 8MB+ 的探针原始数据与临时文件）
-!logs/beam_vs_mcts.json
-!logs/kb_coverage_probe.json
-!logs/shaping_causal.json
-!logs/v11_vs_e1_eval.json
+build/
+*.so
 
-# 运行时产物（每次运行重生，不入库）
+# vendored 模拟器的编译中间产物（源码 + CMakeLists 已入库，可自行重建）
+third_party/sts_lightspeed/build/
+
+# ⚠️ 例外：模拟器编译产物【必须入库】
+#    否则 clone 后 `import slaythespire` 直接失败，测试与训练全部跑不起来。
+#    仅 1.9 MB，平台绑定明确：CPython 3.13 + Windows x64。
+*.pyd
+!slaythespire.cp313-win_amd64.pyd
+
+# ---------- 运行时产物（每次运行重生）----------
 sts_agent_debug.log
 last_state.json
 
-# 外部数据（人类 .run 数据集克隆；体积大、可按需重新拉取）
+# ---------- 体积大且可重建的数据 ----------
+# ⚠️ 注意：以下规则的**行尾不能写注释** —— .gitignore 只认行首的 `#`，
+#    行尾的 `#` 会让整行变成一个无效模式，规则**静默失效**（曾经因此误加 87 MB 权重）。
+# 模型权重（约 87 MB）—— 可由训练重现
+checkpoints/
+# 人类 .run 数据集（1507 个文件）—— 可重新下载
 data/external/
-# 由 training/human_data.py 重新生成的 BC 数据集
+# 由 training/human_data.py 重新生成
 data/human_bc/
-
-# 外部参考源码（CombatSolver / RandomForeseer，只读，勿提交）
+# 自对弈数据
+data/self_play/
+# 外部参考源码（约 65 MB）—— GitHub 可再 clone
 reference/
 
-# 探针临时日志 / DLL 历史备份 / 自对弈数据（体积大，不入库）
+# ---------- logs/ 数据策略 ----------
+# 【忽略】对局日志（3.9 万个 / 约 250 MB）、运行日志、临时文件、logs 下的权重
+logs/**/*.jsonl
+logs/**/*.log
+logs/**/*.txt
+logs/**/*.csv
+logs/**/*.tmp
+logs/**/*.pt
+
+# 【白名单】分析报告 / 被报告引用的数据 / 每个训练 run 的曲线 / 真机帧夹具
+!logs/*.md
+!logs/**/*.json
+!logs/**/training_curve.jsonl
+
+# 【再从白名单剔除】纯临时文件与旧版备份（无任何代码或文档引用）
+logs/_tmp_timing.json
+logs/_budget_tuning_backup.json
+logs/realtime/fixtures/main_at_runtime.py
+
+# ---------- 探针脚本的临时输出 ----------
 _tmp_*.log
 _tmp_*.txt
 *.pyd.bak*
-data/self_play/
 
 # 根目录的临时探针脚本（防止再次堆积到根目录）
-# ⚠️ 用前导 `/` 限定为根目录：scripts/probes/ 下已归档的历史探针脚本**要被跟踪**，
-#    此前写成 `_tmp_*.py` 无前导斜杠，会按文件名匹配到任意层级、误伤归档脚本。
+# ⚠️ 前导 `/` 限定根目录：scripts/probes/ 下已归档的历史探针脚本**要被跟踪**
 /_tmp_*.py
 /tmp_*.py

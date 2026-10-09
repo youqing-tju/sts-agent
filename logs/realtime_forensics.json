@@ -1,0 +1,1614 @@
+{
+  "runs": {
+    "0911_013551": {
+      "run": "0911_013551",
+      "n_combat_acts": 415,
+      "n_play": 323,
+      "n_end": 92,
+      "kind_degraded": {
+        "COMBAT|False": 333,
+        "-|True": 82
+      },
+      "end_kind_degraded": {
+        "-|True": 82,
+        "COMBAT|False": 10
+      },
+      "end_wasted_by_degraded": {
+        "COMBAT|False": 9,
+        "-|True": 7
+      },
+      "end_energy_wasted_playable": 16,
+      "end_energy_all_unplayable": 5,
+      "end_no_energy": 71,
+      "frame_turns_total": 119,
+      "frame_turns_wasted_playable": 35,
+      "card_top": [
+        [
+          "Strike_R",
+          113
+        ],
+        [
+          "Defend_R",
+          82
+        ],
+        [
+          "Bash",
+          25
+        ],
+        [
+          "Wild Strike",
+          16
+        ],
+        [
+          "Flex",
+          13
+        ],
+        [
+          "Thunderclap",
+          7
+        ],
+        [
+          "Sword Boomerang",
+          7
+        ],
+        [
+          "Headbutt",
+          7
+        ],
+        [
+          "Burning Pact",
+          6
+        ],
+        [
+          "Pommel Strike",
+          6
+        ],
+        [
+          "Dazed",
+          5
+        ],
+        [
+          "Havoc",
+          5
+        ],
+        [
+          "Blood for Blood",
+          4
+        ],
+        [
+          "Fire Breathing",
+          4
+        ],
+        [
+          "Disarm",
+          4
+        ],
+        [
+          "Wound",
+          3
+        ],
+        [
+          "Pummel",
+          3
+        ],
+        [
+          "Body Slam",
+          3
+        ],
+        [
+          "Heavy Blade",
+          3
+        ],
+        [
+          "Flame Barrier",
+          2
+        ]
+      ],
+      "debuff_ids_detected": {
+        "Bash": 25,
+        "Thunderclap": 7
+      },
+      "turns_with_both_atk_debuff": 28,
+      "debuff_order_positions": {
+        "1": 20,
+        "2": 8,
+        "3": 2,
+        "4": 1,
+        "5": 1
+      },
+      "debuff_median_position": 1.0,
+      "bash_first_n": 13,
+      "bash_after_n": 4,
+      "both_turn_examples": [
+        {
+          "tgid": 0,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Bash",
+            "Strike_R",
+            "Defend_R",
+            "Defend_R",
+            "Strike_R",
+            "Strike_R",
+            "Strike_R",
+            "Limit Break"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 3,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Thunderclap"
+          ],
+          "debuff_ids": [
+            "Bash",
+            "Thunderclap"
+          ]
+        },
+        {
+          "tgid": 4,
+          "turn": 5,
+          "seq": [
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 16,
+          "turn": 3,
+          "seq": [
+            "Thunderclap",
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Thunderclap",
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 17,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Wild Strike"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 18,
+          "turn": 5,
+          "seq": [
+            "Defend_R",
+            "Strike_R",
+            "Thunderclap",
+            "Blood for Blood"
+          ],
+          "debuff_ids": [
+            "Thunderclap"
+          ]
+        },
+        {
+          "tgid": 23,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Strike_R",
+            "Flex"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 25,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 28,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 31,
+          "turn": 2,
+          "seq": [
+            "Defend_R",
+            "Burning Pact",
+            "Strike_R",
+            "Defend_R",
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 39,
+          "turn": 6,
+          "seq": [
+            "Flex",
+            "Bash",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 40,
+          "turn": 7,
+          "seq": [
+            "Bash",
+            "Sword Boomerang"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        }
+      ],
+      "bash_vs_attack": [
+        {
+          "tgid": 0,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Bash",
+            "Strike_R",
+            "Defend_R",
+            "Defend_R",
+            "Strike_R",
+            "Strike_R",
+            "Strike_R",
+            "Limit Break"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 3,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Thunderclap"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 16,
+          "turn": 3,
+          "seq": [
+            "Thunderclap",
+            "Bash"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 17,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Wild Strike"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 23,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Strike_R",
+            "Flex"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 25,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 28,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 31,
+          "turn": 2,
+          "seq": [
+            "Defend_R",
+            "Burning Pact",
+            "Strike_R",
+            "Defend_R",
+            "Bash"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 39,
+          "turn": 6,
+          "seq": [
+            "Flex",
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 40,
+          "turn": 7,
+          "seq": [
+            "Bash",
+            "Sword Boomerang"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 51,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Sword Boomerang"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 57,
+          "turn": 2,
+          "seq": [
+            "Pommel Strike",
+            "Burning Pact",
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 61,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 69,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 86,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Bash",
+            "Strike_R",
+            "Bash",
+            "Defend_R"
+          ],
+          "first_bash": true
+        }
+      ],
+      "play_seq_examples": [
+        {
+          "tgid": 0,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Bash",
+            "Strike_R",
+            "Defend_R",
+            "Defend_R",
+            "Strike_R",
+            "Strike_R",
+            "Strike_R",
+            "Limit Break"
+          ]
+        },
+        {
+          "tgid": 1,
+          "turn": 2,
+          "seq": [
+            "Wild Strike",
+            "Strike_R",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 2,
+          "turn": 3,
+          "seq": [
+            "Strike_R",
+            "Strike_R",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 3,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Thunderclap"
+          ]
+        },
+        {
+          "tgid": 4,
+          "turn": 5,
+          "seq": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 5,
+          "turn": 1,
+          "seq": [
+            "Defend_R",
+            "Strike_R",
+            "Wild Strike"
+          ]
+        },
+        {
+          "tgid": 6,
+          "turn": 2,
+          "seq": [
+            "Blood for Blood"
+          ]
+        },
+        {
+          "tgid": 7,
+          "turn": 3,
+          "seq": [
+            "Defend_R",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 8,
+          "turn": 4,
+          "seq": [
+            "Blood for Blood"
+          ]
+        },
+        {
+          "tgid": 9,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Wild Strike",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 10,
+          "turn": 2,
+          "seq": [
+            "Defend_R",
+            "Fire Breathing",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 11,
+          "turn": 3,
+          "seq": [
+            "Defend_R",
+            "Strike_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 12,
+          "turn": 4,
+          "seq": [
+            "Defend_R",
+            "Defend_R",
+            "Wild Strike"
+          ]
+        },
+        {
+          "tgid": 13,
+          "turn": 5,
+          "seq": [
+            "Strike_R",
+            "Blood for Blood"
+          ]
+        },
+        {
+          "tgid": 14,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Strike_R",
+            "Wild Strike"
+          ]
+        }
+      ]
+    },
+    "0911_022209": {
+      "run": "0911_022209",
+      "n_combat_acts": 803,
+      "n_play": 622,
+      "n_end": 181,
+      "kind_degraded": {
+        "COMBAT|False": 642,
+        "-|True": 161
+      },
+      "end_kind_degraded": {
+        "-|True": 161,
+        "COMBAT|False": 20
+      },
+      "end_wasted_by_degraded": {
+        "-|True": 36,
+        "COMBAT|False": 11
+      },
+      "end_energy_wasted_playable": 47,
+      "end_energy_all_unplayable": 12,
+      "end_no_energy": 122,
+      "frame_turns_total": 221,
+      "frame_turns_wasted_playable": 48,
+      "card_top": [
+        [
+          "Strike_R",
+          163
+        ],
+        [
+          "Defend_R",
+          122
+        ],
+        [
+          "Bash",
+          44
+        ],
+        [
+          "Shrug It Off",
+          27
+        ],
+        [
+          "Pummel",
+          18
+        ],
+        [
+          "Inflame",
+          18
+        ],
+        [
+          "Pommel Strike",
+          16
+        ],
+        [
+          "Bloodletting",
+          15
+        ],
+        [
+          "Uppercut",
+          15
+        ],
+        [
+          "Flex",
+          14
+        ],
+        [
+          "Clothesline",
+          12
+        ],
+        [
+          "Heavy Blade",
+          11
+        ],
+        [
+          "Fiend Fire",
+          11
+        ],
+        [
+          "Warcry",
+          11
+        ],
+        [
+          "Reckless Charge",
+          10
+        ],
+        [
+          "Bludgeon",
+          9
+        ],
+        [
+          "Sever Soul",
+          9
+        ],
+        [
+          "Combust",
+          9
+        ],
+        [
+          "Second Wind",
+          8
+        ],
+        [
+          "Shockwave",
+          8
+        ]
+      ],
+      "debuff_ids_detected": {
+        "Bash": 44,
+        "Uppercut": 15,
+        "Clothesline": 12,
+        "Shockwave": 8,
+        "Intimidate": 1
+      },
+      "turns_with_both_atk_debuff": 65,
+      "debuff_order_positions": {
+        "1": 36,
+        "2": 25,
+        "3": 8,
+        "4": 5,
+        "5": 2,
+        "8": 1
+      },
+      "debuff_median_position": 2,
+      "bash_first_n": 18,
+      "bash_after_n": 9,
+      "both_turn_examples": [
+        {
+          "tgid": 0,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Bash",
+            "Pommel Strike",
+            "Strike_R",
+            "Pommel Strike",
+            "Pummel",
+            "Defend_R",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash",
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 1,
+          "turn": 2,
+          "seq": [
+            "Pommel Strike",
+            "Strike_R",
+            "Bash",
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash",
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 3,
+          "turn": 4,
+          "seq": [
+            "Strike_R",
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 5,
+          "turn": 6,
+          "seq": [
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 16,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 22,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Pommel Strike"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 24,
+          "turn": 5,
+          "seq": [
+            "Bash",
+            "Fiend Fire"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 44,
+          "turn": 4,
+          "seq": [
+            "Shrug It Off",
+            "Bash",
+            "Reckless Charge",
+            "Warcry"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 62,
+          "turn": 3,
+          "seq": [
+            "Demon Form",
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 75,
+          "turn": 4,
+          "seq": [
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 77,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 79,
+          "turn": 4,
+          "seq": [
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        }
+      ],
+      "bash_vs_attack": [
+        {
+          "tgid": 0,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Bash",
+            "Pommel Strike",
+            "Strike_R",
+            "Pommel Strike",
+            "Pummel",
+            "Defend_R",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 1,
+          "turn": 2,
+          "seq": [
+            "Pommel Strike",
+            "Strike_R",
+            "Bash",
+            "Bash"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 3,
+          "turn": 4,
+          "seq": [
+            "Strike_R",
+            "Bash"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 16,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Bash"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 22,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Pommel Strike"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 24,
+          "turn": 5,
+          "seq": [
+            "Bash",
+            "Fiend Fire"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 44,
+          "turn": 4,
+          "seq": [
+            "Shrug It Off",
+            "Bash",
+            "Reckless Charge",
+            "Warcry"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 77,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 82,
+          "turn": 3,
+          "seq": [
+            "Strike_R",
+            "Bash"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 86,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Bloodletting",
+            "Strike_R",
+            "Strike_R",
+            "Defend_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 92,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Strike_R",
+            "Bloodletting",
+            "Bloodletting"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 96,
+          "turn": 5,
+          "seq": [
+            "Bloodletting",
+            "Flex",
+            "Bash",
+            "Defend_R",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 99,
+          "turn": 2,
+          "seq": [
+            "Strike_R",
+            "Bash"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 103,
+          "turn": 6,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 114,
+          "turn": 6,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        }
+      ],
+      "play_seq_examples": [
+        {
+          "tgid": 0,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Bash",
+            "Pommel Strike",
+            "Strike_R",
+            "Pommel Strike",
+            "Pummel",
+            "Defend_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 1,
+          "turn": 2,
+          "seq": [
+            "Pommel Strike",
+            "Strike_R",
+            "Bash",
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 2,
+          "turn": 3,
+          "seq": [
+            "Strike_R",
+            "Defend_R",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 3,
+          "turn": 4,
+          "seq": [
+            "Strike_R",
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 4,
+          "turn": 5,
+          "seq": [
+            "Strike_R",
+            "Strike_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 5,
+          "turn": 6,
+          "seq": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 6,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Defend_R",
+            "Pummel"
+          ]
+        },
+        {
+          "tgid": 7,
+          "turn": 2,
+          "seq": [
+            "Heavy Blade",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 8,
+          "turn": 3,
+          "seq": [
+            "Pommel Strike",
+            "Strike_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 9,
+          "turn": 4,
+          "seq": [
+            "Strike_R",
+            "Defend_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 10,
+          "turn": 5,
+          "seq": [
+            "Heavy Blade"
+          ]
+        },
+        {
+          "tgid": 11,
+          "turn": 1,
+          "seq": [
+            "Fiend Fire"
+          ]
+        },
+        {
+          "tgid": 12,
+          "turn": 2,
+          "seq": [
+            "Defend_R",
+            "Defend_R",
+            "Rupture"
+          ]
+        },
+        {
+          "tgid": 13,
+          "turn": 3,
+          "seq": [
+            "Pommel Strike",
+            "Pummel",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 14,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Defend_R",
+            "Strike_R",
+            "Demon Form",
+            "Warcry"
+          ]
+        }
+      ]
+    },
+    "0911_025542": {
+      "run": "0911_025542",
+      "n_combat_acts": 225,
+      "n_play": 176,
+      "n_end": 49,
+      "kind_degraded": {
+        "COMBAT|False": 182,
+        "-|True": 43
+      },
+      "end_kind_degraded": {
+        "-|True": 43,
+        "COMBAT|False": 6
+      },
+      "end_wasted_by_degraded": {
+        "COMBAT|False": 3,
+        "-|True": 10
+      },
+      "end_energy_wasted_playable": 13,
+      "end_energy_all_unplayable": 0,
+      "end_no_energy": 36,
+      "frame_turns_total": 62,
+      "frame_turns_wasted_playable": 15,
+      "card_top": [
+        [
+          "Defend_R",
+          35
+        ],
+        [
+          "Strike_R",
+          33
+        ],
+        [
+          "Bash",
+          19
+        ],
+        [
+          "Battle Trance",
+          19
+        ],
+        [
+          "Power Through",
+          17
+        ],
+        [
+          "Blood for Blood",
+          10
+        ],
+        [
+          "Headbutt",
+          9
+        ],
+        [
+          "Pummel",
+          7
+        ],
+        [
+          "Clothesline",
+          6
+        ],
+        [
+          "Wound",
+          5
+        ],
+        [
+          "Immolate",
+          5
+        ],
+        [
+          "Fire Breathing",
+          4
+        ],
+        [
+          "Searing Blow",
+          2
+        ],
+        [
+          "Pommel Strike",
+          2
+        ],
+        [
+          "Inflame",
+          1
+        ],
+        [
+          "Ghostly Armor",
+          1
+        ],
+        [
+          "Burn",
+          1
+        ]
+      ],
+      "debuff_ids_detected": {
+        "Bash": 19,
+        "Clothesline": 6
+      },
+      "turns_with_both_atk_debuff": 24,
+      "debuff_order_positions": {
+        "1": 12,
+        "2": 8,
+        "3": 4,
+        "5": 1
+      },
+      "debuff_median_position": 2,
+      "bash_first_n": 9,
+      "bash_after_n": 1,
+      "both_turn_examples": [
+        {
+          "tgid": 1,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 2,
+          "turn": 3,
+          "seq": [
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 4,
+          "turn": 2,
+          "seq": [
+            "Battle Trance",
+            "Bash",
+            "Defend_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 6,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 9,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Pummel",
+            "Battle Trance"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 14,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 19,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Headbutt"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 20,
+          "turn": 3,
+          "seq": [
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 21,
+          "turn": 1,
+          "seq": [
+            "Defend_R",
+            "Bash"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 24,
+          "turn": 4,
+          "seq": [
+            "Battle Trance",
+            "Bash",
+            "Strike_R"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 27,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Power Through"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 30,
+          "turn": 1,
+          "seq": [
+            "Bash",
+            "Wound"
+          ],
+          "debuff_ids": [
+            "Bash"
+          ]
+        }
+      ],
+      "bash_vs_attack": [
+        {
+          "tgid": 1,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 6,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 9,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Pummel",
+            "Battle Trance"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 14,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 19,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Headbutt"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 24,
+          "turn": 4,
+          "seq": [
+            "Battle Trance",
+            "Bash",
+            "Strike_R"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 36,
+          "turn": 3,
+          "seq": [
+            "Strike_R",
+            "Power Through",
+            "Bash",
+            "Ghostly Armor"
+          ],
+          "first_bash": false
+        },
+        {
+          "tgid": 45,
+          "turn": 3,
+          "seq": [
+            "Battle Trance",
+            "Fire Breathing",
+            "Bash",
+            "Blood for Blood"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 52,
+          "turn": 3,
+          "seq": [
+            "Power Through",
+            "Bash",
+            "Strike_R",
+            "Battle Trance"
+          ],
+          "first_bash": true
+        },
+        {
+          "tgid": 58,
+          "turn": 3,
+          "seq": [
+            "Battle Trance",
+            "Bash",
+            "Headbutt",
+            "Defend_R",
+            "Clothesline"
+          ],
+          "first_bash": true
+        }
+      ],
+      "play_seq_examples": [
+        {
+          "tgid": 0,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Strike_R",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 1,
+          "turn": 2,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 2,
+          "turn": 3,
+          "seq": [
+            "Bash"
+          ]
+        },
+        {
+          "tgid": 3,
+          "turn": 1,
+          "seq": [
+            "Strike_R",
+            "Strike_R",
+            "Strike_R",
+            "Battle Trance"
+          ]
+        },
+        {
+          "tgid": 4,
+          "turn": 2,
+          "seq": [
+            "Battle Trance",
+            "Bash",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 5,
+          "turn": 3,
+          "seq": [
+            "Strike_R",
+            "Defend_R",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 6,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 7,
+          "turn": 1,
+          "seq": [
+            "Defend_R",
+            "Strike_R",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 8,
+          "turn": 2,
+          "seq": [
+            "Defend_R",
+            "Defend_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 9,
+          "turn": 3,
+          "seq": [
+            "Bash",
+            "Pummel",
+            "Battle Trance"
+          ]
+        },
+        {
+          "tgid": 10,
+          "turn": 4,
+          "seq": [
+            "Battle Trance",
+            "Strike_R",
+            "Strike_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 11,
+          "turn": 1,
+          "seq": [
+            "Inflame",
+            "Strike_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 12,
+          "turn": 2,
+          "seq": [
+            "Power Through",
+            "Battle Trance",
+            "Strike_R",
+            "Defend_R"
+          ]
+        },
+        {
+          "tgid": 13,
+          "turn": 3,
+          "seq": [
+            "Defend_R",
+            "Defend_R",
+            "Strike_R"
+          ]
+        },
+        {
+          "tgid": 14,
+          "turn": 4,
+          "seq": [
+            "Bash",
+            "Strike_R"
+          ]
+        }
+      ]
+    }
+  },
+  "debug_log": {
+    "votes_total": 2349,
+    "votes_with_END_TURN": 297,
+    "votes_END_TURN_winner": 65,
+    "end_turn_vote_share_pct": 4.2,
+    "keyword_counts": {
+      "fallback": 5952,
+      "cannot be played": 596,
+      "selected card": 691,
+      "target": 717,
+      "回退规则": 1,
+      "翻译": 1
+    }
+  }
+}

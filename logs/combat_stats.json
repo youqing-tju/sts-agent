@@ -1,0 +1,558 @@
+{
+ "n": 50,
+ "wins": 26,
+ "avg_floor": 44.28,
+ "act_death": {
+  "2": 8,
+  "3": 13,
+  "unknown": 1,
+  "1": 2
+ },
+ "death_encounters": {
+  "DONU_AND_DECA": {
+   "n": 4,
+   "floors": [
+    50,
+    50,
+    50,
+    50
+   ],
+   "acts": [
+    3,
+    3,
+    3,
+    3
+   ],
+   "loss": [
+    72,
+    97,
+    107,
+    54
+   ]
+  },
+  "AWAKENED_ONE": {
+   "n": 4,
+   "floors": [
+    50,
+    50,
+    45,
+    50
+   ],
+   "acts": [
+    3,
+    3,
+    3,
+    3
+   ],
+   "loss": [
+    17,
+    33,
+    40,
+    40
+   ]
+  },
+  "CHAMP": {
+   "n": 2,
+   "floors": [
+    33,
+    33
+   ],
+   "acts": [
+    2,
+    2
+   ],
+   "loss": [
+    80,
+    49
+   ]
+  },
+  "AUTOMATON": {
+   "n": 2,
+   "floors": [
+    33,
+    33
+   ],
+   "acts": [
+    2,
+    2
+   ],
+   "loss": [
+    66,
+    40
+   ]
+  },
+  "THREE_CULTIST": {
+   "n": 2,
+   "floors": [
+    25,
+    29
+   ],
+   "acts": [
+    2,
+    2
+   ],
+   "loss": [
+    16,
+    16
+   ]
+  },
+  "SPIRE_GROWTH": {
+   "n": 2,
+   "floors": [
+    45,
+    41
+   ],
+   "acts": [
+    3,
+    3
+   ],
+   "loss": [
+    6,
+    14
+   ]
+  },
+  "HEXAGHOST": {
+   "n": 1,
+   "floors": [
+    16
+   ],
+   "acts": [
+    1
+   ],
+   "loss": [
+    80
+   ]
+  },
+  "TIME_EATER": {
+   "n": 1,
+   "floors": [
+    50
+   ],
+   "acts": [
+    3
+   ],
+   "loss": [
+    70
+   ]
+  },
+  "GIANT_HEAD": {
+   "n": 1,
+   "floors": [
+    45
+   ],
+   "acts": [
+    3
+   ],
+   "loss": [
+    58
+   ]
+  },
+  "SLAVERS": {
+   "n": 1,
+   "floors": [
+    25
+   ],
+   "acts": [
+    2
+   ],
+   "loss": [
+    40
+   ]
+  },
+  "REPTOMANCER": {
+   "n": 1,
+   "floors": [
+    40
+   ],
+   "acts": [
+    3
+   ],
+   "loss": [
+    22
+   ]
+  },
+  "BOOK_OF_STABBING": {
+   "n": 1,
+   "floors": [
+    31
+   ],
+   "acts": [
+    2
+   ],
+   "loss": [
+    2
+   ]
+  },
+  "TWO_FUNGI_BEASTS": {
+   "n": 1,
+   "floors": [
+    10
+   ],
+   "acts": [
+    1
+   ],
+   "loss": [
+    1
+   ]
+  }
+ },
+ "boss": {
+  "HEXAGHOST": {
+   "n": 16,
+   "loss": [
+    20,
+    33,
+    67,
+    24,
+    34,
+    56,
+    31,
+    31,
+    57,
+    22,
+    26,
+    80,
+    28,
+    27,
+    0,
+    62
+   ],
+   "deaths": 1
+  },
+  "AUTOMATON": {
+   "n": 14,
+   "loss": [
+    20,
+    48,
+    95,
+    21,
+    42,
+    66,
+    52,
+    55,
+    71,
+    59,
+    40,
+    17,
+    50,
+    11
+   ],
+   "deaths": 2
+  },
+  "AWAKENED_ONE": {
+   "n": 12,
+   "loss": [
+    40,
+    21,
+    32,
+    8,
+    57,
+    0,
+    47,
+    9,
+    17,
+    33,
+    40,
+    40
+   ],
+   "deaths": 4
+  },
+  "COLLECTOR": {
+   "n": 19,
+   "loss": [
+    29,
+    38,
+    4,
+    62,
+    54,
+    57,
+    34,
+    68,
+    41,
+    7,
+    56,
+    13,
+    40,
+    29,
+    0,
+    0,
+    0,
+    32,
+    0
+   ],
+   "deaths": 0
+  },
+  "TIME_EATER": {
+   "n": 7,
+   "loss": [
+    27,
+    28,
+    56,
+    52,
+    70,
+    53,
+    47
+   ],
+   "deaths": 1
+  },
+  "DONU_AND_DECA": {
+   "n": 16,
+   "loss": [
+    30,
+    5,
+    0,
+    24,
+    78,
+    40,
+    72,
+    97,
+    51,
+    40,
+    -2,
+    107,
+    38,
+    0,
+    34,
+    54
+   ],
+   "deaths": 4
+  },
+  "THE_GUARDIAN": {
+   "n": 16,
+   "loss": [
+    14,
+    16,
+    26,
+    4,
+    29,
+    33,
+    41,
+    53,
+    20,
+    9,
+    18,
+    0,
+    27,
+    9,
+    78,
+    30
+   ],
+   "deaths": 0
+  },
+  "CHAMP": {
+   "n": 10,
+   "loss": [
+    80,
+    40,
+    25,
+    21,
+    12,
+    30,
+    37,
+    45,
+    6,
+    49
+   ],
+   "deaths": 2
+  },
+  "SLIME_BOSS": {
+   "n": 16,
+   "loss": [
+    56,
+    0,
+    0,
+    21,
+    0,
+    16,
+    30,
+    11,
+    16,
+    22,
+    11,
+    16,
+    28,
+    16,
+    -3,
+    4
+   ],
+   "deaths": 0
+  },
+  "THE_HEART": {
+   "n": 1,
+   "loss": [
+    22
+   ],
+   "deaths": 0
+  }
+ },
+ "lethal_bosses": [
+  {
+   "seed": 1953131477,
+   "encounter": "CHAMP",
+   "floor": 33,
+   "act": 2,
+   "room_type": "BOSS",
+   "hp_before": 80,
+   "hp_after": 0,
+   "hp_loss": 80,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 659654897,
+   "encounter": "DONU_AND_DECA",
+   "floor": 50,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 72,
+   "hp_after": 0,
+   "hp_loss": 72,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 1148947236,
+   "encounter": "DONU_AND_DECA",
+   "floor": 50,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 97,
+   "hp_after": 0,
+   "hp_loss": 97,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 112435878,
+   "encounter": "TIME_EATER",
+   "floor": 50,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 70,
+   "hp_after": 0,
+   "hp_loss": 70,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 486692374,
+   "encounter": "AUTOMATON",
+   "floor": 33,
+   "act": 2,
+   "room_type": "BOSS",
+   "hp_before": 66,
+   "hp_after": 0,
+   "hp_loss": 66,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 1446021769,
+   "encounter": "AWAKENED_ONE",
+   "floor": 50,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 17,
+   "hp_after": 0,
+   "hp_loss": 17,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 2078294763,
+   "encounter": "HEXAGHOST",
+   "floor": 16,
+   "act": 1,
+   "room_type": "BOSS",
+   "hp_before": 80,
+   "hp_after": 0,
+   "hp_loss": 80,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 1915394801,
+   "encounter": "AWAKENED_ONE",
+   "floor": 50,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 33,
+   "hp_after": 0,
+   "hp_loss": 33,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 357950431,
+   "encounter": "DONU_AND_DECA",
+   "floor": 50,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 107,
+   "hp_after": 0,
+   "hp_loss": 107,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 589158997,
+   "encounter": "AUTOMATON",
+   "floor": 33,
+   "act": 2,
+   "room_type": "BOSS",
+   "hp_before": 40,
+   "hp_after": 0,
+   "hp_loss": 40,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 1477598823,
+   "encounter": "AWAKENED_ONE",
+   "floor": 45,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 40,
+   "hp_after": 0,
+   "hp_loss": 40,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 1707934661,
+   "encounter": "DONU_AND_DECA",
+   "floor": 50,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 54,
+   "hp_after": 0,
+   "hp_loss": 54,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 660679222,
+   "encounter": "CHAMP",
+   "floor": 33,
+   "act": 2,
+   "room_type": "BOSS",
+   "hp_before": 49,
+   "hp_after": 0,
+   "hp_loss": 49,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  },
+  {
+   "seed": 533703408,
+   "encounter": "AWAKENED_ONE",
+   "floor": 50,
+   "act": 3,
+   "room_type": "BOSS",
+   "hp_before": 40,
+   "hp_after": 0,
+   "hp_loss": 40,
+   "lethal": true,
+   "outcome_after": "PLAYER_LOSS"
+  }
+ ]
+}

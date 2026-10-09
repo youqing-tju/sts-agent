@@ -1,0 +1,2015 @@
+{
+  "experiment": "BC",
+  "n_games": 20,
+  "rewards_screens": 275,
+  "rewards_screens_with_skip": 275,
+  "rewards_card_candidates": 385,
+  "rewards_skip_candidates": 275,
+  "kind_counter": {
+    "EVENT_OPTION": 157,
+    "MAP_NODE": 322,
+    "REWARD": 330,
+    "CARD_REWARD": 385,
+    "SKIP": 303,
+    "SHOP_ITEM": 173,
+    "REST_OPTION": 65,
+    "ACTION": 351,
+    "TREASURE": 20,
+    "BOSS_RELIC": 4
+  },
+  "skip_bits_samples": [
+    805306368,
+    805306368,
+    805306368,
+    805306368,
+    805306368
+  ],
+  "skip_bits_decode": [
+    {
+      "is_potion": false,
+      "is_potion_discard": false,
+      "reward_type": 6,
+      "idx3": 0,
+      "idx2": 0,
+      "idx1": 0
+    },
+    {
+      "is_potion": false,
+      "is_potion_discard": false,
+      "reward_type": 6,
+      "idx3": 0,
+      "idx2": 0,
+      "idx1": 0
+    },
+    {
+      "is_potion": false,
+      "is_potion_discard": false,
+      "reward_type": 6,
+      "idx3": 0,
+      "idx2": 0,
+      "idx1": 0
+    },
+    {
+      "is_potion": false,
+      "is_potion_discard": false,
+      "reward_type": 6,
+      "idx3": 0,
+      "idx2": 0,
+      "idx1": 0
+    },
+    {
+      "is_potion": false,
+      "is_potion_discard": false,
+      "reward_type": 6,
+      "idx3": 0,
+      "idx2": 0,
+      "idx1": 0
+    }
+  ],
+  "samples": [
+    {
+      "screen": "REWARDS",
+      "candidates": [
+        {
+          "kind": "REWARD",
+          "label": "0x08000000",
+          "bits": 134217728,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 1,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000000",
+          "bits": 0,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000100",
+          "bits": 256,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 1,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000200",
+          "bits": 512,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 2,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "SKIP",
+          "label": "0x30000000",
+          "bits": 805306368,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 6,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        }
+      ]
+    },
+    {
+      "screen": "REWARDS",
+      "candidates": [
+        {
+          "kind": "REWARD",
+          "label": "0x08000000",
+          "bits": 134217728,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 1,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000000",
+          "bits": 0,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000100",
+          "bits": 256,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 1,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000200",
+          "bits": 512,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 2,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "SKIP",
+          "label": "0x30000000",
+          "bits": 805306368,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 6,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        }
+      ]
+    },
+    {
+      "screen": "REWARDS",
+      "candidates": [
+        {
+          "kind": "REWARD",
+          "label": "0x08000000",
+          "bits": 134217728,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 1,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000000",
+          "bits": 0,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000100",
+          "bits": 256,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 1,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000200",
+          "bits": 512,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 2,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "SKIP",
+          "label": "0x30000000",
+          "bits": 805306368,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 6,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        }
+      ]
+    },
+    {
+      "screen": "REWARDS",
+      "candidates": [
+        {
+          "kind": "REWARD",
+          "label": "0x08000000",
+          "bits": 134217728,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 1,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "SKIP",
+          "label": "0x30000000",
+          "bits": 805306368,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 6,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        }
+      ]
+    },
+    {
+      "screen": "REWARDS",
+      "candidates": [
+        {
+          "kind": "REWARD",
+          "label": "0x08000000",
+          "bits": 134217728,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 1,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000000",
+          "bits": 0,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000100",
+          "bits": 256,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 1,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "CARD_REWARD",
+          "label": "0x00000200",
+          "bits": 512,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 0,
+            "idx3": 0,
+            "idx2": 2,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "REWARD",
+          "label": "0x18000000",
+          "bits": 402653184,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 3,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "SKIP",
+          "label": "0x30000000",
+          "bits": 805306368,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 6,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        }
+      ]
+    },
+    {
+      "screen": "REWARDS",
+      "candidates": [
+        {
+          "kind": "REWARD",
+          "label": "0x08000000",
+          "bits": 134217728,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 1,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "REWARD",
+          "label": "0x18000000",
+          "bits": 402653184,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 3,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "SKIP",
+          "label": "0x30000000",
+          "bits": 805306368,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 6,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        }
+      ]
+    },
+    {
+      "screen": "REWARDS",
+      "candidates": [
+        {
+          "kind": "REWARD",
+          "label": "0x18000000",
+          "bits": 402653184,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 3,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        },
+        {
+          "kind": "SKIP",
+          "label": "0x30000000",
+          "bits": 805306368,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 6,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        }
+      ]
+    },
+    {
+      "screen": "REWARDS",
+      "candidates": [
+        {
+          "kind": "SKIP",
+          "label": "0x30000000",
+          "bits": 805306368,
+          "decoded": {
+            "is_potion": false,
+            "is_potion_discard": false,
+            "reward_type": 6,
+            "idx3": 0,
+            "idx2": 0,
+            "idx1": 0
+          }
+        }
+      ]
+    }
+  ],
+  "vec_diff": {
+    "skip_nonzero_segs": {
+      "kind": 1,
+      "numeric": 1
+    },
+    "card_nonzero_segs": {
+      "kind": 1,
+      "card_attr": 3,
+      "card_onehot": 1,
+      "semantic": 4
+    },
+    "skip_kind_index": 3,
+    "skip_numeric_reward_type_norm": 1.0
+  },
+  "B": {
+    "skip_rank_dist": {
+      "3": 47,
+      "2": 11,
+      "1": 2
+    },
+    "skip_is_first": 0,
+    "n": 60,
+    "skip_mean_rank": 3.75,
+    "skip_scores": [
+      -24.06620979309082,
+      -24.65009880065918,
+      -24.40768051147461,
+      -17.155471801757812,
+      -24.597335815429688,
+      -24.82495880126953,
+      -24.46261215209961,
+      -24.921171188354492,
+      -25.17820167541504,
+      -25.069395065307617,
+      -23.090103149414062,
+      -24.457963943481445,
+      -24.57123565673828,
+      -24.833341598510742,
+      -23.255615234375,
+      -24.463178634643555,
+      -25.313785552978516,
+      -21.066621780395508,
+      -23.869827270507812,
+      -24.47347068786621,
+      -24.342557907104492,
+      -23.847026824951172,
+      -16.788902282714844,
+      -15.720973014831543,
+      -15.779735565185547,
+      -19.56068229675293,
+      -20.045488357543945,
+      -24.664888381958008,
+      -23.181591033935547,
+      -16.849950790405273,
+      -19.2534122467041,
+      -23.923404693603516,
+      -24.319429397583008,
+      -24.056100845336914,
+      -13.862147331237793,
+      -24.46556282043457,
+      -24.777334213256836,
+      -24.444292068481445,
+      -23.37845230102539,
+      -14.469054222106934,
+      -24.2605037689209,
+      -24.10910987854004,
+      -24.028711318969727,
+      -20.9367733001709,
+      -16.623815536499023,
+      -19.9040470123291,
+      -22.003992080688477,
+      -21.91382598876953,
+      -21.616363525390625,
+      -21.787372589111328,
+      -22.269287109375,
+      -22.8278751373291,
+      -29.10991859436035,
+      -32.08775329589844,
+      -33.324398040771484,
+      -33.24470520019531,
+      -33.95817947387695,
+      -12.732829093933105,
+      -24.775968551635742,
+      -23.865137100219727
+    ],
+    "weak_frames_skip_rank": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
+    "skip_is_first_frac": 0.0,
+    "weak_n": 12,
+    "weak_skip_mean_rank": 4.0,
+    "frames_detail": [
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -18.94210433959961,
+          -15.930152893066406,
+          -15.719578742980957
+        ],
+        "skip_score": -24.06620979309082,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Wild Strike",
+          "Heavy Blade",
+          "Cleave"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -22.084054946899414,
+          -19.125688552856445,
+          -18.524028778076172
+        ],
+        "skip_score": -24.65009880065918,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Havoc",
+          "Flex",
+          "Iron Wave"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -14.768000602722168,
+          -16.465497970581055,
+          -22.20652961730957
+        ],
+        "skip_score": -24.40768051147461,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Clothesline",
+          "Cleave",
+          "Dark Embrace"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -10.321199417114258,
+          -14.72696304321289,
+          -11.848482131958008
+        ],
+        "skip_score": -17.155471801757812,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Pommel Strike",
+          "Armaments",
+          "Wild Strike"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -16.103900909423828,
+          -21.616113662719727,
+          -19.660486221313477
+        ],
+        "skip_score": -24.597335815429688,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Cleave",
+          "Armaments",
+          "Anger"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -19.278839111328125,
+          -17.92402458190918,
+          -22.567148208618164
+        ],
+        "skip_score": -24.82495880126953,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Rampage",
+          "Pummel",
+          "Dark Embrace"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -21.804899215698242,
+          -19.061887741088867,
+          -23.654638290405273
+        ],
+        "skip_score": -24.46261215209961,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Burning Pact",
+          "Sword Boomerang",
+          "Second Wind"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -20.351274490356445,
+          -21.063745498657227,
+          -17.565610885620117
+        ],
+        "skip_score": -24.921171188354492,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Flame Barrier",
+          "Shrug It Off",
+          "Perfected Strike"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -19.410358428955078,
+          -16.48045539855957,
+          -25.484392166137695
+        ],
+        "skip_score": -25.17820167541504,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Headbutt",
+          "Thunderclap",
+          "Metallicize"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -23.028776168823242,
+          -20.290470123291016,
+          -22.299816131591797
+        ],
+        "skip_score": -25.069395065307617,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Sentinel",
+          "Dropkick",
+          "Hemokinesis"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -17.83136749267578,
+          -15.92039966583252,
+          -22.650876998901367
+        ],
+        "skip_score": -23.090103149414062,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Twin Strike",
+          "Heavy Blade",
+          "Body Slam"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -19.14063262939453,
+          -18.328821182250977,
+          -17.102405548095703
+        ],
+        "skip_score": -24.457963943481445,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Wild Strike",
+          "Iron Wave",
+          "Perfected Strike"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -15.547627449035645,
+          -18.52488136291504,
+          -22.586191177368164
+        ],
+        "skip_score": -24.57123565673828,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Thunderclap",
+          "Headbutt",
+          "Sentinel"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -19.86500358581543,
+          -26.28713035583496,
+          -24.3420352935791
+        ],
+        "skip_score": -24.833341598510742,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Wild Strike",
+          "Bloodletting",
+          "Entrench"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -14.689424514770508,
+          -17.324872970581055,
+          -22.191606521606445
+        ],
+        "skip_score": -23.255615234375,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Limit Break",
+          "Sword Boomerang",
+          "Body Slam"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -15.30986499786377,
+          -21.539716720581055,
+          -18.413110733032227
+        ],
+        "skip_score": -24.463178634643555,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Blood for Blood",
+          "Ghostly Armor",
+          "Sword Boomerang"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -25.577550888061523,
+          -20.034971237182617,
+          -15.674745559692383
+        ],
+        "skip_score": -25.313785552978516,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Fire Breathing",
+          "Flex",
+          "Clothesline"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -17.427473068237305,
+          -21.47905158996582,
+          -22.032196044921875
+        ],
+        "skip_score": -21.066621780395508,
+        "skip_rank_0based": 1,
+        "all_common": false,
+        "labels": [
+          "Shrug It Off",
+          "Fire Breathing",
+          "Evolve"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -18.3759708404541,
+          -18.14061737060547,
+          -23.57756996154785
+        ],
+        "skip_score": -23.869827270507812,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Flex",
+          "Clash",
+          "Entrench"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -21.605224609375,
+          -16.650968551635742,
+          -20.427745819091797
+        ],
+        "skip_score": -24.47347068786621,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Burning Pact",
+          "Intimidate",
+          "Warcry"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -18.687633514404297,
+          -18.9909725189209,
+          -20.56545639038086
+        ],
+        "skip_score": -24.342557907104492,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Sword Boomerang",
+          "Clash",
+          "Shrug It Off"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -19.31824493408203,
+          -18.53314971923828,
+          -18.702661514282227
+        ],
+        "skip_score": -23.847026824951172,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Wild Strike",
+          "Sword Boomerang",
+          "Power Through"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -11.457067489624023,
+          -14.399186134338379,
+          -13.191292762756348
+        ],
+        "skip_score": -16.788902282714844,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Pommel Strike",
+          "Hemokinesis",
+          "Anger"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -10.47193717956543,
+          -13.548760414123535,
+          -13.222509384155273
+        ],
+        "skip_score": -15.720973014831543,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Pummel",
+          "Dual Wield",
+          "Wild Strike"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -12.320303916931152,
+          -11.73117733001709,
+          -13.634917259216309
+        ],
+        "skip_score": -15.779735565185547,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Twin Strike",
+          "Pommel Strike",
+          "Armaments"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -12.957948684692383,
+          -14.045294761657715,
+          -17.481172561645508
+        ],
+        "skip_score": -19.56068229675293,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Blood for Blood",
+          "Cleave",
+          "Armaments"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -20.22305679321289,
+          -14.008336067199707,
+          -18.440645217895508
+        ],
+        "skip_score": -20.045488357543945,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Seeing Red",
+          "Thunderclap",
+          "True Grit"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -15.641280174255371,
+          -14.469084739685059,
+          -21.215944290161133
+        ],
+        "skip_score": -24.664888381958008,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Thunderclap",
+          "Clothesline",
+          "Hemokinesis"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -17.182266235351562,
+          -20.26314353942871,
+          -20.70734214782715
+        ],
+        "skip_score": -23.181591033935547,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Headbutt",
+          "Ghostly Armor",
+          "Havoc"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -15.564857482910156,
+          -5.6660051345825195,
+          -14.495787620544434
+        ],
+        "skip_score": -16.849950790405273,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Body Slam",
+          "Feed",
+          "Dark Embrace"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -17.98045539855957,
+          -13.962910652160645,
+          -15.333138465881348
+        ],
+        "skip_score": -19.2534122467041,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Body Slam",
+          "Wild Strike",
+          "Warcry"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -19.375619888305664,
+          -16.564777374267578,
+          -22.539220809936523
+        ],
+        "skip_score": -23.923404693603516,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Flame Barrier",
+          "Perfected Strike",
+          "Body Slam"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -23.106773376464844,
+          -24.25827407836914,
+          -20.30243492126465
+        ],
+        "skip_score": -24.319429397583008,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Body Slam",
+          "Fire Breathing",
+          "Warcry"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -18.700048446655273,
+          -21.205476760864258,
+          -17.380149841308594
+        ],
+        "skip_score": -24.056100845336914,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Flex",
+          "Hemokinesis",
+          "Perfected Strike"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -9.103812217712402,
+          -10.191414833068848,
+          -14.082715034484863
+        ],
+        "skip_score": -13.862147331237793,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Rampage",
+          "Shrug It Off",
+          "Fire Breathing"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -20.00223731994629,
+          -15.975203514099121,
+          -19.944915771484375
+        ],
+        "skip_score": -24.46556282043457,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Disarm",
+          "Cleave",
+          "Flame Barrier"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -24.666364669799805,
+          -19.236669540405273,
+          -23.856863021850586
+        ],
+        "skip_score": -24.777334213256836,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Fire Breathing",
+          "Clash",
+          "Second Wind"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -22.086755752563477,
+          -21.604833602905273,
+          -23.476314544677734
+        ],
+        "skip_score": -24.444292068481445,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Havoc",
+          "Armaments",
+          "Second Wind"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -15.233983039855957,
+          -17.937667846679688,
+          -19.06467056274414
+        ],
+        "skip_score": -23.37845230102539,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Heavy Blade",
+          "Flex",
+          "Disarm"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -13.229073524475098,
+          -9.894259452819824,
+          -14.045550346374512
+        ],
+        "skip_score": -14.469054222106934,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Feel No Pain",
+          "Clash",
+          "Entrench"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -17.537240982055664,
+          -18.13136100769043,
+          -23.850767135620117
+        ],
+        "skip_score": -24.2605037689209,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Pommel Strike",
+          "Iron Wave",
+          "Entrench"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -21.609838485717773,
+          -18.184734344482422,
+          -25.63402557373047
+        ],
+        "skip_score": -24.10910987854004,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Havoc",
+          "Headbutt",
+          "Rupture"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -17.33689308166504,
+          -18.38651466369629,
+          -19.637523651123047
+        ],
+        "skip_score": -24.028711318969727,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Pummel",
+          "Iron Wave",
+          "Anger"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -13.888182640075684,
+          -15.87542724609375,
+          -15.734755516052246
+        ],
+        "skip_score": -20.9367733001709,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Heavy Blade",
+          "Sword Boomerang",
+          "Iron Wave"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -11.435856819152832,
+          -5.93073844909668,
+          -11.564383506774902
+        ],
+        "skip_score": -16.623815536499023,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Power Through",
+          "Fiend Fire",
+          "Iron Wave"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -19.53338623046875,
+          -16.083621978759766,
+          -16.071550369262695
+        ],
+        "skip_score": -19.9040470123291,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Body Slam",
+          "Anger",
+          "Warcry"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -22.616376876831055,
+          -17.501676559448242,
+          -11.09596061706543
+        ],
+        "skip_score": -22.003992080688477,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Fire Breathing",
+          "Inflame",
+          "Demon Form"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -18.5537166595459,
+          -19.936098098754883,
+          -19.758163452148438
+        ],
+        "skip_score": -21.91382598876953,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Shrug It Off",
+          "Dark Embrace",
+          "True Grit"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -17.97983169555664,
+          -16.26773452758789,
+          -17.43387794494629
+        ],
+        "skip_score": -21.616363525390625,
+        "skip_rank_0based": 3,
+        "all_common": true,
+        "labels": [
+          "Clash",
+          "Perfected Strike",
+          "Twin Strike"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -15.893840789794922,
+          -18.74728012084961,
+          -17.285192489624023
+        ],
+        "skip_score": -21.787372589111328,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Iron Wave",
+          "Reckless Charge",
+          "Wild Strike"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -22.40526008605957,
+          -22.470848083496094,
+          -18.51741600036621
+        ],
+        "skip_score": -22.269287109375,
+        "skip_rank_0based": 1,
+        "all_common": false,
+        "labels": [
+          "Seeing Red",
+          "Entrench",
+          "Disarm"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -10.477033615112305,
+          -23.709306716918945,
+          -16.751008987426758
+        ],
+        "skip_score": -22.8278751373291,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Bludgeon",
+          "Metallicize",
+          "Pommel Strike"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -25.830917358398438,
+          -18.16214942932129,
+          -27.918947219848633
+        ],
+        "skip_score": -29.10991859436035,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Berserk",
+          "Feed",
+          "Juggernaut"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -33.1016845703125,
+          -26.62941551208496,
+          -27.283220291137695
+        ],
+        "skip_score": -32.08775329589844,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Metallicize",
+          "Rampage",
+          "Clash"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -29.22099494934082,
+          -33.531349182128906,
+          -30.692068099975586
+        ],
+        "skip_score": -33.324398040771484,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Wild Strike",
+          "Second Wind",
+          "Warcry"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -25.75901222229004,
+          -32.00948715209961,
+          -27.79111099243164
+        ],
+        "skip_score": -33.24470520019531,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Cleave",
+          "True Grit",
+          "Rampage"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -26.46977996826172,
+          -32.28728103637695,
+          -32.34872055053711
+        ],
+        "skip_score": -33.95817947387695,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Cleave",
+          "Armaments",
+          "Dark Embrace"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -4.921073913574219,
+          -10.80144214630127,
+          -6.041228294372559
+        ],
+        "skip_score": -12.732829093933105,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Iron Wave",
+          "Battle Trance",
+          "Exhume"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -23.63906478881836,
+          -18.062175750732422,
+          -22.262659072875977
+        ],
+        "skip_score": -24.775968551635742,
+        "skip_rank_0based": 3,
+        "all_common": false,
+        "labels": [
+          "Feel No Pain",
+          "Pommel Strike",
+          "True Grit"
+        ]
+      },
+      {
+        "n_cards": 3,
+        "card_scores": [
+          -19.346012115478516,
+          -25.559490203857422,
+          -22.9704647064209
+        ],
+        "skip_score": -23.865137100219727,
+        "skip_rank_0based": 2,
+        "all_common": false,
+        "labels": [
+          "Wild Strike",
+          "Bloodletting",
+          "Feel No Pain"
+        ]
+      }
+    ]
+  },
+  "C": {
+    "baselines": {
+      "opening": {
+        "scores": {
+          "Inflame": -16.192846298217773,
+          "Spot Weakness": -11.838519096374512,
+          "Demon Form": -8.472747802734375,
+          "Limit Break": -15.384828567504883,
+          "Barricade": -18.238727569580078,
+          "Entrench": -25.222253799438477,
+          "Body Slam": -25.4269962310791,
+          "Juggernaut": -22.75041389465332,
+          "Feel No Pain": -21.92081069946289,
+          "Second Wind": -23.476608276367188,
+          "Shrug It Off": -17.219392776489258,
+          "True Grit": -21.805376052856445,
+          "Bludgeon": -10.087750434875488,
+          "Heavy Blade": -16.483219146728516,
+          "Whirlwind": -15.480225563049316,
+          "Reaper": -4.208346366882324,
+          "Carnage": -15.71541976928711,
+          "Bash": -15.320608139038086,
+          "Thunderclap": -14.667734146118164,
+          "Clothesline": -12.080735206604004,
+          "Shockwave": -8.296723365783691,
+          "Uppercut": -13.785853385925293,
+          "Intimidate": -15.326184272766113,
+          "Offering": -17.066299438476562,
+          "Battle Trance": -17.67636489868164,
+          "Corruption": -13.927079200744629,
+          "Dark Embrace": -23.925687789916992,
+          "Burning Pact": -22.48366355895996,
+          "Strike": -17.561098098754883,
+          "Defend": -20.73568344116211,
+          "Pommel Strike": -15.57293701171875
+        }
+      },
+      "midgame": {
+        "scores": {
+          "Inflame": -17.92213249206543,
+          "Spot Weakness": -13.610519409179688,
+          "Demon Form": -10.2083101272583,
+          "Limit Break": -17.027603149414062,
+          "Barricade": -20.051395416259766,
+          "Entrench": -27.102035522460938,
+          "Body Slam": -27.247116088867188,
+          "Juggernaut": -24.560422897338867,
+          "Feel No Pain": -23.347196578979492,
+          "Second Wind": -25.031383514404297,
+          "Shrug It Off": -19.049610137939453,
+          "True Grit": -23.432878494262695,
+          "Bludgeon": -11.911261558532715,
+          "Heavy Blade": -18.232133865356445,
+          "Whirlwind": -17.255157470703125,
+          "Reaper": -5.883581638336182,
+          "Carnage": -17.538267135620117,
+          "Bash": -17.13738250732422,
+          "Thunderclap": -16.488096237182617,
+          "Clothesline": -13.900103569030762,
+          "Shockwave": -10.035808563232422,
+          "Uppercut": -15.608717918395996,
+          "Intimidate": -17.109840393066406,
+          "Offering": -18.8687744140625,
+          "Battle Trance": -19.496967315673828,
+          "Corruption": -15.359524726867676,
+          "Dark Embrace": -25.346311569213867,
+          "Burning Pact": -24.299903869628906,
+          "Strike": -19.37356185913086,
+          "Defend": -22.557878494262695,
+          "Pommel Strike": -17.391756057739258
+        }
+      }
+    },
+    "groups": {
+      "opening": {
+        "力量": -12.972,
+        "防战": -22.008,
+        "大攻击": -12.395,
+        "debuff": -13.246,
+        "功能": -19.016,
+        "基准": -17.957
+      },
+      "midgame": {
+        "力量": -14.692,
+        "防战": -23.728,
+        "大攻击": -14.164,
+        "debuff": -15.047,
+        "功能": -20.674,
+        "基准": -19.774
+      }
+    },
+    "per_card": {
+      "opening": {
+        "Inflame": -16.192846298217773,
+        "Spot Weakness": -11.838519096374512,
+        "Demon Form": -8.472747802734375,
+        "Limit Break": -15.384828567504883,
+        "Barricade": -18.238727569580078,
+        "Entrench": -25.222253799438477,
+        "Body Slam": -25.4269962310791,
+        "Juggernaut": -22.75041389465332,
+        "Feel No Pain": -21.92081069946289,
+        "Second Wind": -23.476608276367188,
+        "Shrug It Off": -17.219392776489258,
+        "True Grit": -21.805376052856445,
+        "Bludgeon": -10.087750434875488,
+        "Heavy Blade": -16.483219146728516,
+        "Whirlwind": -15.480225563049316,
+        "Reaper": -4.208346366882324,
+        "Carnage": -15.71541976928711,
+        "Bash": -15.320608139038086,
+        "Thunderclap": -14.667734146118164,
+        "Clothesline": -12.080735206604004,
+        "Shockwave": -8.296723365783691,
+        "Uppercut": -13.785853385925293,
+        "Intimidate": -15.326184272766113,
+        "Offering": -17.066299438476562,
+        "Battle Trance": -17.67636489868164,
+        "Corruption": -13.927079200744629,
+        "Dark Embrace": -23.925687789916992,
+        "Burning Pact": -22.48366355895996,
+        "Strike": -17.561098098754883,
+        "Defend": -20.73568344116211,
+        "Pommel Strike": -15.57293701171875
+      },
+      "midgame": {
+        "Inflame": -17.92213249206543,
+        "Spot Weakness": -13.610519409179688,
+        "Demon Form": -10.2083101272583,
+        "Limit Break": -17.027603149414062,
+        "Barricade": -20.051395416259766,
+        "Entrench": -27.102035522460938,
+        "Body Slam": -27.247116088867188,
+        "Juggernaut": -24.560422897338867,
+        "Feel No Pain": -23.347196578979492,
+        "Second Wind": -25.031383514404297,
+        "Shrug It Off": -19.049610137939453,
+        "True Grit": -23.432878494262695,
+        "Bludgeon": -11.911261558532715,
+        "Heavy Blade": -18.232133865356445,
+        "Whirlwind": -17.255157470703125,
+        "Reaper": -5.883581638336182,
+        "Carnage": -17.538267135620117,
+        "Bash": -17.13738250732422,
+        "Thunderclap": -16.488096237182617,
+        "Clothesline": -13.900103569030762,
+        "Shockwave": -10.035808563232422,
+        "Uppercut": -15.608717918395996,
+        "Intimidate": -17.109840393066406,
+        "Offering": -18.8687744140625,
+        "Battle Trance": -19.496967315673828,
+        "Corruption": -15.359524726867676,
+        "Dark Embrace": -25.346311569213867,
+        "Burning Pact": -24.299903869628906,
+        "Strike": -19.37356185913086,
+        "Defend": -22.557878494262695,
+        "Pommel Strike": -17.391756057739258
+      }
+    },
+    "top10": {
+      "opening": [
+        [
+          "Reaper",
+          -4.208346366882324
+        ],
+        [
+          "Shockwave",
+          -8.296723365783691
+        ],
+        [
+          "Demon Form",
+          -8.472747802734375
+        ],
+        [
+          "Bludgeon",
+          -10.087750434875488
+        ],
+        [
+          "Spot Weakness",
+          -11.838519096374512
+        ],
+        [
+          "Clothesline",
+          -12.080735206604004
+        ],
+        [
+          "Uppercut",
+          -13.785853385925293
+        ],
+        [
+          "Corruption",
+          -13.927079200744629
+        ],
+        [
+          "Thunderclap",
+          -14.667734146118164
+        ],
+        [
+          "Bash",
+          -15.320608139038086
+        ]
+      ],
+      "midgame": [
+        [
+          "Reaper",
+          -5.883581638336182
+        ],
+        [
+          "Shockwave",
+          -10.035808563232422
+        ],
+        [
+          "Demon Form",
+          -10.2083101272583
+        ],
+        [
+          "Bludgeon",
+          -11.911261558532715
+        ],
+        [
+          "Spot Weakness",
+          -13.610519409179688
+        ],
+        [
+          "Clothesline",
+          -13.900103569030762
+        ],
+        [
+          "Corruption",
+          -15.359524726867676
+        ],
+        [
+          "Uppercut",
+          -15.608717918395996
+        ],
+        [
+          "Thunderclap",
+          -16.488096237182617
+        ],
+        [
+          "Limit Break",
+          -17.027603149414062
+        ]
+      ]
+    },
+    "bottom10": {
+      "opening": [
+        [
+          "Barricade",
+          -18.238727569580078
+        ],
+        [
+          "Defend",
+          -20.73568344116211
+        ],
+        [
+          "True Grit",
+          -21.805376052856445
+        ],
+        [
+          "Feel No Pain",
+          -21.92081069946289
+        ],
+        [
+          "Burning Pact",
+          -22.48366355895996
+        ],
+        [
+          "Juggernaut",
+          -22.75041389465332
+        ],
+        [
+          "Second Wind",
+          -23.476608276367188
+        ],
+        [
+          "Dark Embrace",
+          -23.925687789916992
+        ],
+        [
+          "Entrench",
+          -25.222253799438477
+        ],
+        [
+          "Body Slam",
+          -25.4269962310791
+        ]
+      ],
+      "midgame": [
+        [
+          "Barricade",
+          -20.051395416259766
+        ],
+        [
+          "Defend",
+          -22.557878494262695
+        ],
+        [
+          "Feel No Pain",
+          -23.347196578979492
+        ],
+        [
+          "True Grit",
+          -23.432878494262695
+        ],
+        [
+          "Burning Pact",
+          -24.299903869628906
+        ],
+        [
+          "Juggernaut",
+          -24.560422897338867
+        ],
+        [
+          "Second Wind",
+          -25.031383514404297
+        ],
+        [
+          "Dark Embrace",
+          -25.346311569213867
+        ],
+        [
+          "Entrench",
+          -27.102035522460938
+        ],
+        [
+          "Body Slam",
+          -27.247116088867188
+        ]
+      ]
+    }
+  },
+  "field_analysis": {
+    "EFFECT_KEYS": [
+      "base_damage",
+      "base_block",
+      "base_cost",
+      "num_hits",
+      "draw_count",
+      "is_x_cost",
+      "energy_gain",
+      "strength_gain",
+      "strength_multiplier",
+      "dexterity_gain",
+      "self_damage",
+      "self_damage_payoff",
+      "hp_gain",
+      "exhausts_self",
+      "exhausts_others",
+      "on_exhaust_trigger",
+      "exhaust_payoff_scaling",
+      "cost_reduction",
+      "recover_from_exhaust",
+      "block_multiplier",
+      "block_retain",
+      "block_to_damage",
+      "block_on_gain_trigger",
+      "block_per_turn",
+      "block_efficiency",
+      "injects_status_enemy",
+      "injects_status_self",
+      "status_payoff_draw",
+      "status_payoff_damage",
+      "applies_vulnerable",
+      "applies_weak",
+      "discard",
+      "draw_specific",
+      "deck_manipulation",
+      "retain",
+      "ethereal",
+      "conditional_play",
+      "is_power",
+      "is_aoe",
+      "is_attack",
+      "is_skill",
+      "rarity_score"
+    ],
+    "DEAD_FIELDS": [
+      "dexterity_gain",
+      "block_efficiency",
+      "discard",
+      "retain"
+    ],
+    "defensive_cards_fields": {
+      "Barricade": {
+        "desc": "格挡不清空(block_retain)",
+        "effect_fields": {
+          "base_cost": 3,
+          "block_retain": 1,
+          "is_power": 1,
+          "rarity_score": 1.0
+        }
+      },
+      "Entrench": {
+        "desc": "格挡翻倍(block_multiplier)",
+        "effect_fields": {
+          "base_cost": 2,
+          "block_multiplier": 1,
+          "is_skill": 1,
+          "rarity_score": 0.5
+        }
+      },
+      "Body Slam": {
+        "desc": "格挡转伤害(block_to_damage)",
+        "effect_fields": {
+          "base_cost": 1,
+          "block_to_damage": 1,
+          "conditional_play": 1,
+          "is_attack": 1,
+          "rarity_score": 0.0
+        }
+      },
+      "Juggernaut": {
+        "desc": "获得格挡时造成伤害(block_on_gain_trigger)",
+        "effect_fields": {
+          "base_cost": 2,
+          "block_on_gain_trigger": 1,
+          "is_power": 1,
+          "rarity_score": 1.0
+        }
+      },
+      "Feel No Pain": {
+        "desc": "消耗触发格挡(on_exhaust_trigger)",
+        "effect_fields": {
+          "base_cost": 1,
+          "on_exhaust_trigger": 1,
+          "is_power": 1,
+          "rarity_score": 0.5
+        }
+      },
+      "Second Wind": {
+        "desc": "消耗得格挡(exhaust_payoff_scaling)",
+        "effect_fields": {
+          "base_cost": 1,
+          "exhausts_others": 1,
+          "exhaust_payoff_scaling": 1,
+          "is_skill": 1,
+          "rarity_score": 0.5
+        }
+      },
+      "Shrug It Off": {
+        "desc": "出牌得格挡(base_block)",
+        "effect_fields": {
+          "base_block": 8,
+          "base_cost": 1,
+          "draw_count": 1,
+          "is_skill": 1,
+          "rarity_score": 0.0
+        }
+      },
+      "True Grit": {
+        "desc": "出牌得格挡+消耗(base_block/exhausts_others)",
+        "effect_fields": {
+          "base_block": 7,
+          "base_cost": 1,
+          "exhausts_others": 1,
+          "is_skill": 1,
+          "rarity_score": 0.0
+        }
+      }
+    }
+  }
+}

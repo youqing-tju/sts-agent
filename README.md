@@ -47,8 +47,9 @@ sts-agent/
 ├── docs/                   设计、分析与复盘文档
 ├── tests/                  pytest 测试
 ├── third_party/            vendored 依赖
-│   └── sts_lightspeed/     C++ 模拟器（需自行编译出 slaythespire.pyd）
+│   └── sts_lightspeed/     C++ 模拟器**源码**（vendored；编译产物见下方根目录的 .pyd）
 ├── reference/              外部参考源码（CombatSolver / StS2.RandomForeseer，只读，不入库）
+├── slaythespire.cp313-win_amd64.pyd   C++ 模拟器**编译产物**（Python 直接 import，见 docs/build-simulator.md）
 ├── main.py                 完整 Agent 主程序（真机/干跑桥接）
 ├── main_rule.py            规则 bot 入口（无 RL 的对照运行）
 ├── combat_beam.py          Python Beam Search 战斗求解器
@@ -56,6 +57,25 @@ sts-agent/
 ├── shop_brain.py           商店决策逻辑
 └── verify_env.py           环境冒烟验证
 ```
+
+## 仓库内容边界（哪些数据入库、哪些不入库）
+
+**入库**：全部 Python 源码 · `logs/*.md` 分析报告 · 报告直接引用的实验数据（`logs/*.json`）·
+每个训练 run 的曲线（`logs/**/training_curve.jsonl`）· `docs/` · vendored 模拟器源码 + 其编译产物。
+
+**不入库**（体积大且可重建，详见 `.gitignore`）：
+
+| 路径 | 体积 | 为什么不入库 |
+|---|---|---|
+| `logs/realtime/` | 243 MB | 真机原始帧日志（L1 层，用于事后排障） |
+| `checkpoints/` | 87 MB | 模型权重，可由训练重现 |
+| `data/external/` | 76 MB | 人类 `.run` 数据集，可从上游仓库重新下载 |
+| `reference/` | 65 MB | 外部参考源码（CombatSolver / RandomForeseer），GitHub 可再 clone |
+| `logs/m1-baseline/`、`logs/m2-pilot/` | 8.9 MB | 逐局对局 JSONL（共 601 个） |
+
+> ⚠️ `.gitignore` 采用**按文件类型忽略**，而非「整目录忽略」——
+> 整目录被忽略时 git 不会遍历该目录，其中的 `!` 白名单规则会**静默失效**
+> （曾经因此丢失全部 23 份分析报告与 11 个被报告引用的数据文件）。
 
 ## 战斗求解器（两种，可切换）
 
@@ -76,8 +96,8 @@ sts-agent/
 # 1) 建环境并装依赖
 python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
 
-# 2) 编译 C++ 模拟器（见实现计划 Task 1），产出 slaythespire.pyd
-#    然后冒烟验证
+# 2) 冒烟验证 —— 仓库已附带编译好的 slaythespire.cp313-win_amd64.pyd，无需编译
+#    （仅当平台/ Python 版本不同、或改了 C++ 源码时才需要重新编译 → docs/build-simulator.md）
 .venv/Scripts/python verify_env.py 12345
 
 # 3) 跑测试

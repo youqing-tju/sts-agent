@@ -1,0 +1,1133 @@
+{
+ "available_commands": [
+  "choose",
+  "cancel",
+  "key",
+  "click",
+  "wait",
+  "state"
+ ],
+ "ready_for_command": true,
+ "in_game": true,
+ "game_state": {
+  "choice_list": [
+   "鎵撳嚮",
+   "鎵撳嚮",
+   "鎵撳嚮",
+   "鎵撳嚮",
+   "鎵撳嚮",
+   "闃插尽",
+   "闃插尽",
+   "闃插尽",
+   "闃插尽",
+   "鐥涘嚮",
+   "鐮寸伃",
+   "閲戝垰鑷���"
+  ],
+  "screen_type": "GRID",
+  "screen_state": {
+   "cards": [
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "鎵撳嚮",
+     "description": "閫犳垚 6 鐐逛激瀹炽������",
+     "id": "Strike_R",
+     "type": "ATTACK",
+     "ethereal": false,
+     "uuid": "514b9b74-b2f4-44fc-a34b-ff3cb90890d2",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": true
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "鎵撳嚮",
+     "description": "閫犳垚 6 鐐逛激瀹炽������",
+     "id": "Strike_R",
+     "type": "ATTACK",
+     "ethereal": false,
+     "uuid": "81bc2e59-defc-47df-9990-eab1c4d6e9a3",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": true
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "鎵撳嚮",
+     "description": "閫犳垚 6 鐐逛激瀹炽������",
+     "id": "Strike_R",
+     "type": "ATTACK",
+     "ethereal": false,
+     "uuid": "d4b801b4-a0f5-43d0-a234-7945dc19c304",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": true
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "鎵撳嚮",
+     "description": "閫犳垚 6 鐐逛激瀹炽������",
+     "id": "Strike_R",
+     "type": "ATTACK",
+     "ethereal": false,
+     "uuid": "de7f0f47-6053-45a9-b3f0-680da477a327",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": true
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "鎵撳嚮",
+     "description": "閫犳垚 6 鐐逛激瀹炽������",
+     "id": "Strike_R",
+     "type": "ATTACK",
+     "ethereal": false,
+     "uuid": "68dbb2d4-2854-4c12-babb-431c99982cb9",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": true
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "闃插尽",
+     "description": "鑾峰緱 5 鐐��� 鏍兼尅 銆���",
+     "id": "Defend_R",
+     "type": "SKILL",
+     "ethereal": false,
+     "uuid": "00d32730-217c-46e7-b6de-cd2000f999e0",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": false
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "闃插尽",
+     "description": "鑾峰緱 5 鐐��� 鏍兼尅 銆���",
+     "id": "Defend_R",
+     "type": "SKILL",
+     "ethereal": false,
+     "uuid": "98660fc3-9ceb-4534-862d-1037e4a3b703",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": false
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "闃插尽",
+     "description": "鑾峰緱 5 鐐��� 鏍兼尅 銆���",
+     "id": "Defend_R",
+     "type": "SKILL",
+     "ethereal": false,
+     "uuid": "4430dcdc-f8df-4c4f-99b4-e6b730d85b9a",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": false
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "闃插尽",
+     "description": "鑾峰緱 5 鐐��� 鏍兼尅 銆���",
+     "id": "Defend_R",
+     "type": "SKILL",
+     "ethereal": false,
+     "uuid": "3610cfd4-cfae-4b2b-88f6-4e403a38e6b5",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": false
+    },
+    {
+     "exhausts": false,
+     "cost": 2,
+     "name": "鐥涘嚮",
+     "description": "閫犳垚 8 鐐逛激瀹炽������ \n 缁欎簣 2 灞��� 鏄撲激 銆���",
+     "id": "Bash",
+     "type": "ATTACK",
+     "ethereal": false,
+     "uuid": "e6f2c522-c7a9-4452-aeae-bf4894b8dce0",
+     "upgrades": 0,
+     "rarity": "BASIC",
+     "has_target": true
+    },
+    {
+     "exhausts": false,
+     "cost": 1,
+     "name": "鐮寸伃",
+     "description": "鎵撳嚭鎶界墝鍫嗛《閮ㄧ殑鐗岋紝灏嗗叾 娑堣������ 銆���",
+     "id": "Havoc",
+     "type": "SKILL",
+     "ethereal": false,
+     "uuid": "bf47e782-2566-4396-b7f1-3001f6003da6",
+     "upgrades": 0,
+     "rarity": "COMMON",
+     "has_target": false
+    },
+    {
+     "exhausts": false,
+     "cost": 2,
+     "name": "閲戝垰鑷���",
+     "description": "閫犳垚 12 鐐逛激瀹炽������ \n 缁欎簣 2 灞��� 铏氬急 銆���",
+     "id": "Clothesline",
+     "type": "ATTACK",
+     "ethereal": false,
+     "uuid": "103901b5-49db-41eb-ab37-a902362e1373",
+     "upgrades": 0,
+     "rarity": "COMMON",
+     "has_target": true
+    }
+   ],
+   "selected_cards": [],
+   "for_transform": false,
+   "confirm_up": false,
+   "any_number": false,
+   "for_upgrade": false,
+   "num_cards": 1,
+   "for_purge": true
+  },
+  "seed": -828267697969893309,
+  "keys": {
+   "emerald": false,
+   "ruby": false,
+   "sapphire": false
+  },
+  "deck": [
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "鎵撳嚮",
+    "description": "閫犳垚 6 鐐逛激瀹炽������",
+    "id": "Strike_R",
+    "type": "ATTACK",
+    "ethereal": false,
+    "uuid": "514b9b74-b2f4-44fc-a34b-ff3cb90890d2",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": true
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "鎵撳嚮",
+    "description": "閫犳垚 6 鐐逛激瀹炽������",
+    "id": "Strike_R",
+    "type": "ATTACK",
+    "ethereal": false,
+    "uuid": "81bc2e59-defc-47df-9990-eab1c4d6e9a3",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": true
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "鎵撳嚮",
+    "description": "閫犳垚 6 鐐逛激瀹炽������",
+    "id": "Strike_R",
+    "type": "ATTACK",
+    "ethereal": false,
+    "uuid": "d4b801b4-a0f5-43d0-a234-7945dc19c304",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": true
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "鎵撳嚮",
+    "description": "閫犳垚 6 鐐逛激瀹炽������",
+    "id": "Strike_R",
+    "type": "ATTACK",
+    "ethereal": false,
+    "uuid": "de7f0f47-6053-45a9-b3f0-680da477a327",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": true
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "鎵撳嚮",
+    "description": "閫犳垚 6 鐐逛激瀹炽������",
+    "id": "Strike_R",
+    "type": "ATTACK",
+    "ethereal": false,
+    "uuid": "68dbb2d4-2854-4c12-babb-431c99982cb9",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": true
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "闃插尽",
+    "description": "鑾峰緱 5 鐐��� 鏍兼尅 銆���",
+    "id": "Defend_R",
+    "type": "SKILL",
+    "ethereal": false,
+    "uuid": "00d32730-217c-46e7-b6de-cd2000f999e0",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": false
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "闃插尽",
+    "description": "鑾峰緱 5 鐐��� 鏍兼尅 銆���",
+    "id": "Defend_R",
+    "type": "SKILL",
+    "ethereal": false,
+    "uuid": "98660fc3-9ceb-4534-862d-1037e4a3b703",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": false
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "闃插尽",
+    "description": "鑾峰緱 5 鐐��� 鏍兼尅 銆���",
+    "id": "Defend_R",
+    "type": "SKILL",
+    "ethereal": false,
+    "uuid": "4430dcdc-f8df-4c4f-99b4-e6b730d85b9a",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": false
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "闃插尽",
+    "description": "鑾峰緱 5 鐐��� 鏍兼尅 銆���",
+    "id": "Defend_R",
+    "type": "SKILL",
+    "ethereal": false,
+    "uuid": "3610cfd4-cfae-4b2b-88f6-4e403a38e6b5",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": false
+   },
+   {
+    "exhausts": false,
+    "cost": 2,
+    "name": "鐥涘嚮",
+    "description": "閫犳垚 8 鐐逛激瀹炽������ \n 缁欎簣 2 灞��� 鏄撲激 銆���",
+    "id": "Bash",
+    "type": "ATTACK",
+    "ethereal": false,
+    "uuid": "e6f2c522-c7a9-4452-aeae-bf4894b8dce0",
+    "upgrades": 0,
+    "rarity": "BASIC",
+    "has_target": true
+   },
+   {
+    "exhausts": false,
+    "cost": 1,
+    "name": "鐮寸伃",
+    "description": "鎵撳嚭鎶界墝鍫嗛《閮ㄧ殑鐗岋紝灏嗗叾 娑堣������ 銆���",
+    "id": "Havoc",
+    "type": "SKILL",
+    "ethereal": false,
+    "uuid": "bf47e782-2566-4396-b7f1-3001f6003da6",
+    "upgrades": 0,
+    "rarity": "COMMON",
+    "has_target": false
+   },
+   {
+    "exhausts": false,
+    "cost": 2,
+    "name": "閲戝垰鑷���",
+    "description": "閫犳垚 12 鐐逛激瀹炽������ \n 缁欎簣 2 灞��� 铏氬急 銆���",
+    "id": "Clothesline",
+    "type": "ATTACK",
+    "ethereal": false,
+    "uuid": "103901b5-49db-41eb-ab37-a902362e1373",
+    "upgrades": 0,
+    "rarity": "COMMON",
+    "has_target": true
+   }
+  ],
+  "relics": [
+   {
+    "name": "鐕冪儳涔嬭������",
+    "description": "鍦ㄦ垬鏂楃粨鏉熸椂锛屽洖澶��� 6 鐐圭敓鍛姐������",
+    "used_up": false,
+    "id": "Burning Blood",
+    "counter": -1
+   },
+   {
+    "name": "娑呭ゥ鐨勬偛鎭���",
+    "description": "鎺ヤ笅鏉��� 3 鍦烘垬鏂椾腑鐨勬晫浜哄皢鍙���鏈��� 1 鐐圭敓鍛姐������",
+    "used_up": false,
+    "id": "NeowsBlessing",
+    "counter": 1
+   }
+  ],
+  "max_hp": 80,
+  "act_boss": "Hexaghost",
+  "gold": 138,
+  "action_phase": "WAITING_ON_USER",
+  "act": 1,
+  "screen_name": "GRID",
+  "room_phase": "COMPLETE",
+  "is_screen_up": true,
+  "potions": [
+   {
+    "requires_target": false,
+    "can_use": false,
+    "can_discard": false,
+    "name": "鑽���姘存爮",
+    "description": "鍦ㄦ垬鏂椾腑浣跨敤鑽���姘存潵鑾峰緱 澧炵泭 鎴��� 闃绘尃 鏁屼汉銆���",
+    "id": "Potion Slot"
+   },
+   {
+    "requires_target": false,
+    "can_use": false,
+    "can_discard": false,
+    "name": "鑽���姘存爮",
+    "description": "鍦ㄦ垬鏂椾腑浣跨敤鑽���姘存潵鑾峰緱 澧炵泭 鎴��� 闃绘尃 鏁屼汉銆���",
+    "id": "Potion Slot"
+   },
+   {
+    "requires_target": false,
+    "can_use": false,
+    "can_discard": false,
+    "name": "鑽���姘存爮",
+    "description": "鍦ㄦ垬鏂椾腑浣跨敤鑽���姘存潵鑾峰緱 澧炵泭 鎴��� 闃绘尃 鏁屼汉銆���",
+    "id": "Potion Slot"
+   }
+  ],
+  "current_hp": 80,
+  "floor": 3,
+  "ascension_level": 0,
+  "class": "IRONCLAD",
+  "map": [
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 0,
+      "y": 1
+     }
+    ],
+    "x": 0,
+    "y": 0,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 5,
+      "y": 1
+     }
+    ],
+    "x": 5,
+    "y": 0,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 0,
+      "y": 2
+     },
+     {
+      "x": 1,
+      "y": 2
+     }
+    ],
+    "x": 0,
+    "y": 1,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 5,
+      "y": 2
+     }
+    ],
+    "x": 5,
+    "y": 1,
+    "parents": []
+   },
+   {
+    "symbol": "$",
+    "children": [
+     {
+      "x": 0,
+      "y": 3
+     }
+    ],
+    "x": 0,
+    "y": 2,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 1,
+      "y": 3
+     }
+    ],
+    "x": 1,
+    "y": 2,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 5,
+      "y": 3
+     }
+    ],
+    "x": 5,
+    "y": 2,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 0,
+      "y": 4
+     },
+     {
+      "x": 1,
+      "y": 4
+     }
+    ],
+    "x": 0,
+    "y": 3,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 1,
+      "y": 4
+     }
+    ],
+    "x": 1,
+    "y": 3,
+    "parents": []
+   },
+   {
+    "symbol": "$",
+    "children": [
+     {
+      "x": 4,
+      "y": 4
+     },
+     {
+      "x": 6,
+      "y": 4
+     }
+    ],
+    "x": 5,
+    "y": 3,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 0,
+      "y": 5
+     }
+    ],
+    "x": 0,
+    "y": 4,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 1,
+      "y": 5
+     }
+    ],
+    "x": 1,
+    "y": 4,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 3,
+      "y": 5
+     },
+     {
+      "x": 5,
+      "y": 5
+     }
+    ],
+    "x": 4,
+    "y": 4,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 6,
+      "y": 5
+     }
+    ],
+    "x": 6,
+    "y": 4,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 0,
+      "y": 6
+     }
+    ],
+    "x": 0,
+    "y": 5,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 1,
+      "y": 6
+     },
+     {
+      "x": 2,
+      "y": 6
+     }
+    ],
+    "x": 1,
+    "y": 5,
+    "parents": []
+   },
+   {
+    "symbol": "E",
+    "children": [
+     {
+      "x": 3,
+      "y": 6
+     }
+    ],
+    "x": 3,
+    "y": 5,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 5,
+      "y": 6
+     }
+    ],
+    "x": 5,
+    "y": 5,
+    "parents": []
+   },
+   {
+    "symbol": "E",
+    "children": [
+     {
+      "x": 6,
+      "y": 6
+     }
+    ],
+    "x": 6,
+    "y": 5,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 0,
+      "y": 7
+     }
+    ],
+    "x": 0,
+    "y": 6,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 1,
+      "y": 7
+     }
+    ],
+    "x": 1,
+    "y": 6,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 1,
+      "y": 7
+     }
+    ],
+    "x": 2,
+    "y": 6,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 4,
+      "y": 7
+     }
+    ],
+    "x": 3,
+    "y": 6,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 5,
+      "y": 7
+     }
+    ],
+    "x": 5,
+    "y": 6,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 6,
+      "y": 7
+     }
+    ],
+    "x": 6,
+    "y": 6,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 1,
+      "y": 8
+     }
+    ],
+    "x": 0,
+    "y": 7,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 1,
+      "y": 8
+     }
+    ],
+    "x": 1,
+    "y": 7,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 3,
+      "y": 8
+     }
+    ],
+    "x": 4,
+    "y": 7,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 4,
+      "y": 8
+     }
+    ],
+    "x": 5,
+    "y": 7,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 6,
+      "y": 8
+     }
+    ],
+    "x": 6,
+    "y": 7,
+    "parents": []
+   },
+   {
+    "symbol": "T",
+    "children": [
+     {
+      "x": 0,
+      "y": 9
+     },
+     {
+      "x": 1,
+      "y": 9
+     }
+    ],
+    "x": 1,
+    "y": 8,
+    "parents": []
+   },
+   {
+    "symbol": "T",
+    "children": [
+     {
+      "x": 3,
+      "y": 9
+     }
+    ],
+    "x": 3,
+    "y": 8,
+    "parents": []
+   },
+   {
+    "symbol": "T",
+    "children": [
+     {
+      "x": 3,
+      "y": 9
+     }
+    ],
+    "x": 4,
+    "y": 8,
+    "parents": []
+   },
+   {
+    "symbol": "T",
+    "children": [
+     {
+      "x": 5,
+      "y": 9
+     }
+    ],
+    "x": 6,
+    "y": 8,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 0,
+      "y": 10
+     }
+    ],
+    "x": 0,
+    "y": 9,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 0,
+      "y": 10
+     }
+    ],
+    "x": 1,
+    "y": 9,
+    "parents": []
+   },
+   {
+    "symbol": "E",
+    "children": [
+     {
+      "x": 4,
+      "y": 10
+     }
+    ],
+    "x": 3,
+    "y": 9,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 4,
+      "y": 10
+     }
+    ],
+    "x": 5,
+    "y": 9,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 1,
+      "y": 11
+     }
+    ],
+    "x": 0,
+    "y": 10,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 4,
+      "y": 11
+     },
+     {
+      "x": 5,
+      "y": 11
+     }
+    ],
+    "x": 4,
+    "y": 10,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 0,
+      "y": 12
+     },
+     {
+      "x": 1,
+      "y": 12
+     }
+    ],
+    "x": 1,
+    "y": 11,
+    "parents": []
+   },
+   {
+    "symbol": "E",
+    "children": [
+     {
+      "x": 3,
+      "y": 12
+     },
+     {
+      "x": 4,
+      "y": 12
+     }
+    ],
+    "x": 4,
+    "y": 11,
+    "parents": []
+   },
+   {
+    "symbol": "?",
+    "children": [
+     {
+      "x": 4,
+      "y": 12
+     }
+    ],
+    "x": 5,
+    "y": 11,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 0,
+      "y": 13
+     }
+    ],
+    "x": 0,
+    "y": 12,
+    "parents": []
+   },
+   {
+    "symbol": "$",
+    "children": [
+     {
+      "x": 0,
+      "y": 13
+     },
+     {
+      "x": 1,
+      "y": 13
+     }
+    ],
+    "x": 1,
+    "y": 12,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 3,
+      "y": 13
+     }
+    ],
+    "x": 3,
+    "y": 12,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 5,
+      "y": 13
+     }
+    ],
+    "x": 4,
+    "y": 12,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 0,
+      "y": 14
+     }
+    ],
+    "x": 0,
+    "y": 13,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 1,
+      "y": 14
+     }
+    ],
+    "x": 1,
+    "y": 13,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 2,
+      "y": 14
+     }
+    ],
+    "x": 3,
+    "y": 13,
+    "parents": []
+   },
+   {
+    "symbol": "M",
+    "children": [
+     {
+      "x": 5,
+      "y": 14
+     },
+     {
+      "x": 6,
+      "y": 14
+     }
+    ],
+    "x": 5,
+    "y": 13,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 3,
+      "y": 16
+     }
+    ],
+    "x": 0,
+    "y": 14,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 3,
+      "y": 16
+     }
+    ],
+    "x": 1,
+    "y": 14,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 3,
+      "y": 16
+     }
+    ],
+    "x": 2,
+    "y": 14,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 3,
+      "y": 16
+     }
+    ],
+    "x": 5,
+    "y": 14,
+    "parents": []
+   },
+   {
+    "symbol": "R",
+    "children": [
+     {
+      "x": 3,
+      "y": 16
+     }
+    ],
+    "x": 6,
+    "y": 14,
+    "parents": []
+   }
+  ],
+  "room_type": "ShopRoom"
+ }
+}
