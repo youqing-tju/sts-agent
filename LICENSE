@@ -19,13 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Third-party components bundled under third_party/ keep their own licenses:
-
-- third_party/sts_lightspeed/  — MIT License, Copyright (c) 2021 gamerpuppy
-  (https://github.com/gamerpuppy/sts_lightspeed), see LICENSE.md
-- third_party/sts_lightspeed/json/ — MIT License, Copyright (c) 2013-2022
-  Niels Lohmann (nlohmann/json), see LICENSE.MIT
-- third_party/sts_lightspeed/pybind11/ — BSD-style license, see its LICENSE

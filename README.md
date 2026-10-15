@@ -146,6 +146,6 @@ RL 超过规则 baseline：+3.3 层，通关率 3 倍。
 
 本项目采用 **MIT License** —— 见 [`LICENSE`](LICENSE)。
 
-`third_party/` 下 vendored 的第三方组件保留其各自许可证：
-`sts_lightspeed`（MIT, © 2021 gamerpuppy）、`nlohmann/json`（MIT）、`pybind11`（BSD-style），
-详见各子目录内的 LICENSE 文件。
+`third_party/` 下 vendored 的第三方组件保留各自的原始许可证（MIT / BSD-style），
+完整清单、版权声明与"本项目不含游戏本体资源"的说明见
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
