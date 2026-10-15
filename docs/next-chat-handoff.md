@@ -79,12 +79,13 @@ MCTS 靠随机 rollout 逼近，在容错窗口很窄的 Boss 战容易失手。
 
 ## 4. 🔴 三个必须先知道的坑
 
-### 坑 1：Beam 是纯 Python，慢 100–200×
-- 单进程 W=2 / depth=6 / max-nodes=300 ≈ **24 秒/局**（MCTS 约 0.2 秒）
-- **8 workers 并行收益只有约 50%**（CPU 完全饱和）→ 8000 局 ≈ **12–17 小时**
-- **性能热点已定位**：`combat_beam.fingerprint()` 占单节点 **98%** 耗时（0.5 ms/节点，
-  而裸的"拷贝 bc + 执行一步"只需 0.01 ms）—— 原因是大量 pybind 对象访问 + 字符串 `id.name`。
-  **优化它可获得 2–3× 提速，且对以后所有 Beam 训练都有效。**
+### 坑 1：Beam 是纯 Python，比 MCTS 慢得多
+- ✅ **2026-10-15 已大幅改善**：`fingerprint()` 的 `c.id.name` → `c.id.value` 后，
+  **生产路径 8 局从 274 s 降到 45 s（6.1×）**，搜索结果逐字不变。
+  详见 `logs/beam-fingerprint-optimization.md`。
+- **原热点根因**：`CardId.name` 每次访问约 **444 µs**（371 个枚举成员的按名查找），
+  `.value` 仅 **1.24 µs** —— 差 358×。原实现 98% 的耗时就在这两行。
+- 现状：**8 workers 并行收益仍只有约 50%**（CPU 饱和）。
 - 长期方案：把 Beam 下沉到 C++（工作量最大，但根治）
 
 ### 坑 2：模拟器二进制是唯一的一份，**不能弄丢**
@@ -103,7 +104,9 @@ MCTS 靠随机 rollout 逼近，在容错窗口很窄的 Boss 战容易失手。
 
 | 资产 | 位置 | 说明 |
 |---|---|---|
-| **Beam 求解器** | `combat_beam.py`（309 行） | 已复刻 CombatSolver：`fingerprint` / `legal_actions` / `evaluate` / `BeamSolver.solve` |
+| **Beam 求解器** | `combat_beam.py`（309 行） | 已复刻 CombatSolver：`fingerprint` / `legal_actions` / `evaluate` / `BeamSolver.solve`（fingerprint 已做整数 id 优化） |
+| **Beam 测试** | `tests/test_combat_beam.py`（16 项） | 指纹等价性 / 死锁回归 / 不改动入参 / 性能回归（2026-10-15 新增，此前零覆盖） |
+| **性能优化报告** | `logs/beam-fingerprint-optimization.md` | P0-① 全过程：诊断 / 根因 / 三层等价性验证 / 生产提速数据 |
 | 启发式权重 | `combat_beam.py:60-68` | 对齐 CombatSolver 的 `SolverWeights`（HP=30000 量级） |
 | 训练接入 | `training/run_training.py` | `--combat-solver beam --beam-width 4 --beam-depth 8 --beam-max-nodes 3000` |
 | 环境接线 | `env/lightspeed_env.py` | `LightspeedEnv(combat_solver="beam", ...)`；Beam 模式走 `_run_combat_beam()` |
@@ -164,9 +167,11 @@ export KMP_DUPLICATE_LIB_OK=TRUE
 
 用户确认：**留在 STS1** · **启动性能优化** · **直接照搬 CombatSolver 的高级机制（"照搬就行，不必保留"我们的简化实现）**
 
-- **P0-①｜性能优化**：重构 `fingerprint()`（占单节点 **98%** 耗时）。方向：整数哈希替代元组 +
-  避免每次访问 `id.name` 字符串；或加缓存。**目标 2–3× 提速**。
-  （**上云前必做** —— 云上按小时计费，提速即省钱。）
+- ✅ **P0-①｜性能优化（2026-10-15 完成）**：`fingerprint()` 里 `c.id.name` → `c.id.value`。
+  **微基准 125×（2553 → 20.4 µs）｜solve 45.4×｜生产 8 局 274 s → 45 s（6.1×）**；
+  三层等价性验证 + 8 局评估结果逐项一致。报告 `logs/beam-fingerprint-optimization.md`，
+  新增 `tests/test_combat_beam.py`（16 项）。**新增坑**：`init_from_gc` 忽略
+  `combat_state.player.energy / current_hp`（血量要改顶层、能量只能靠出牌耗尽）。
 - **P0-②｜照搬 CombatSolver 的高级机制** —— 我们目前只复刻了**基础 Beam**，以下 5 条**均未实现**，
   按预估收益排序：
 
@@ -185,7 +190,8 @@ export KMP_DUPLICATE_LIB_OK=TRUE
 - **P1｜Beam 宽度 ↔ RL 抓牌质量的对照实验**（§3 的核心验证）：
   扫 W ∈ {1,2,4,8}，同训练量，比"通关局牌组质量"而非楼层。
 - **P1｜调启发式权重**：当前 9 个权重是照抄 CombatSolver 的量级，**未对 STS1 调过**。
-- **P2｜上云**：等 P0 做完（性能提上去）再上，否则云成本翻倍。
+- **P2｜上云**：✅ P0-① 已完成（提速 6.1×）→ 上云成本已显著下降，**可以安排**。
+  建议先跑一次「同配置 500 局」实测墙钟，再决定云上机型与时长。
 
 ## 9. 团队硬性规则（必须遵守）
 
@@ -206,7 +212,8 @@ export KMP_DUPLICATE_LIB_OK=TRUE
 ## 10. 当前项目状态（2026-10-15 更新）
 
 - 仓库：`youqing-tju/sts-agent` —— **公开**，**MIT 许可**，默认分支 `master`
-- 本地 = 远端（10-15 已补推交接文档）；工作区干净；测试 **249 passed / 2 skipped**
+- 本地 = 远端；测试 **265 passed / 2 skipped**（较 10-15 早间 +16，全部来自 `test_combat_beam.py`）
+- ✅ **P0-① 完成**：Beam 指纹优化，生产提速 6.1×（`logs/beam-fingerprint-optimization.md`）
 - ✅ **顶层 `LICENSE` 已加**（MIT, 2026 youqing-tju），文件内同时列出 `third_party/` 各组件的许可证
 - ✅ **开源合规核查通过**：无密钥/token（已扫全部 commit 的完整 diff）、无本机绝对路径、无个人信息、未混入无关项目内容
 - ✅ **`bc-cartpole-demo` 已删除**（10-15）→ `07-projects/` 下现在**只有 `sts-agent` 一个项目**
