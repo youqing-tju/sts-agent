@@ -141,3 +141,11 @@ RL 超过规则 baseline：+3.3 层，通关率 3 倍。
 4001-4500   32.1   0.105    3.0%
 4501-5000   31.4   0.110    3.4%
 ```
+
+## License
+
+本项目采用 **MIT License** —— 见 [`LICENSE`](LICENSE)。
+
+`third_party/` 下 vendored 的第三方组件保留其各自许可证：
+`sts_lightspeed`（MIT, © 2021 gamerpuppy）、`nlohmann/json`（MIT）、`pybind11`（BSD-style），
+详见各子目录内的 LICENSE 文件。

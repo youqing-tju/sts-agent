@@ -27,14 +27,14 @@
 | 项 | 值 |
 |---|---|
 | 项目根 | `C:\Youqing-Vault\Embodied-AI\07-projects\sts-agent\` |
-| GitHub | `youqing-tju/sts-agent`（**私有**） |
+| GitHub | `youqing-tju/sts-agent`（**公开**，MIT 许可） |
 | Python | `.venv/Scripts/python.exe`（3.13） |
 | 跑任何命令前 | `export KMP_DUPLICATE_LIB_OK=TRUE`（防 torch/OpenMP 重复加载报错） |
 | Shell | Git Bash（Windows） |
 
-## 2. ⭐ 本轮战略决策（2026-10-09 定）
+## 2. ⭐ 战略决策
 
-**放弃继续改进 MCTS，全面转向 Beam Search。**
+### ① 放弃继续改进 MCTS，全面转向 Beam Search（2026-10-09 定）
 
 **数据依据**（`logs/v12-beam-vs-mcts-report.md`，同训练量 500 局 / 100 局 greedy 评估 / 同 100 种子）：
 
@@ -48,6 +48,20 @@
 MCTS 靠随机 rollout 逼近，在容错窗口很窄的 Boss 战容易失手。
 
 ⚠️ 局限：仅 500 局训练量、Beam 用**最小预算 W=2 未调优**、两次评估独立运行非逐局配对。**这是早期结论。**
+
+### ② 留在 STS1，**不转入 STS2**（2026-10-15 确认）
+
+曾评估「既然 STS2 有现成的 CombatSolver，能否直接在 STS2 上做 RL」，**结论：不转**。理由：
+
+| 理由 | 说明 |
+|---|---|
+| **CombatSolver 不是模拟器** | 它是**挂在真实游戏上的战斗求解器**（mod / hook 进 Godot 进程），**无法 headless 跑海量局** |
+| **速度差 600×** | `sts_lightspeed` 一局约 0.2 s；CombatSolver 的 Medium 档**单场战斗**就要 120 s 预算（它的定位是给真人辅助） |
+| **只解战斗，不解决瓶颈** | RL 的主体是**宏观决策**（选牌/选路），那正是我们的瓶颈所在；换游戏后瓶颈原样存在 |
+| **成本结构不利** | 转 STS2 = 重写 env / 编码 / 训练 / 评估，全部落在 C#/Godot 生态（现有资产是 Python + C++） |
+| **STS1 天然是"固定版本"** | STS2 仍在抢先体验、更新频繁；STS1 已停止更新 |
+
+→ 真正该做的是：**把 CombatSolver 的高级机制搬进 `combat_beam.py`**（见 §8）。
 
 ## 3. ⭐ 本轮方法论设想（用户提出，待验证）
 
@@ -146,15 +160,30 @@ export KMP_DUPLICATE_LIB_OK=TRUE
 .venv/Scripts/python.exe -m pytest tests/ -q
 ```
 
-## 8. ⏭ 建议的下一步（P0 → P2）
+## 8. ⏭ 下一步（2026-10-15 用户已确认）
 
-- **P0｜性能优化**：重构 `fingerprint()`（热点占 98%）。方向：用整数哈希替代元组 +
-  避免每次访问 `id.name` 字符串；或缓存。**目标 2–3× 提速**，对后续所有训练都受益。
-  （**这是"上云前"最该做的一步** —— 云上按小时计费，提速等于省钱。）
-- **P0｜补 Power 绑定**：扩展 C++ 绑定暴露 Vulnerable/Weak 等，修指纹漏判 + 启发式缺特征。
-  需要重编译 pyd —— **⚠️ 见坑 2，本机 VS 已卸载，需先装 VS**。
-- **P1｜Beam 宽度 ↔ RL 抓牌质量的对照实验**（第 3 节的核心验证）：
-  扫 W ∈ {1,2,4,8}，每组同训练量，比"通关局牌组质量"而不是楼层。
+用户确认：**留在 STS1** · **启动性能优化** · **直接照搬 CombatSolver 的高级机制（"照搬就行，不必保留"我们的简化实现）**
+
+- **P0-①｜性能优化**：重构 `fingerprint()`（占单节点 **98%** 耗时）。方向：整数哈希替代元组 +
+  避免每次访问 `id.name` 字符串；或加缓存。**目标 2–3× 提速**。
+  （**上云前必做** —— 云上按小时计费，提速即省钱。）
+- **P0-②｜照搬 CombatSolver 的高级机制** —— 我们目前只复刻了**基础 Beam**，以下 5 条**均未实现**，
+  按预估收益排序：
+
+  | 机制 | 作用 | 现状 |
+  |---|---|---|
+  | **8 个泳道各保 1 席** | 防守/铺垫/Power/无药/带药… 各保一代表**顶替最弱束位** → 防"低即时收益、高跨回合价值"的铺垫牌被均值淹没。**很可能就是它"好用"的真正来源** | ❌ 无 |
+  | **六维转置表支配剪枝** | 标签 =(药水数, 药水成本, 未来HP, 累计失血, 动作数, 分数)；支配 = 前 5 维 ≤ 且 Score ≥ → 一次砍掉**整片**更差子树 | ❌ 只有精确去重 |
+  | **束宽 Portfolio** | 同根**串行**跑 `[W, 2W/3, 3W/2, W+band, W+base]` 共享预算（源码注释：**宽度不单调**） | ❌ 固定单一宽度 |
+  | **路线级反事实药水策略** | 比"用药 vs 无药"的 `HpSaved` ≥ 分档门槛（基线 9），替代固定血量阈值 | ❌ 药水动作未接入 |
+  | **BFWS novelty 逃生通道** | 搜索停滞时的备选探索（CombatSolver 里**默认关闭**） | ❌ 无 |
+
+  参考实现（**只读，是 STS2 的 C# 代码，不可直接移植**）：`reference/CombatSolver/`；
+  算法细节见 `logs/combatsolver-search-algorithm.md`、`logs/combatsolver-pruning-valuation.md`
+- **P0-③｜补 Power 绑定**：扩展 C++ 绑定暴露 Vulnerable/Weak 等，修指纹漏判 + 启发式缺特征。
+  需重编译 pyd —— **⚠️ 见坑 2：本机 VS 已卸载，需先装 VS**。
+- **P1｜Beam 宽度 ↔ RL 抓牌质量的对照实验**（§3 的核心验证）：
+  扫 W ∈ {1,2,4,8}，同训练量，比"通关局牌组质量"而非楼层。
 - **P1｜调启发式权重**：当前 9 个权重是照抄 CombatSolver 的量级，**未对 STS1 调过**。
 - **P2｜上云**：等 P0 做完（性能提上去）再上，否则云成本翻倍。
 
@@ -174,9 +203,13 @@ export KMP_DUPLICATE_LIB_OK=TRUE
 8. 命名：项目内文档放 `docs/`，分析报告放 `logs/`（`logs/*.md` 会入库，
    `logs/**/*.jsonl` 等大数据不入库）。
 
-## 10. 当前项目状态
+## 10. 当前项目状态（2026-10-15 更新）
 
-- git 干净，最新 commit `4793b75`｜跟踪文件 1514｜已推送 GitHub
-- 远端 HEAD = 本地 HEAD ✅
-- 测试 **249 passed / 2 skipped**
-- **未决**：`bc-cartpole-demo`（`07-projects/` 下的倒立摆 demo，不属本项目）去留未拍板
+- 仓库：`youqing-tju/sts-agent` —— **公开**，**MIT 许可**，默认分支 `master`
+- 本地 = 远端（10-15 已补推交接文档）；工作区干净；测试 **249 passed / 2 skipped**
+- ✅ **顶层 `LICENSE` 已加**（MIT, 2026 youqing-tju），文件内同时列出 `third_party/` 各组件的许可证
+- ✅ **开源合规核查通过**：无密钥/token（已扫全部 commit 的完整 diff）、无本机绝对路径、无个人信息、未混入无关项目内容
+- ✅ **`bc-cartpole-demo` 已删除**（10-15）→ `07-projects/` 下现在**只有 `sts-agent` 一个项目**
+- 📌 推送须知：本机**未持久化 GitHub 凭据**；网络用代理 `127.0.0.1:<port>`（**端口每会话会变**，
+  已见 7890/12081/13629）→ 不通时**先重试 + 重扫端口**；`git push` 前必须
+  `export GIT_TERMINAL_PROMPT=0`，否则会卡在认证提示
