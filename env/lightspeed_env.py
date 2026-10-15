@@ -69,12 +69,19 @@ class LightspeedEnv(StsEnv):
                  combat_solver: str = "mcts",
                  beam_width: int = 4,
                  beam_depth: int = 8,
-                 beam_max_nodes: int = 3000):
+                 beam_max_nodes: int = 3000,
+                 route_lanes: bool = True,
+                 lane_budget: int | None = None,
+                 width_portfolio: bool = False):
         """combat_solver: `"mcts"`（默认，C++ Agent 自动打完战斗）| `"beam"`（Python Beam 接管）。
 
         beam_* 仅在 combat_solver="beam" 时生效。**训练用小预算**：
         Beam 单决策耗时 ≈ O(W × depth × 合法动作数)，W=4/depth=8 约 50~150ms；
         一局约 10~30 场战斗 × 3~10 决策 → 数秒/局（8 workers 下可接受）。
+
+        P0-② 高级机制（默认开 `route_lanes`，另两项按需开）：
+        - `route_lanes`  泳道必保席；`lane_budget` 指定席位上限（None = 自动）
+        - `width_portfolio` 同根多束宽取最优（更慢）
         """
         self._agent = sts.Agent()
         self._agent.simulation_count_base = mcts_simulations
@@ -87,7 +94,9 @@ class LightspeedEnv(StsEnv):
         if combat_solver == "beam":
             from combat_beam import BeamSolver   # 延迟 import：避免无关场景加载
             self._beam = BeamSolver(beam_width=beam_width, max_depth=beam_depth,
-                                    max_nodes=beam_max_nodes)
+                                    max_nodes=beam_max_nodes,
+                                    route_lanes=route_lanes, lane_budget=lane_budget,
+                                    width_portfolio=width_portfolio)
         self.gc = None
         self._actions = []  # candidates() 缓存的动作列表，step 按 idx 取用
         self._ascension = 0

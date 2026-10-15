@@ -68,6 +68,12 @@ def main():
     p.add_argument("--beam-width", type=int, default=4, help="Beam 束宽（仅 --combat-solver beam）")
     p.add_argument("--beam-depth", type=int, default=8, help="Beam 最大搜索深度")
     p.add_argument("--beam-max-nodes", type=int, default=3000, help="Beam 单次求解最大展开节点数")
+    p.add_argument("--no-beam-lanes", action="store_true",
+                   help="关闭泳道必保席（P0-②；默认开启）")
+    p.add_argument("--beam-lane-budget", type=int, default=None,
+                   help="泳道席位上限（默认 = min(泳道数, beam_width//3)）")
+    p.add_argument("--beam-portfolio", action="store_true",
+                   help="启用束宽 Portfolio（同根多宽度取最优，更慢）")
     p.add_argument("--hidden", default="512,256",
                    help="Scorer 隐藏层，逗号分隔。V6=(512,256)；"
                         "V7 试过 (1024,512) 但实测无增益")
@@ -112,6 +118,9 @@ def main():
                              beam_width=args.beam_width,
                              beam_depth=args.beam_depth,
                              beam_max_nodes=args.beam_max_nodes,
+                             route_lanes=not args.no_beam_lanes,
+                             lane_budget=args.beam_lane_budget,
+                             width_portfolio=args.beam_portfolio,
                              device=args.device or _auto_device())
     else:
         scorer = Scorer(obs_dim=OBS_DIM, cand_dim=DESC_VEC_DIM, hidden=(128, 128))

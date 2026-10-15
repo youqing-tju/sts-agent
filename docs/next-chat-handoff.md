@@ -172,8 +172,18 @@ export KMP_DUPLICATE_LIB_OK=TRUE
   三层等价性验证 + 8 局评估结果逐项一致。报告 `logs/beam-fingerprint-optimization.md`，
   新增 `tests/test_combat_beam.py`（16 项）。**新增坑**：`init_from_gc` 忽略
   `combat_state.player.energy / current_hp`（血量要改顶层、能量只能靠出牌耗尽）。
-- **P0-②｜照搬 CombatSolver 的高级机制** —— 我们目前只复刻了**基础 Beam**，以下 5 条**均未实现**，
-  按预估收益排序：
+- ✅ **P0-②｜照搬 CombatSolver 的高级机制（已实现，但实测无收益）**
+  已实现 3 条并透传到 env / 训练 / 评估（`--no-beam-lanes` / `--beam-lane-budget` / `--beam-portfolio`），
+  `tests/test_combat_beam.py` 共 28 项。**但 A/B 实测无显著收益**：
+  - 泳道：W=4 时通关率**完全一致**（16%/16%）；W=2 时 22%→29%（z≈1.14，**不显著**）
+  - 更宽 W=4/W=8、更深 depth=12/30、更大预算 nodes=1500/3000 —— **全部变差**
+  - 根因 = **启发式评分质量**（评分不准时，多算只会放大误差）
+  - 也解释了泳道为何空转：**`depth=6` 只前瞻 2 步**，看不到第二个回合，"跨回合价值"无从体现
+  - 报告 → `logs/beam-advanced-mechanisms.md`
+  - ⭐ **当前最优配置 = `W=2 / depth=6 / max_nodes=300`（= 现有 CLI 默认值，无需改动）**
+  - ❌ 不再建议加大 Beam 预算（宽度/深度/节点）—— 评分修好之前无收益
+
+  以下为原始机制清单（保留备查）：
 
   | 机制 | 作用 | 现状 |
   |---|---|---|
@@ -187,9 +197,15 @@ export KMP_DUPLICATE_LIB_OK=TRUE
   算法细节见 `logs/combatsolver-search-algorithm.md`、`logs/combatsolver-pruning-valuation.md`
 - **P0-③｜补 Power 绑定**：扩展 C++ 绑定暴露 Vulnerable/Weak 等，修指纹漏判 + 启发式缺特征。
   需重编译 pyd —— **⚠️ 见坑 2：本机 VS 已卸载，需先装 VS**。
+- 🔴 **P0｜调启发式权重**（由 P1 升级，2026-10-15）：三个反常现象（更宽 / 更深 / 更大预算**全部变差**）
+  的共同根因 = `evaluate()` 评分不准。当前 9 个权重照抄 CombatSolver 量级，**未对 STS1 调过**。
+  ⚠️ **前置改造**：权重现在是**模块级常量**（`combat_beam.py:60-68`），
+  要实验必须先改成可配置（函数参数 / 配置对象）。
 - **P1｜Beam 宽度 ↔ RL 抓牌质量的对照实验**（§3 的核心验证）：
   扫 W ∈ {1,2,4,8}，同训练量，比"通关局牌组质量"而非楼层。
-- **P1｜调启发式权重**：当前 9 个权重是照抄 CombatSolver 的量级，**未对 STS1 调过**。
+  ⚠️ 新事实：Beam 前瞻本来只有 2 步（depth=6）；**"变弱"的杠杆在宽度、不在深度**。
+- **P1｜`max_depth` 逆向下探**：depth=6（29%）> depth=12（24%）> depth=30（17%）→
+  试 depth=3~4，若"少算更好"继续成立可再省一半时间。
 - **P2｜上云**：✅ P0-① 已完成（提速 6.1×）→ 上云成本已显著下降，**可以安排**。
   建议先跑一次「同配置 500 局」实测墙钟，再决定云上机型与时长。
 
@@ -212,8 +228,11 @@ export KMP_DUPLICATE_LIB_OK=TRUE
 ## 10. 当前项目状态（2026-10-15 更新）
 
 - 仓库：`youqing-tju/sts-agent` —— **公开**，**MIT 许可**，默认分支 `master`
-- 本地 = 远端；测试 **265 passed / 2 skipped**（较 10-15 早间 +16，全部来自 `test_combat_beam.py`）
+- 本地 = 远端；测试 **275 passed / 4 skipped**（`test_combat_beam.py` 共 28 项）
 - ✅ **P0-① 完成**：Beam 指纹优化，生产提速 6.1×（`logs/beam-fingerprint-optimization.md`）
+- ✅ **P0-② 已实现但实测无收益**（见 §8）→ 当前最优配置仍是 CLI 默认
+  **`W=2 / depth=6 / max_nodes=300`**（`logs/beam-advanced-mechanisms.md`）
+- ⏭ **下一步 = P0 调启发式权重**（前置：把 `evaluate()` 的 9 个权重从模块级常量改为可配置）
 - ✅ **顶层 `LICENSE` 已加**（MIT, 2026 youqing-tju），文件内同时列出 `third_party/` 各组件的许可证
 - ✅ **开源合规核查通过**：无密钥/token（已扫全部 commit 的完整 diff）、无本机绝对路径、无个人信息、未混入无关项目内容
 - ✅ **`bc-cartpole-demo` 已删除**（10-15）→ `07-projects/` 下现在**只有 `sts-agent` 一个项目**

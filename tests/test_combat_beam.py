@@ -260,5 +260,180 @@ def test_fingerprint_perf_regression():
     assert us < 300, ("fingerprint 退化到 %.0f µs/次（疑退回 c.id.name，约 2500 µs）" % us)
 
 
+# --------------------------------------------------------------------------
+# 5. P0-②：泳道必保席 / 同分打破 / 束宽 Portfolio
+# --------------------------------------------------------------------------
+def _expand_once(bc):
+    """展开一层，返回非终局子节点（`_Node`），供 `_select_beam` 直接测试。"""
+    out = []
+    for act in legal_actions(bc):
+        cb = sts.BattleContext(bc)
+        combat_beam._make(act).execute(cb)
+        if cb.is_terminal():
+            continue
+        out.append(combat_beam._Node(bc=cb, path=(act,), score=evaluate(cb), depth=1,
+                                     traits=combat_beam.lane_values(cb)))
+    return out
+
+
+def test_lane_values_shape_and_semantics():
+    bc = _bc()
+    v = combat_beam.lane_values(bc)
+    assert len(v) == len(combat_beam.TRAITS)
+    i_block = combat_beam.TRAITS.index("block")
+    i_off = combat_beam.TRAITS.index("offense")
+    assert v[i_block] == bc.player.block
+    assert v[i_off] == -sum(m.hp for m in bc.monsters if m.is_alive)
+
+
+def test_lane_values_offense_improves_after_attack():
+    """打出一张攻击牌后 offense 泳道值应变高（= 敌人总血降低）。"""
+    bc = _bc()
+    attacks = [a for a in legal_actions(bc) if a[0] == "CARD"]
+    i_off = combat_beam.TRAITS.index("offense")
+    cb = sts.BattleContext(bc)
+    combat_beam._make(attacks[0]).execute(cb)
+    if sum(m.hp for m in cb.monsters if m.is_alive) == sum(m.hp for m in bc.monsters):
+        pytest.skip("该牌未造成伤害（手牌随机），跳过")
+    assert combat_beam.lane_values(cb)[i_off] > combat_beam.lane_values(bc)[i_off]
+
+
+def _expand_multi(bc, rounds=3, cap=40):
+    """多层展开，返回足够多的非终局节点（用于「节点数 > 束宽」的场景）。"""
+    nodes = _expand_once(bc)
+    for _ in range(rounds - 1):
+        nxt = []
+        for n in nodes:
+            for act in legal_actions(n.bc):
+                cb = sts.BattleContext(n.bc)
+                try:
+                    combat_beam._make(act).execute(cb)
+                except Exception:                       # noqa: BLE001
+                    continue
+                if cb.is_terminal():
+                    continue
+                nxt.append(combat_beam._Node(
+                    bc=cb, path=n.path + (act,), score=evaluate(cb), depth=n.depth + 1,
+                    traits=combat_beam.lane_values(cb)))
+        nodes = nxt
+        if len(nodes) > cap:
+            break
+    return nodes
+
+
+def test_lane_champions_are_seated_in_beam():
+    """启用泳道时，**每条泳道的冠军必须进入 beam**（顶替语义的核心保证）。
+
+    前提：展开节点数必须 **超过** 束宽，否则 `_select_beam` 直接全收、无需顶替。
+    """
+    width = 6
+    expanded = _expand_multi(_bc(), rounds=3)
+    if len(expanded) <= width:
+        pytest.skip("展开节点不足以超过束宽（%d <= %d）" % (len(expanded), width))
+    s = BeamSolver(beam_width=width, route_lanes=True, lane_budget=len(combat_beam.TRAITS))
+    beam, seats = s._select_beam(list(expanded), width)
+    assert seats >= 1
+    for idx in range(len(combat_beam.TRAITS)):
+        champ = combat_beam._find_best_lane(expanded, idx)
+        assert champ is not None
+        assert any(b is champ for b in beam), "泳道 %s 的冠军未进入 beam" % combat_beam.TRAITS[idx]
+
+
+def test_route_lanes_off_is_pure_top_w():
+    bc = _bc()
+    expanded = _expand_once(bc)
+    if len(expanded) < 3:
+        pytest.skip("展开节点太少")
+    s = BeamSolver(beam_width=3, route_lanes=False)
+    beam, seats = s._select_beam(list(expanded), 3)
+    assert seats == 0
+    expect = sorted(expanded, key=combat_beam._beam_sort_key)[:3]
+    assert [id(n) for n in beam] == [id(n) for n in expect]
+
+
+def test_route_lanes_on_can_differ_from_top_w():
+    """泳道开启后可能改变 beam 组成（否则机制是空转）。"""
+    bc = _bc()
+    expanded = _expand_once(bc)
+    if len(expanded) < 4:
+        pytest.skip("展开节点太少")
+    on, seats = BeamSolver(beam_width=3, route_lanes=True,
+                           lane_budget=2)._select_beam(list(expanded), 3)
+    assert seats >= 1
+    assert len(on) == 3
+
+
+def test_beam_sort_key_score_desc_then_depth_asc():
+    bc = _bc()
+    tr = combat_beam.lane_values(bc)
+    n1 = combat_beam._Node(bc=bc, score=10.0, depth=2, traits=tr)
+    n2 = combat_beam._Node(bc=bc, score=10.0, depth=1, traits=tr)
+    n3 = combat_beam._Node(bc=bc, score=11.0, depth=9, traits=tr)
+    order = sorted([n1, n2, n3], key=combat_beam._beam_sort_key)
+    assert order[0] is n3, "分数高者应排前"
+    assert order[1] is n2, "同分时步数少者应排前"
+
+
+def test_lane_tiebreak_prefers_higher_hp():
+    a = combat_beam._Node(bc=_bc(hp=70), score=1.0, depth=1,
+                          traits=combat_beam.lane_values(_bc(hp=70)))
+    b = combat_beam._Node(bc=_bc(hp=50), score=1.0, depth=1,
+                          traits=combat_beam.lane_values(_bc(hp=50)))
+    assert combat_beam._dominant_by_tiebreak(a, b)
+
+
+def test_portfolio_widths_dedup_and_positive():
+    s = BeamSolver(beam_width=8, width_portfolio=True)
+    ws = s.portfolio_widths()
+    assert ws[0] == 8
+    assert len(ws) == len(set(ws))
+    assert all(x >= 1 for x in ws)
+    assert len(ws) >= 3
+
+
+def test_portfolio_solve_reports_chosen_width():
+    s = BeamSolver(beam_width=4, max_depth=4, max_nodes=150, width_portfolio=True)
+    plan = s.solve(_bc())
+    assert plan
+    st = s.last_stats
+    assert st["portfolio_chosen_width"] in st["portfolio_widths"]
+    assert "width" in st and "lane_seats" in st
+
+
+def test_lane_seats_zero_when_width_one():
+    """W=1 时泳道不占席（顶替会让 beam 全是冠军，反而失去常规席位）。"""
+    bc = _bc()
+    expanded = _expand_once(bc)
+    if len(expanded) < 2:
+        pytest.skip("展开节点太少")
+    s = BeamSolver(beam_width=2, route_lanes=True, lane_budget=0)
+    _, seats = s._select_beam(list(expanded), 2)
+    assert seats == 0
+
+
+def test_portfolio_shares_node_budget():
+    """Portfolio 的各成员**共享一份节点预算**（总展开数 ≤ max_nodes）。"""
+    s = BeamSolver(beam_width=8, max_depth=6, max_nodes=200, width_portfolio=True)
+    calls = []
+    orig = s._solve_once
+
+    def spy(bc, width, max_nodes=None):
+        plan, st = orig(bc, width, max_nodes=max_nodes)
+        calls.append(st["nodes"])
+        return plan, st
+
+    s._solve_once = spy
+    s.solve(_bc())
+    assert calls, "至少应跑一个 portfolio 成员"
+    assert sum(calls) <= 200, "各成员节点之和 %d 超预算" % sum(calls)
+    assert s.last_stats["portfolio_nodes_left"] >= 0
+
+
+def test_solve_stats_has_hit_budget():
+    s = BeamSolver(beam_width=2, max_depth=4, max_nodes=200)
+    s.solve(_bc())
+    assert "hit_budget" in s.last_stats
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v"]))

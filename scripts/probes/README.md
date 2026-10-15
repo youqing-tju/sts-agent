@@ -60,3 +60,14 @@ _HERE = _find_project_root(__file__)   # 现在指向项目根
 | `_tmp_eval_v11.py` | V11 vs E1 固定种子配对评估 |
 
 同目录下的 `*.log` / `*.txt` 是这些探针的历史输出，一并从根目录迁来归档。
+
+## 2026-10-15 新增（Beam 性能优化 P0-① / 高级机制 P0-② 相关）
+
+| 脚本 | 用途 | 依赖 |
+|---|---|---|
+| `_tmp_beam_fingerprint_probe.py` | 分解 `fingerprint()` 各段耗时，定位到 `CardId.name`（444 µs/次） | 无 |
+| `_tmp_cardid_value_bijection.py` | 验证 371 个 `CardId` 的 `value` ↔ `name` 一一映射（换整数 id 的前提） | 无 |
+| `_tmp_beam_equivalence.py` | 新旧指纹实现下 `solve()` 方案逐字对比 + 端到端提速 | 需先把旧版导出：`git show <commit>:combat_beam.py > scripts/probes/_tmp_combat_beam_old.py`（**该副本不入库**） |
+| `_tmp_lane_seats_probe.py` | 统计泳道必保席在生产配置下的占位率（防止机制空转） | 无 |
+
+结论与数据见 `logs/beam-fingerprint-optimization.md`。

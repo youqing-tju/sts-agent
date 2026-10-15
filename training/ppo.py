@@ -62,7 +62,8 @@ class PPOTrainer:
                  epochs=4, batch_games=16, device="cpu", log_dir=None,
                  upgrade_bonus=0.0, relic_bonus=0.0,
                  combat_solver="mcts", beam_width=4, beam_depth=8,
-                 beam_max_nodes=3000):
+                 beam_max_nodes=3000,
+                 route_lanes=True, lane_budget=None, width_portfolio=False):
         self.scorer = scorer.to(device)
         self.value_net = value_net.to(device)
         self.device = device
@@ -80,6 +81,10 @@ class PPOTrainer:
         self.beam_width = beam_width
         self.beam_depth = beam_depth
         self.beam_max_nodes = beam_max_nodes
+        # P0-②：Beam 高级机制开关（透传到 env 与 worker 子进程）
+        self.route_lanes = route_lanes
+        self.lane_budget = lane_budget
+        self.width_portfolio = width_portfolio
         self.epochs = epochs
         self.batch_games = batch_games
         self.log_dir = log_dir
@@ -222,7 +227,10 @@ class PPOTrainer:
                             combat_solver=self.combat_solver,
                             beam_width=self.beam_width,
                             beam_depth=self.beam_depth,
-                            beam_max_nodes=self.beam_max_nodes)
+                            beam_max_nodes=self.beam_max_nodes,
+                            route_lanes=self.route_lanes,
+                            lane_budget=self.lane_budget,
+                            width_portfolio=self.width_portfolio)
         history = []
         parallel = bool(workers and workers > 1)
 
@@ -236,6 +244,9 @@ class PPOTrainer:
                 "beam_width": self.beam_width,
                 "beam_depth": self.beam_depth,
                 "beam_max_nodes": self.beam_max_nodes,
+                "route_lanes": self.route_lanes,
+                "lane_budget": self.lane_budget,
+                "width_portfolio": self.width_portfolio,
             }
             seeds_all = [random.randrange(2 ** 31) for _ in range(n_games)]
             nw = max(1, min(int(workers), self.batch_games))
@@ -355,5 +366,8 @@ def _collect_worker(args):
                         combat_solver=cfg.get("combat_solver", "mcts"),
                         beam_width=cfg.get("beam_width", 4),
                         beam_depth=cfg.get("beam_depth", 8),
-                        beam_max_nodes=cfg.get("beam_max_nodes", 3000))
+                        beam_max_nodes=cfg.get("beam_max_nodes", 3000),
+                        route_lanes=cfg.get("route_lanes", True),
+                        lane_budget=cfg.get("lane_budget"),
+                        width_portfolio=cfg.get("width_portfolio", False))
     return _run_episode(seed, scorer, env, device="cpu")

@@ -172,6 +172,12 @@ def main(argv=None):
     p.add_argument("--beam-width", type=int, default=2, help="Beam 束宽")
     p.add_argument("--beam-depth", type=int, default=6, help="Beam 最大深度")
     p.add_argument("--beam-max-nodes", type=int, default=300, help="Beam 单次最大展开节点数")
+    p.add_argument("--no-beam-lanes", action="store_true",
+                   help="关闭泳道必保席（P0-②；默认开启，供对照实验）")
+    p.add_argument("--beam-lane-budget", type=int, default=None,
+                   help="泳道席位上限（默认 = min(泳道数, beam_width//3)）")
+    p.add_argument("--beam-portfolio", action="store_true",
+                   help="启用束宽 Portfolio（同根多宽度取最优，更慢）")
     args = p.parse_args(argv)
 
     if args.checkpoint:
@@ -186,7 +192,10 @@ def main(argv=None):
     if args.combat_solver == "beam":
         env_kwargs = {"combat_solver": "beam", "beam_width": args.beam_width,
                       "beam_depth": args.beam_depth,
-                      "beam_max_nodes": args.beam_max_nodes}
+                      "beam_max_nodes": args.beam_max_nodes,
+                      "route_lanes": not args.no_beam_lanes,
+                      "lane_budget": args.beam_lane_budget,
+                      "width_portfolio": args.beam_portfolio}
     results = evaluate(policy, n_seeds=args.seeds, workers=args.workers,
                        mcts_sim=args.mcts_sim, log_dir=args.log_dir,
                        env_kwargs=env_kwargs)
