@@ -289,14 +289,31 @@ COMBAT_REWARD  rewards=[{"reward_type":"CARD"}]  ← 卡牌项**仍在**！ → 
 ⚠️ 判据必须是「最近 p 项 vs 再往前 p 项逐项相同」——若写成"最后 2p 项相等"，
 在完美交替上会隔帧才成立一次，计数器永远到不了阈值（这个坑已在代码注释里写明）。
 
-## 10.3 🔴 问题三（配置）：agent 被**启动两次**
+## 10.3 ⚠️ 问题三（**诊断已更正**）：观察到两个 main.py 进程
 
-`%LOCALAPPDATA%\ModTheSpire\CommunicationMod\config.properties` 里
-`runAtLauncher=true` **且** `runAtGameStart=true` → mod 起了**两个 agent 进程**
-（实测 `main.py` 同命令行 PID 75296 + 76176），两个进程抢同一根 stdin 管道互相打架。
-→ 与 10.1 叠加，使这一局的日志不可信。
-**修复**：三份 config 统一改为 `runAtLauncher=true` + **`runAtGameStart=false`**
-（= 9 月能正常跑的那份 CJK 配置的取值）。跑完请确认只有**一个** `main.py` 进程。
+**原先的判断是错的**（记为"config 里两个 runAt* 都为 true 导致启动两次"）。2026-10-17 复查
+父子关系后更正如下：
+
+```
+PID=80196  java.exe   ModTheSpire（Steam Workshop 版，00:24:06）
+  └─ PID=21888  python.exe  main.py …（00:24:39.659，31 MB，**父进程 = ModTheSpire**）
+       └─ PID=77720  python.exe  同一条命令行（00:24:39.740，660 MB）
+```
+
+- 第二个进程**不是** mod 的第二次启动，而是**第一个 python 的子进程**（PPID=21888），
+  两条命令行**逐字相同**，创建时间只差 **81 ms**。
+- ⚠️ **机制未确认**：`main.py` 及其导入链里**没有任何** `subprocess` / `Popen` /
+  `multiprocessing` / `ProcessPoolExecutor` / `os.exec*`（已用 grep + AST 双重核对）；
+  pyd 里也没有 `CreateProcess` 之类的进程创建 API；`.venv` 的 `python.exe` 不是 shim。
+  ⇒ 这也**不是** multiprocessing 的 spawn（spawn 子进程的命令行会是 `-c "from multiprocessing…"`，
+  且启动耗时远超 81 ms）。
+- 已确认**与 config 无关**：三份 config 在启动后仍是 `runAtLauncher=true` + `runAtGameStart=false`。
+
+**结论**：`runAtLauncher` / `runAtGameStart` 的调整**保留**（单次启动是正确配置），但它**不是**
+本现象的原因。🔴 **待办（P0）**：给 `main.py` 加**单实例锁**（启动时抢锁文件，抢不到就立刻退出），
+这样无论第二个进程从哪来都不会写进同一根游戏管道 —— 这是不依赖"找到机制"就能定死的修法。
+在此之前，**不能断言**"两个进程抢 stdin 导致表现变差"。
+
 
 ## 10.4 验证
 
