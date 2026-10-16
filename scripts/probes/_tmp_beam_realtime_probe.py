@@ -52,14 +52,25 @@ def collect_combat_states(limit=150):
 
 
 def main():
-    states = collect_combat_states()
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--frames", type=int, default=150, help="重放多少真实战斗帧")
+    ap.add_argument("--width", type=int, default=2)
+    ap.add_argument("--depth", type=int, default=6)
+    ap.add_argument("--max-nodes", type=int, default=300)
+    ap.add_argument("--value-mode", choices=["static", "rollout"], default="static")
+    a = ap.parse_args()
+
+    states = collect_combat_states(a.frames)
     print("提取到真实战斗帧: %d" % len(states))
     if not states:
         print("（没找到战斗帧，无法验证）")
         return
 
     w = Weights.from_overrides(PRESETS["defensive"])
-    solver = BeamSolver(beam_width=2, max_depth=6, max_nodes=300, weights=w)
+    solver = BeamSolver(beam_width=a.width, max_depth=a.depth, max_nodes=a.max_nodes,
+                        weights=w, value_mode=a.value_mode)
+    print("配置: W=%d d=%d n=%d value_mode=%s" % (a.width, a.depth, a.max_nodes, a.value_mode))
 
     ok = 0
     fail_gc = fail_bc = fail_solve = 0

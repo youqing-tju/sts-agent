@@ -183,6 +183,11 @@ def main(argv=None):
     p.add_argument("--beam-weights-preset", default=None,
                    choices=["default", "defensive", "defensive_max"],
                    help="启发式权重预设（--beam-weights-file 优先）")
+    p.add_argument("--beam-value-mode", choices=["static", "rollout"], default="static",
+                   help="节点估值方式：static（静态中间状态，默认）| rollout（打到终局再打分，"
+                        "含终局信息，约 1 ms/节点）")
+    p.add_argument("--beam-rollout-max-steps", type=int, default=400,
+                   help="rollout 步数上限（仅 --beam-value-mode rollout 生效）")
     args = p.parse_args(argv)
 
     if args.checkpoint:
@@ -209,7 +214,9 @@ def main(argv=None):
                       "route_lanes": not args.no_beam_lanes,
                       "lane_budget": args.beam_lane_budget,
                       "width_portfolio": args.beam_portfolio,
-                      "weights": w_over}
+                      "weights": w_over,
+                      "value_mode": args.beam_value_mode,
+                      "rollout_max_steps": args.beam_rollout_max_steps}
     results = evaluate(policy, n_seeds=args.seeds, workers=args.workers,
                        mcts_sim=args.mcts_sim, log_dir=args.log_dir,
                        env_kwargs=env_kwargs)

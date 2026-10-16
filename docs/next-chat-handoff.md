@@ -123,15 +123,17 @@ MCTS 靠随机 rollout 逼近，在容错窗口很窄的 Boss 战容易失手。
 `v10_scratch.pt`（E1 基线，7984 局 / 44.40 层 / 51.0%）。
 > 参考量级：E1 是 **7984 局**训练量的成绩，v12 只有 **500 局**（1/16），**不可直接横比**。
 
-## 6. 🔴 已知的 Beam 求解器缺陷（P1 故意保留，等优化）
+## 6. 🔴 已知的 Beam 求解器缺陷
 
-`combat_beam.py` 模块 docstring 已记录，共 3 条：
+`combat_beam.py` 模块 docstring 已记录。⚠️ **2026-10-16 晚 重新定级**：补上终局估值后
+（`value_mode="rollout"`），**静态启发式只用来当 rollout 策略 π**，不再充当价值函数 ——
+故以下 #1 的"启发式缺特征"**不再是瓶颈**（只剩指纹漏判这一半影响）。
 
 1. **Power 只暴露 4 个**（`strength/dexterity/focus/artifact`）——
    **`Vulnerable` / `Weak` / `Frail` / `Poison` 读不到**（C++ 内部有，但 Python 绑定没做）。
-   后果：**状态指纹会漏判**（"有易伤"与"无易伤"可能算出同一指纹 → 错误去重）、
-   **启发式缺关键特征**（易伤/虚弱直接决定伤害）。
-   → 修法：扩展 C++ 绑定补上 Power 访问（**优先级高**，因为它是很多问题的共同根因）
+   后果：① **状态指纹漏判**（"有易伤"与"无易伤"可能算出同一指纹 → 错误去重）；
+   ② **π 选牌缺关键特征**（易伤/虚弱直接决定伤害）。
+   → 修法：扩展 C++ 绑定补上 Power 访问。**优先级从"高"降为 P2**（重编译 pyd，见坑 2）
 2. **药水动作未接入**（`legal_actions` 只枚举手牌 × 目标 + END_TURN）
    → 但实测 MCTS 侧药水消耗率 99%，Beam 侧需补测
 3. **未实现六维支配关系**（只做精确去重，没做 CombatSolver 的转置表支配剪枝）
@@ -159,19 +161,62 @@ export KMP_DUPLICATE_LIB_OK=TRUE
   --checkpoint checkpoints/v13_beam.pt --seeds 100 --workers 8 \
   --mcts-sim 20000 --combat-solver beam --beam-width 2 --beam-depth 6 --beam-max-nodes 300
 
-# 测试（应 249 passed / 2 skipped）
+# ⭐ 当前最优战斗配置（2026-10-16 晚）：rollout 终局估值 + depth=1
+.venv/Scripts/python.exe -m evaluation.evaluate \
+  --checkpoint checkpoints/v14_defbeam_2k.pt --seeds 100 --workers 6 \
+  --mcts-sim 20000 --combat-solver beam --beam-value-mode rollout \
+  --beam-depth 1 --beam-max-nodes 300 --beam-weights-preset defensive
+
+# 宏观指标（各 Act 快照 + 通关局牌组）与配对比较
+.venv/Scripts/python.exe scripts/probes/_tmp_macro_metrics.py \
+  --checkpoint checkpoints/v14_defbeam_2k.pt --seeds 100 --workers 6 \
+  --beam-weights-preset defensive --beam-value-mode rollout --beam-depth 1 \
+  --out logs/macro-v14-def-rollout-d1.json
+.venv/Scripts/python.exe scripts/probes/_tmp_paired_compare.py \
+  logs/macro-v14_defbeam_2k.json logs/macro-v14-def-rollout-d1.json --n=100
+
+# 测试（应 295 passed / 2 skipped）
 .venv/Scripts/python.exe -m pytest tests/ -q
 ```
 
-## 8. ⏭ 下一步（2026-10-15 用户已确认）
+## 8. ⏭ 下一步（2026-10-16 晚 更新）
 
-用户确认：**留在 STS1** · **启动性能优化** · **直接照搬 CombatSolver 的高级机制（"照搬就行，不必保留"我们的简化实现）**
+### ⭐⭐ 最新（10-16 晚）：Beam 补上**终局估值** —— 通关率 45% → 86%
+
+| 项 | 值 |
+|---|---|
+| **新最优战斗配置** | `--combat-solver beam --beam-value-mode rollout --beam-depth 1 --beam-max-nodes 300 --beam-weights-preset defensive` |
+| **实测**（100 局配对，同 checkpoint / 同宏观策略，**只换估值函数**） | 通关率 **45.0% → 86.0%**（McNemar **30/1**, p<1e-4）；楼层 **34.11 → 46.78**（配对 t=6.26, p<1e-4） |
+| **逐种子稳健性** | 39 例升 / 60 例平 / **仅 1 例降**（最差只掉 1 层） |
+| **机理** | `evaluate()` 打分静态中间状态、**没有终局信息** → 这就是"更宽/更深/更大预算全变差"的根因。补上后深度无用（d1 ≈ d6 > d12） |
+| **真机成本** | 单步均值 **5.19 ms**、P95 22.18、最大 74.76（限速 300 ms）✅；⚠️ **rollout d=6 会超时**（最大 367 ms） |
+| 报告 | `logs/beam-terminal-value-report.md`；报告前序 = `logs/sts1-solver-comparison-report.md` |
+
+**下一步（按优先级）**：
+1. **P0｜用 rollout 战斗层重训 RL** —— 战斗执行从 45% 级跳到 86% 级，宏观策略的学习环境**彻底变了**。
+   这也是 §3 方法论设想（"战斗强弱 ↔ 抓牌质量"）成立的前提。
+2. **P0｜真机实跑**：Mod 配置已切到 rollout d=1（备份 `config.properties.bak-beamstatic-1016_2209`），
+   等用户启动游戏验证。
+3. **P1｜强化 rollout 策略 π**：权重现在**只决定 π**（价值来自终局），
+   所以"调权重"的目标从"评分准"变成"策略强"；可试 2 步贪心等更强的 π。
+4. **P1｜复核 MCTS 路径**：v12/v14 在 MCTS 下只有 **3.0% / 0.0%**（见报告 §5）——
+   疑为**宏观策略与战斗求解器共适应**，但旧 MCTS 时代 checkpoint 的 obs 维度不兼容（824 vs 846）无法直接复跑。
+5. **P2｜补 Power 绑定**（重编译 pyd，见坑 2）—— 仍能提升 π 的选牌质量，但**不再是要害**。
+6. 📌 **作废**：旧的"宽度/深度/节点预算"调参结论属于 **static 估值时代**，对 rollout 模式不再适用
+   （d=1 下 `beam_width` 完全不起作用）。
+7. **P2｜上云**：训练已提速 60×（2000 局 17 分钟），单机够用，优先级下调。
+
+---
+
+以下为 10-15 的历史条目（**保留备查**）。用户确认：**留在 STS1** · **启动性能优化** · **直接照搬 CombatSolver 的高级机制（"照搬就行，不必保留"我们的简化实现）**
 
 - ✅ **P0-①｜性能优化（2026-10-15 完成）**：`fingerprint()` 里 `c.id.name` → `c.id.value`。
   **微基准 125×（2553 → 20.4 µs）｜solve 45.4×｜生产 8 局 274 s → 45 s（6.1×）**；
   三层等价性验证 + 8 局评估结果逐项一致。报告 `logs/beam-fingerprint-optimization.md`，
-  新增 `tests/test_combat_beam.py`（16 项）。**新增坑**：`init_from_gc` 忽略
-  `combat_state.player.energy / current_hp`（血量要改顶层、能量只能靠出牌耗尽）。
+  新增 `tests/test_combat_beam.py`（16 项）。
+  ⚠️ **当日误判已更正（10-16 晚）**：当时记为"`init_from_gc` 忽略 `energy / current_hp`"，
+  实际根因是 **在 `init_from_json` 载入的 `gc` 上调用 `init_from_gc` = 读未初始化内存（UB）**。
+  真机路径 `bc.init_from_json(gc, json)` **支持** `energy` 与顶层 `current_hp` 覆盖；详见 §10。
 - ✅ **P0-②｜照搬 CombatSolver 的高级机制（已实现，但实测无收益）**
   已实现 3 条并透传到 env / 训练 / 评估（`--no-beam-lanes` / `--beam-lane-budget` / `--beam-portfolio`），
   `tests/test_combat_beam.py` 共 28 项。**但 A/B 实测无显著收益**：
@@ -237,20 +282,32 @@ export KMP_DUPLICATE_LIB_OK=TRUE
 8. 命名：项目内文档放 `docs/`，分析报告放 `logs/`（`logs/*.md` 会入库，
    `logs/**/*.jsonl` 等大数据不入库）。
 
-## 10. 当前项目状态（2026-10-16 更新）
+## 10. 当前项目状态（2026-10-16 晚 更新）
 
 - 仓库：`youqing-tju/sts-agent` —— **公开**，**MIT 许可**，默认分支 `master`
-- 测试 **283 passed / 4 skipped**（`test_combat_beam.py` 共 30 项）
+- 测试 **295 passed / 2 skipped**（`test_combat_beam.py` 共 **46** 项；此前长期有 2 项**随机跳过**，见下）
+- ⭐⭐ **最新：Beam 终局估值（`--beam-value-mode rollout`）** —— 通关率 **45% → 86%**（100 局配对，
+  McNemar 30/1, p<1e-4；楼层 34.11 → 46.78，t=6.26）。**新最优战斗配置 = `rollout` + `depth=1`**。
+  报告 `logs/beam-terminal-value-report.md`
 - ✅ **P0-① 完成**：Beam 指纹优化，生产提速 6.1×（`logs/beam-fingerprint-optimization.md`）
-- ✅ **P0-② 已实现但实测无收益** → 最优搜索配置仍是 CLI 默认
-  **`W=2 / depth=6 / max_nodes=300`**（`logs/beam-advanced-mechanisms.md`）
-- ✅ **P0 调权重完成** ⭐ **首次拿到战斗层显著改进**：预设 `defensive`
-  （`{enemy_hp: 6000, intent: 12000}`）→ 楼层 +2.60（p≈0.003）、通关率 +9.5 pp（p≈0.002）
-  （`logs/weight-tuning-report.md`）
-- ⏭ **下一步 = 用 `defensive` 训练**（`--beam-weights-preset defensive`）
+- ✅ **P0-② 已实现但实测无收益**（`logs/beam-advanced-mechanisms.md`）；
+  ⚠️ 其结论（最优 `W=2/depth=6/nodes=300`）属 **static 估值时代**，已被上一行**取代**
+- ✅ **P0 调权重完成**：预设 `defensive` → 楼层 +2.60（p≈0.003）、通关率 +9.5 pp（p≈0.002）
+  （`logs/weight-tuning-report.md`）。⚠️ 在 rollout 模式下权重的角色变成**只决定 π**，需重新理解
+- ✅ **训练量 500 → 2000 局**：通关率 31% → **53.5%**，且通关局牌组更精简（31.1 张 vs 40.4）
+  → 「精简牌组 + 血量管理」的高效策略（`logs/v14-training-report.md`）
+- ✅ **entropy_coef 扫描（负结果）**：0.02 与 0.01 完全无差异（McNemar 33/33），0.05 更差
+  → **保持默认 0.01**（`logs/v15-entropy-report.md`）
+- ✅ **真机已接入 Beam + v14**（`beam_brain.py`、`--combat-solver {mcts,beam}`，默认行为不变），
+  随后又切到 **rollout d=1**（见 `docs/realtime-launch-guide.md` 第八、九章）
+- 🔴 **测试 fixture 的 UB 修正（2026-10-16 晚）**：`tests/test_combat_beam.py` 的 `_bc()` 原用
+  `init_from_gc(gc)`，而 `gc` 是 `init_from_json` 载入的 → **读未初始化内存**：
+  实测 20 次里 **19 次怪物列表为空**、1 次垃圾值 `(1, 999)`，
+  导致测试**随机跳过/随机通过**（同一份代码三次运行 34/35/36 passed）。
+  已改为真机同源的 `bc.init_from_json(gc, json)`（20/20 稳定）。
+  ⚠️ **训练环境**（`env/lightspeed_env.py`）用 `init_from_gc` 是**合法的**（那里的 `gc` 是引擎自建的真实 `GameContext`），**不要顺手改**。
 - ✅ **顶层 `LICENSE` 已加**（MIT, 2026 youqing-tju），文件内同时列出 `third_party/` 各组件的许可证
 - ✅ **开源合规核查通过**：无密钥/token（已扫全部 commit 的完整 diff）、无本机绝对路径、无个人信息、未混入无关项目内容
 - ✅ **`bc-cartpole-demo` 已删除**（10-15）→ `07-projects/` 下现在**只有 `sts-agent` 一个项目**
-- 📌 推送须知：本机**未持久化 GitHub 凭据**；网络用代理 `127.0.0.1:<port>`（**端口每会话会变**，
-  已见 7890/12081/13629）→ 不通时**先重试 + 重扫端口**；`git push` 前必须
-  `export GIT_TERMINAL_PROMPT=0`，否则会卡在认证提示
+- 📌 推送须知：网络代理端口**每会话会变**（已见 7890 / 12081 / 13629 / 5685 / 4842）；
+  `git push` 前必须 `export GIT_TERMINAL_PROMPT=0`；本机 GCM 已配好 → **免密 push 可用**

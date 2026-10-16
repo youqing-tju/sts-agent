@@ -83,6 +83,8 @@ def main():
     ap.add_argument("--beam-depth", type=int, default=6)
     ap.add_argument("--beam-max-nodes", type=int, default=300)
     ap.add_argument("--beam-weights-preset", default=None)
+    ap.add_argument("--beam-value-mode", choices=["static", "rollout"], default="static",
+                    help="节点估值方式（rollout = 打到终局再打分，含终局信息）")
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
 
@@ -90,7 +92,8 @@ def main():
 
     policy = GreedyScorerPolicy(a.checkpoint)
     env_kwargs = {"combat_solver": "beam", "beam_width": a.beam_width,
-                  "beam_depth": a.beam_depth, "beam_max_nodes": a.beam_max_nodes}
+                  "beam_depth": a.beam_depth, "beam_max_nodes": a.beam_max_nodes,
+                  "value_mode": a.beam_value_mode}
     if a.beam_weights_preset:
         from combat_beam import PRESETS
         env_kwargs["weights"] = PRESETS[a.beam_weights_preset]

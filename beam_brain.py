@@ -104,12 +104,15 @@ class BeamBrain:
     """
 
     def __init__(self, beam_width: int = 2, beam_depth: int = 6,
-                 beam_max_nodes: int = 300, weights: dict | None = None):
+                 beam_max_nodes: int = 300, weights: dict | None = None,
+                 value_mode: str = "static", rollout_max_steps: int = 400):
         from combat_beam import BeamSolver, Weights  # 延迟 import：避免无关场景加载
 
         self.solver = BeamSolver(beam_width=beam_width, max_depth=beam_depth,
                                  max_nodes=beam_max_nodes,
-                                 weights=Weights.from_overrides(weights))
+                                 weights=Weights.from_overrides(weights),
+                                 value_mode=value_mode,
+                                 rollout_max_steps=rollout_max_steps)
         self.last_action: tuple | None = None
         self.last_stats: dict = {}
 

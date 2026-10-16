@@ -73,7 +73,9 @@ class LightspeedEnv(StsEnv):
                  route_lanes: bool = True,
                  lane_budget: int | None = None,
                  width_portfolio: bool = False,
-                 weights: dict | None = None):
+                 weights: dict | None = None,
+                 value_mode: str = "static",
+                 rollout_max_steps: int = 400):
         """combat_solver: `"mcts"`（默认，C++ Agent 自动打完战斗）| `"beam"`（Python Beam 接管）。
 
         beam_* 仅在 combat_solver="beam" 时生效。**训练用小预算**：
@@ -85,6 +87,10 @@ class LightspeedEnv(StsEnv):
         - `width_portfolio` 同根多束宽取最优（更慢）
         - `weights`      启发式权重**覆盖**（dict，只覆盖给出的键；None = 默认值）
           ⚠️ 键名拼错会**直接抛错**（`Weights.from_overrides` 校验），不会静默失效
+        - `value_mode`   节点估值方式：`"static"`（默认，静态中间状态，快但**无终局信息**）
+          | `"rollout"`（打到终局再打分，含终局信息，**约 1 ms/节点**）。
+          见 `combat_beam` 模块 docstring 与 `logs/sts1-solver-comparison-report.md`
+        - `rollout_max_steps`  rollout 步数上限（仅 value_mode="rollout" 生效）
         """
         self._agent = sts.Agent()
         self._agent.simulation_count_base = mcts_simulations
@@ -100,7 +106,9 @@ class LightspeedEnv(StsEnv):
                                     max_nodes=beam_max_nodes,
                                     route_lanes=route_lanes, lane_budget=lane_budget,
                                     width_portfolio=width_portfolio,
-                                    weights=Weights.from_overrides(weights))
+                                    weights=Weights.from_overrides(weights),
+                                    value_mode=value_mode,
+                                    rollout_max_steps=rollout_max_steps)
         self.gc = None
         self._actions = []  # candidates() 缓存的动作列表，step 按 idx 取用
         self._ascension = 0

@@ -64,7 +64,7 @@ class PPOTrainer:
                  combat_solver="mcts", beam_width=4, beam_depth=8,
                  beam_max_nodes=3000,
                  route_lanes=True, lane_budget=None, width_portfolio=False,
-                 weights=None):
+                 weights=None, value_mode="static", rollout_max_steps=400):
         self.scorer = scorer.to(device)
         self.value_net = value_net.to(device)
         self.device = device
@@ -87,6 +87,9 @@ class PPOTrainer:
         self.lane_budget = lane_budget
         self.width_portfolio = width_portfolio
         self.weights = weights          # 启发式权重覆盖（dict）；须透传到 worker 子进程
+        # 节点估值方式："static"（默认）| "rollout"（打到终局再打分，含终局信息）
+        self.value_mode = value_mode
+        self.rollout_max_steps = rollout_max_steps
         self.epochs = epochs
         self.batch_games = batch_games
         self.log_dir = log_dir
@@ -233,7 +236,9 @@ class PPOTrainer:
                             route_lanes=self.route_lanes,
                             lane_budget=self.lane_budget,
                             width_portfolio=self.width_portfolio,
-                            weights=self.weights)
+                            weights=self.weights,
+                            value_mode=self.value_mode,
+                            rollout_max_steps=self.rollout_max_steps)
         history = []
         parallel = bool(workers and workers > 1)
 
@@ -251,6 +256,8 @@ class PPOTrainer:
                 "lane_budget": self.lane_budget,
                 "width_portfolio": self.width_portfolio,
                 "weights": self.weights,
+                "value_mode": self.value_mode,
+                "rollout_max_steps": self.rollout_max_steps,
             }
             seeds_all = [random.randrange(2 ** 31) for _ in range(n_games)]
             nw = max(1, min(int(workers), self.batch_games))
@@ -374,5 +381,7 @@ def _collect_worker(args):
                         route_lanes=cfg.get("route_lanes", True),
                         lane_budget=cfg.get("lane_budget"),
                         width_portfolio=cfg.get("width_portfolio", False),
-                        weights=cfg.get("weights"))
+                        weights=cfg.get("weights"),
+                        value_mode=cfg.get("value_mode", "static"),
+                        rollout_max_steps=cfg.get("rollout_max_steps", 400))
     return _run_episode(seed, scorer, env, device="cpu")

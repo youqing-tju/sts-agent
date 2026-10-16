@@ -86,3 +86,24 @@ _HERE = _find_project_root(__file__)   # 现在指向项目根
 |---|---|
 | `_tmp_macro_metrics.py` | **宏观指标提取**：各 Act 进入点快照 + 通关局牌组/遗物 —— 「抓牌质量」主指标（handoff §3 对照实验所需）|
 | `_tmp_beam_realtime_probe.py` | **真机可用性验证**：用 L1 真实战斗日志按**真机路径**构造 bc 并跑 Beam，统计成功率与单步耗时 |
+
+## 2026-10-16 晚 新增（Beam 终局估值 —— `value_mode="rollout"`）
+
+背景：`logs/sts1-solver-comparison-report.md` 查出 Beam 的 `evaluate()` **没有终局信息**，
+这正是「更宽/更深/更大预算全部变差」的根本解释。故给 Beam 补上 rollout 终局估值。
+
+| 脚本 | 用途 |
+|---|---|
+| `_tmp_terminal_value_cost.py` | **成本与信息量探针**：量化「Python 贪心 rollout 到终局」（≈1.0 ms/次、14.3 步）与「C++ `BattleSearcher` 当价值函数」（sims=30 → 0.23 ms）两条路的代价 |
+| `_tmp_paired_compare.py` | **配对比较分析器**（复用）：吃两个以上宏观指标 JSON，输出 Δfloor / 配对 t / McNemar b,c / p / delta 分布 / 通关局宏观指标。用法：`_tmp_paired_compare.py <baseline.json> <变体.json> [...] [--n=100]` |
+
+结论与数据见 `logs/beam-terminal-value-report.md`。
+
+### ⚠️ 测试 fixture 的重要修正（同批）
+
+`tests/test_combat_beam.py` 的 `_bc()` 原先用 `bc.init_from_gc(gc)`，而 `gc` 是
+`init_from_json` 载入的 —— **这条路读未初始化内存（UB）**：实测 20 次里 **19 次怪物列表为空**、
+1 次得到垃圾值 `(1, 999)`，导致测试**随机跳过/随机通过**（同一份代码三次运行 34/35/36 passed）。
+已改为真机同源的 `bc.init_from_json(gc, json)`（20/20 稳定，怪物 = `JAW_WORM 42hp`）。
+⚠️ 训练环境（`env/lightspeed_env.py`）用 `init_from_gc` 是**合法的**（那里的 `gc` 是引擎
+自建的真实 `GameContext`），**不要顺手改**。

@@ -387,7 +387,8 @@ class SimBrain:
                  min_cmd_interval_ms=300, stuck_grace_ms=600,
                  shop_mode="smart",
                  combat_solver="mcts", beam_width=2, beam_depth=6,
-                 beam_max_nodes=300, beam_weights_preset=None):
+                 beam_max_nodes=300, beam_weights_preset=None,
+                 beam_value_mode="static", beam_rollout_max_steps=400):
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
         self._reject_streak = 0  # 连续被拒计数（仅 error 帧自增，真实状态清零）
@@ -474,10 +475,12 @@ class SimBrain:
             from combat_beam import PRESETS
             _w = PRESETS.get(beam_weights_preset) if beam_weights_preset else None
             self.combat_brain = BeamBrain(beam_width=beam_width, beam_depth=beam_depth,
-                                          beam_max_nodes=beam_max_nodes, weights=_w)
+                                          beam_max_nodes=beam_max_nodes, weights=_w,
+                                          value_mode=beam_value_mode,
+                                          rollout_max_steps=beam_rollout_max_steps)
             log.info("战斗求解器 = Beam（W=%s d=%s n=%s preset=%s）",
                      beam_width, beam_depth, beam_max_nodes,
-                     beam_weights_preset or "default")
+                     beam_weights_preset or "default", beam_value_mode)
         else:
             self.combat_brain = CombatBrain(simulation_count=combat_sims,
                                             determinizations=determinizations)
@@ -1614,6 +1617,11 @@ def main(argv=None):
                    choices=["default", "defensive", "defensive_max"],
                    help="Beam 启发式权重预设（仅 beam）。推荐 defensive —— "
                         "200 局配对实测通关率 +9.5pp")
+    p.add_argument("--beam-value-mode", choices=["static", "rollout"], default="static",
+                   help="Beam 节点估值：static（静态中间状态，默认，单步约 1.7ms）| "
+                        "rollout（打到终局再打分，含终局信息，约 1 ms/节点）")
+    p.add_argument("--beam-rollout-max-steps", type=int, default=400,
+                   help="rollout 步数上限（仅 --beam-value-mode rollout 生效）")
     p.add_argument("--log-dir", default=_DEFAULT_LOG_DIR,
                    help="三层日志目录；传空串关闭")
     p.add_argument("--min-cmd-interval-ms", type=int, default=300,
@@ -1642,6 +1650,8 @@ def main(argv=None):
         beam_depth=args.beam_depth,
         beam_max_nodes=args.beam_max_nodes,
         beam_weights_preset=args.beam_weights_preset,
+        beam_value_mode=args.beam_value_mode,
+        beam_rollout_max_steps=args.beam_rollout_max_steps,
     )
 
     if args.dry_run:
@@ -1663,6 +1673,7 @@ def main(argv=None):
 
     _combat_desc = (f"Beam W={args.beam_width}/d={args.beam_depth}/n={args.beam_max_nodes}"
                     f" preset={args.beam_weights_preset or 'default'}"
+                    f" value={args.beam_value_mode}"
                     if args.combat_solver == "beam"
                     else f"ISMCTS {args.determinizations}×{args.combat_sims}")
     print(f"[brain] 就绪 | 权重={args.checkpoint} | "

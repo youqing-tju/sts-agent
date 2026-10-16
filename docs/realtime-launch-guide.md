@@ -169,3 +169,66 @@ STS_BRIDGE_EXTRA_ARGS="--combat-solver beam --beam-weights-preset defensive" \
 |---|---|
 | **v9 + ISMCTS**（9 月状态） | `cp config.properties.bak-v9-1016_2011 config.properties` |
 | 保留 v14、只回退战斗层 | 配置里删掉 `--combat-solver beam --beam-weights-preset defensive` || **完全不用 agent** | 配置里把 `runAtGameStart` 改成 `false` |
+
+---
+
+# 九、2026-10-16 晚 更新：Beam 换用**终局估值**（`--beam-value-mode rollout`）
+
+> ⚠️ 本章覆盖第八章的配置行。**第一~八章的历史信息仍然有效**。
+
+## 9.1 变更内容
+
+| 项 | 第八章（已过时） | **新** |
+|---|---|---|
+| 节点估值 | `static`（静态中间状态，**无终局信息**） | **`rollout`**（叶节点打到终局再打分） |
+| `--beam-depth` | 6 | **1**（rollout 已覆盖未来，深度无用） |
+| checkpoint / 预设 | v14 + `defensive` | **不变** |
+
+新配置行：
+
+```
+command=C\:/.../.venv/Scripts/python.exe C\:/.../main.py
+        --checkpoint C\:/.../checkpoints/v14_defbeam_2k.pt
+        --log-dir    C\:/.../logs/realtime
+        --combat-solver beam --beam-value-mode rollout --beam-depth 1
+        --beam-max-nodes 300 --beam-weights-preset defensive
+```
+
+**备份**：`config.properties.bak-beamstatic-1016_2209`（回退即覆盖回来）。
+
+## 9.2 为什么换（依据）
+
+| 依据 | 数据 |
+|---|---|
+| **100 局配对**（同 checkpoint / 同宏观策略，**只换估值函数**） | 通关率 **45.0% → 86.0%**（McNemar **30/1**, p<1e-4）；楼层 **34.11 → 46.78**（配对 t=6.26） |
+| 逐种子稳健性 | 39 例升 / 60 例平 / **仅 1 例降**（且最差只掉 1 层） |
+| 根因 | `evaluate()` 打分的是静态中间状态、**没有终局信息** → 这正是"更宽/更深/更大预算全部变差"的原因 |
+
+> 详情：`logs/beam-terminal-value-report.md`（含四组深度/宽度对照与成本分解）
+
+## 9.3 上线前已验证（**无需游戏**）
+
+| 验证 | 结果 |
+|---|---|
+| **真机单步耗时**（150 帧 L1 真实战斗日志重放） | 均值 **5.19 ms**、中位 1.69、**P95 22.18**、最大 **74.76** → 限速 300 ms 安全 |
+| 构造 + 求解成功率 | **150 / 150** |
+| **协议自检** `selfcheck_bridge.py`（rollout 配置） | **10 / 10 PASS** |
+| 确定性复跑 | 同配置前 20 种子与已存数据**逐项相同** |
+| 默认路径不受影响 | `SimBrain()` 仍是 `CombatBrain`（`combat_solver=mcts`，`value_mode=static`） |
+
+⚠️ **不要用 `--beam-depth 6` 配 rollout**：实测 P95 195 ms、**最大 367 ms 会突破真机 300 ms 限速**。
+
+## 9.4 `main.py` 新增 CLI
+
+```
+--beam-value-mode {static,rollout}   默认 static（= 完全不变的行为）；推荐 rollout
+--beam-rollout-max-steps N           默认 400（rollout 步数上限）
+```
+
+## 9.5 回退
+
+| 想回到 | 操作 |
+|---|---|
+| 第八章（static d=6） | `cp config.properties.bak-beamstatic-1016_2209 config.properties` |
+| 只回退估值方式 | 配置里删掉 `--beam-value-mode rollout --beam-depth 1`（其余不动） |
+

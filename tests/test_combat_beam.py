@@ -47,10 +47,24 @@ def _state(hp=None):
 
 
 def _bc(**kw):
+    """按**真机路径**构造 `BattleContext`：`init_from_json(gc, json)`。
+
+    🔴 2026-10-16 修：此前用 `bc.init_from_gc(gc)`，而 `gc` 是 `init_from_json` 载入的
+    —— 这条路**读未初始化内存（UB）**，实测 20 次里 **19 次怪物列表为空**、1 次得到
+    垃圾值 `(1, 999)`。后果：`STRIKE_RED`（需目标）因 `n_mon=0` 变成非法 →
+    测试**随机跳过/随机通过**（同一份代码三次运行 34/35/36 passed）。
+
+    改用 `init_from_json` 后 20/20 稳定（怪物 = `JAW_WORM 42hp`），且这**正是
+    `main.py` / `combat_brain.py` 在真机上用的路径**：
+        `bc.init_from_json(gc, json.dumps(_sanitize(state)))`
+    ⚠️ 训练环境（`env/lightspeed_env.py:270`）用 `init_from_gc` 是**合法的** ——
+    那里的 `gc` 是引擎自建的真实 `GameContext`，不是 JSON 载入的。
+    """
+    st = _state(**kw)
     gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
-    gc.init_from_json(json.dumps(_state(**kw)))
+    gc.init_from_json(json.dumps(st))
     bc = sts.BattleContext()
-    bc.init_from_gc(gc)
+    bc.init_from_json(gc, json.dumps(st))
     return bc
 
 
@@ -494,6 +508,130 @@ def test_preset_defensive_matches_measured_config():
     assert combat_beam.PRESETS["default"] == {}
     assert combat_beam.PRESETS["defensive"] == {"enemy_hp": 6_000, "intent": 12_000}
     assert combat_beam.PRESETS["defensive_max"] == {"enemy_hp": 3_000, "intent": 20_000}
+
+
+# --------------------------------------------------------------------------
+# 5. 终局估值（terminal_score / rollout_value / value_mode）—— 2026-10-16 新增
+# --------------------------------------------------------------------------
+def _play_to_terminal(bc, cap=200):
+    """用「贪心 by evaluate」把战斗打到终局，返回**终局状态**（打不到则 None）。
+
+    ⚠️ 为什么不用 `_collect_states()` 找终局：`_combat_state()` 里怪物的 `intent`
+    无法从 JSON 设置（绑定没暴露该字段，实测 stderr 打印 `INVALID`），
+    所以怪物几乎不还手 → BFS 展开 2500 个状态都到不了终局（实测 0 个）。
+    ⚠️ 因此本文件只能构造**胜利**终局（玩家 hp 充足）；失败分支无法用该 fixture 覆盖。
+    """
+    cur = sts.BattleContext(bc)
+    for _ in range(cap):
+        if cur.is_terminal():
+            return cur
+        acts = legal_actions(cur)
+        best, best_s, best_bc = None, None, None
+        for a in acts:
+            nb = sts.BattleContext(cur)
+            try:
+                combat_beam._make(a).execute(nb)
+            except Exception:                           # noqa: BLE001
+                continue
+            sc = evaluate(nb)
+            if best_s is None or sc > best_s:
+                best, best_s, best_bc = a, sc, nb
+        if best is None:
+            return None
+        cur = best_bc
+    return cur if cur.is_terminal() else None
+
+
+def test_terminal_score_consistent_with_evaluate():
+    """`evaluate()` 在终局状态上必须**逐位等于** `terminal_score()`（抽出重构的等价性）。"""
+    term = _play_to_terminal(_bc())
+    assert term is not None, "贪心 rollout 未到达终局（fixture 变了？）"
+    assert term.outcome == sts.BattleOutcome.PLAYER_VICTORY
+    assert evaluate(term) == combat_beam.terminal_score(term)
+
+
+def test_rollout_value_deterministic_within_and_across_construction():
+    """rollout 估值必须**完全确定**（同状态两次、以及重建同一状态，结果一致）。
+
+    ⚠️ STS1 战斗是确定性的 → 估值不能有采样噪声，否则配对检验的前提就破了。
+    """
+    bc = _bc()
+    a = combat_beam.rollout_value(bc)
+    b = combat_beam.rollout_value(bc)
+    assert a == b, "同一 bc 两次 rollout 结果不同：%r vs %r" % (a, b)
+    assert a == combat_beam.rollout_value(_bc()), "重建同一状态后 rollout 结果不同"
+
+
+def test_rollout_value_does_not_mutate_input():
+    """rollout 全程必须在副本上跑，不得改动传入的 bc。"""
+    bc = _bc()
+    fp0 = fingerprint(bc)
+    combat_beam.rollout_value(bc)
+    assert fingerprint(bc) == fp0
+
+
+def test_rollout_value_on_terminal_state_equals_terminal_score():
+    """终局状态上 rollout 应直接返回终局分（零步 rollout）。"""
+    term = _play_to_terminal(_bc())
+    assert term is not None
+    assert combat_beam.rollout_value(term) == combat_beam.terminal_score(term)
+
+
+def test_rollout_value_carries_terminal_information():
+    """rollout 估值必须含**终局信息** —— 量级落在 `win_base`/`loss_base` 一带。
+
+    这正是它相对 `evaluate()`（静态中间状态，通常在 ±1e6 内）的本质区别。
+    若这条挂了，说明 rollout 退化成静态分，终局信息没接上。
+    """
+    bc = _bc()
+    v = combat_beam.rollout_value(bc)
+    assert abs(v) >= 1e8, "rollout 估值 %r 太小，像是退化成静态分" % v
+
+
+def test_rollout_value_respects_max_steps():
+    """步数上限必须生效（病态局面兜底）：max_steps=0 → 不进循环，直接给静态分。"""
+    bc = _bc()
+    v = combat_beam.rollout_value(bc, max_steps=0)
+    assert v == evaluate(bc)
+
+
+def test_value_mode_rejects_unknown():
+    with pytest.raises(ValueError):
+        BeamSolver(beam_width=2, value_mode="rollout2")
+
+
+def test_value_mode_static_is_default_and_equivalent():
+    """默认（static）必须与显式 `value_mode="static"` **结果逐字相同**（零行为变化）。"""
+    bc = _bc()
+    a = BeamSolver(beam_width=2, max_depth=6, max_nodes=300).solve(bc)
+    b = BeamSolver(beam_width=2, max_depth=6, max_nodes=300, value_mode="static").solve(bc)
+    assert a == b
+
+
+def test_value_mode_rollout_runs_and_returns_plan():
+    """rollout 模式能跑通并给出合法首动作（且 stats 标注了模式）。"""
+    bc = _bc()
+    s = BeamSolver(beam_width=2, max_depth=2, max_nodes=60, value_mode="rollout")
+    plan = s.solve(bc)
+    assert plan, "rollout 模式返回空方案"
+    assert plan[0] in legal_actions(bc), "首动作不合法：%r" % (plan[0],)
+    assert s.last_stats["value_mode"] == "rollout"
+
+
+def test_value_mode_rollout_differs_from_static_somewhere():
+    """rollout 估值应当**在某处改变决策**（否则机制是空转）。
+
+    扫一批浅层状态；只要有一个状态两者首动作不同即算通过。
+    """
+    states = [s for s in _collect_states(60) if not s.is_terminal()][:20]
+    diff = 0
+    for s in states:
+        kw = dict(beam_width=2, max_depth=2, max_nodes=60)
+        p_static = BeamSolver(value_mode="static", **kw).solve(s)
+        p_roll = BeamSolver(value_mode="rollout", **kw).solve(s)
+        if p_static != p_roll:
+            diff += 1
+    assert diff > 0, "扫描 %d 个状态，rollout 与 static 决策完全相同 → 机制空转" % len(states)
 
 
 if __name__ == "__main__":

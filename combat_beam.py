@@ -23,12 +23,14 @@ CombatSolver（github.com/Torch1230/CombatSolver，MIT，STS2 战斗路线求解
 | `BeamRankScore`（Ranking.cs:848）           | `evaluate()` 启发式                           |
 | 回合层预算（Phases.cs:1500-1522）            | `max_depth` / `max_nodes`                     |
 
-## 已知限制（P1，故意保留）
+## 已知限制（2026-10-16 晚 重新定级）
 
 1. **Power 读不到**：C++ 绑定只暴露 `strength / dexterity / focus / artifact`，
    Vulnerable / Weak / Frail / Poison 等**读不到** → 指纹会漏判（"有易伤"与"无易伤"
-   可能算出同一指纹）、启发式缺该特征。**待绑定补齐后再提升精度**
-   （但先验证算法本身是否有效，这才是 P1 的目的）。
+   可能算出同一指纹）、**π 选牌缺该特征**。
+   ⚠️ **不再是要害**：补上终局估值后（`value_mode="rollout"`），静态启发式只用于当
+   rollout 策略 π，不再充当价值函数 —— 实测通关率 45% → 86% **是在这个盲区仍在的情况下拿到的**。
+   故本条从"高优先级"降为 **P2**（仍需重编译 pyd，见 `docs/next-chat-handoff.md` 坑 2）。
 2. **药水动作跳过**：绑定未暴露战斗内药水索引 → 只解"出牌 + 结束回合"。
 3. **只做精确去重**，未实现 CombatSolver 的六维支配关系（TranspositionLabel）
    —— ⚠️ 实测评估：我们的 `fingerprint` 比 CombatSolver 的 `StateKey` **更细**
@@ -51,6 +53,36 @@ CombatSolver（github.com/Torch1230/CombatSolver，MIT，STS2 战斗路线求解
 ⚠️ CombatSolver 的 9 条泳道里有 4 条（`RevivalWindow` / `DeclinedExtraTurn` /
 `ReactiveDamage` / `LongTermResource`）依赖 **STS2 特有机制**（复活敌人、Stars、Osty、
 长期资源追踪），在 STS1 / Ironclad / A0 下**无对应机制 → 不硬凑**。
+
+## 节点估值：两种模式（`value_mode`，2026-10-16）
+
+| 模式 | 打分函数 | 含终局信息？ | 成本/节点 |
+|---|---|---|---|
+| `static`（默认） | `evaluate()` 静态中间状态 | ❌ | ~5 µs |
+| `rollout` | `rollout_value()` 打到终局 | ✅ | ~1.0 ms |
+
+**为什么要加 `rollout`**：`logs/sts1-solver-comparison-report.md` 查出本项目并存两套
+互不相干的评估函数 —— MCTS 路径有**终局评估**（`evaluateEndState`，已针对 STS1 验证），
+而 10 月转 Beam 时换成了**从未验证过的 STS2 静态启发式**。这与「更宽 / 更深 / 更大预算
+**全部变差**」完全自洽：一个不含终局信息的评分，越算只会越充分地放大自身误差。
+
+`rollout` 模式把那条已验证的终局评估接到 Beam 上：叶节点先用单步贪心策略把战斗
+**打到终局**，再用 `terminal_score()` 打分（口径与 `evaluateEndState` 对齐）。
+因 STS1 战斗是确定性的，该估值**完全确定**、无采样噪声。
+
+### ⭐ 实测（2026-10-16，100 局配对，同 checkpoint / 同宏观策略，**只换估值方式**）
+
+| 配置 | 楼层 | 通关率 | vs baseline |
+|---|---|---|---|
+| `static` W=2 d=6（改造前） | 34.11 | 45.0% | — |
+| ⭐ **`rollout` W=2 d=1** | **46.78** | **86.0%** | 楼层 +9.89（配对 t=6.26）、通关率 **+41.0 pp**（McNemar **30/1**, p<1e-4） |
+| `rollout` W=2 d=6 | 47.26 | 85.0% | +10.37 / +40.0 pp（32/4） |
+| `rollout` W=2 d=12 | 46.00 | 80.0% | +9.11 / +35.0 pp（28/5） |
+
+**rollout 一旦覆盖到终局，深度就没用了**（d1 ≈ d6 > d12）；逐种子 d=1 仅 1 例退化。
+真机单步：`rollout d=1` 均值 5.19 ms / P95 22 ms（限速 300 ms ✅）；
+⚠️ `rollout d=6` 最大 367 ms **会超时**，真机不要用。
+→ 详情 `logs/beam-terminal-value-report.md`
 
 ## 用法
 
@@ -304,20 +336,36 @@ def _make(act: tuple[str, int, int]) -> "sts.BattleAction":
 # --------------------------------------------------------------------------
 # 启发式评估（对应 Ranking.cs 的 BeamRankScore）
 # --------------------------------------------------------------------------
+def terminal_score(bc: "sts.BattleContext", weights: "Weights | None" = None) -> float:
+    """终局状态的分数（**必须有终局信息才合法**）。
+
+    对应 MCTS 路径的 `evaluateEndState`（C++）。与它口径对齐：
+        - 胜利：`win_base + 剩余血量×hp − 回合×turn_penalty`（血越多、回合越少越好）
+        - 失败：`loss_base − 敌人剩余血量×enemy_hp`（仍偏爱"多消耗了敌人"的局面）
+
+    ⚠️ 这是从 `evaluate()` 里**原样抽出**的（2026-10-16），`evaluate()` 行为逐位不变。
+    """
+    w = DEFAULT_WEIGHTS if weights is None else weights
+    P = bc.player
+    if bc.outcome == sts.BattleOutcome.PLAYER_VICTORY:
+        return w.win_base + P.hp * w.hp - bc.turn * w.turn_penalty
+    # 输：仍偏爱"多消耗了敌人"的局面（给失败分支一点梯度）
+    enemy_hp = sum(m.hp for m in bc.monsters if m.is_alive)
+    return w.loss_base - enemy_hp * w.enemy_hp
+
+
 def evaluate(bc: "sts.BattleContext", weights: "Weights | None" = None) -> float:
     """给非终局状态打分。分数越高越好。**启发式质量决定 Beam 的成败。**
 
     `weights=None` → 用 `DEFAULT_WEIGHTS`（**与改造前逐位一致**）。
+
+    ⚠️ 本函数只看**当前这一帧**（静态中间状态），**没有终局信息** —— 这正是
+    "更宽 / 更深 / 更大预算全部变差"的根本解释（见 `logs/sts1-solver-comparison-report.md`）。
+    要终局信息请用 `rollout_value()`。
     """
     w = DEFAULT_WEIGHTS if weights is None else weights
     if bc.is_terminal():
-        P = bc.player
-        if bc.outcome == sts.BattleOutcome.PLAYER_VICTORY:
-            # 赢：血越多、回合越少越好（同 CombatSolver 的 100×(35 + HP − 回合×0.01)）
-            return w.win_base + P.hp * w.hp - bc.turn * w.turn_penalty
-        # 输：仍偏爱"多消耗了敌人"的局面（给失败分支一点梯度）
-        enemy_hp = sum(m.hp for m in bc.monsters if m.is_alive)
-        return w.loss_base - enemy_hp * w.enemy_hp
+        return terminal_score(bc, w)
 
     P = bc.player
     score = 0.0
@@ -334,6 +382,61 @@ def evaluate(bc: "sts.BattleContext", weights: "Weights | None" = None) -> float
     score += len(bc.hand) * w.hand
     score += len(bc.draw_pile) * w.draw
     return score
+
+
+# --------------------------------------------------------------------------
+# 终局估值：rollout 到终局（给 Beam 补上它一直缺的"终局信息"）
+# --------------------------------------------------------------------------
+def rollout_value(bc: "sts.BattleContext", weights: "Weights | None" = None,
+                  max_steps: int = 400) -> float:
+    """**把战斗打到终局**再打分 —— 即 `V_π(bc)`，π = 单步贪心策略（确定性）。
+
+    为什么需要它（`logs/sts1-solver-comparison-report.md` 纠错清单 ①）：
+        `evaluate()` 打分的是**静态中间状态**，没有终局信息。于是"更宽/更深/更大预算
+        全部变差" —— 一个不含终局信息的评分，越算只会越充分地放大自身误差。
+        本函数把 MCTS 路径那条已验证的**终局评估**（`terminal_score`，对应 C++
+        `evaluateEndState`）接到 Beam 上。
+
+    π = 每步在所有合法动作里选 `evaluate()` 最高者（**单步前瞻的贪心**，不是随机 rollout）——
+    ⚠️ 注意这里 `evaluate()` 只当**策略**用，不当**价值**用；策略有偏 ≠ 价值有偏。
+
+    成本（实测，见 `scripts/probes/_tmp_terminal_value_cost.py`）：
+        STS1 战斗平均 14.3 步到终局，**单次 ≈ 1.0 ms**（中位 0.90、P95 2.01）。
+        真机单决策预算 300 ms，够跑几十次。
+
+    Args:
+        bc: 起点（**只读**，内部全程在副本上操作）
+        weights: 既作 π 的策略权重，也作终局打分权重；None = `DEFAULT_WEIGHTS`
+        max_steps: 步数上限（兜底防"打不完"的病态局面；正常战斗 14~37 步）
+
+    Returns:
+        终局分数。若 `max_steps` 内未分出胜负（理论上不该发生），退化为静态分保底。
+    """
+    w = DEFAULT_WEIGHTS if weights is None else weights
+    cur = sts.BattleContext(bc)
+    steps = 0
+    while not cur.is_terminal() and steps < max_steps:
+        acts = legal_actions(cur)
+        if not acts:
+            break
+        best, best_score, best_bc = None, None, None
+        for a in acts:
+            nb = sts.BattleContext(cur)
+            try:
+                _make(a).execute(nb)
+            except Exception:                          # noqa: BLE001
+                continue
+            sc = evaluate(nb, w)
+            if best_score is None or sc > best_score:
+                best, best_score, best_bc = a, sc, nb
+        if best is None:
+            break
+        # ⚡ 复用已算好的子副本，省一次 fork + execute（探针实测这条让单次 rollout ~1 ms）
+        cur = best_bc
+        steps += 1
+    if cur.is_terminal():
+        return terminal_score(cur, w)
+    return evaluate(cur, w)                            # 病态兜底：超步数仍未终局
 
 
 # --------------------------------------------------------------------------
@@ -361,6 +464,10 @@ class BeamSolver:
         lane_budget: 泳道席位上限；None = `min(len(TRAITS), max(1, beam_width // 3))`
         width_portfolio: True = 启用**束宽 Portfolio**（P0-② 机制③，同根多宽度取最优）
         weights:    启发式权重（`Weights`）；None = `DEFAULT_WEIGHTS`（与改造前一致）
+        value_mode:  **节点估值方式**（2026-10-16 新增）
+                     - `"static"`（默认）：`evaluate()` 静态中间状态分 —— **与改造前逐位一致**
+                     - `"rollout"`：`rollout_value()` 打到终局再打分（含终局信息，约 1 ms/节点）
+        rollout_max_steps: `value_mode="rollout"` 时的 rollout 步数上限
 
     ⚠️ `route_lanes` 在小束宽下席位少（W=2 → 1 席），大束宽下才铺满；
     这是刻意的 —— CombatSolver 的最小档 W=45，泳道占比约 1/5。
@@ -371,10 +478,16 @@ class BeamSolver:
     #: ⚠️ 我们按 beam_width 的比例近似其绝对量 band/base。
     _PORTFOLIO_RATIOS = (1.0, 2 / 3, 3 / 2, 1.5, 2.0)
 
+    #: 合法的 `value_mode` 取值（拼错直接报错，防调参静默失效）
+    VALUE_MODES = ("static", "rollout")
+
     def __init__(self, beam_width: int = 8, max_depth: int = 24,
                  max_nodes: int = 20_000, dedup: bool = True, seed: int = 0,
                  route_lanes: bool = True, lane_budget: int | None = None,
-                 width_portfolio: bool = False, weights: "Weights | None" = None):
+                 width_portfolio: bool = False, weights: "Weights | None" = None,
+                 value_mode: str = "static", rollout_max_steps: int = 400):
+        if value_mode not in self.VALUE_MODES:
+            raise ValueError("未知 value_mode %r；可用 %s" % (value_mode, list(self.VALUE_MODES)))
         self.beam_width = int(beam_width)
         self.max_depth = int(max_depth)
         self.max_nodes = int(max_nodes)
@@ -382,9 +495,18 @@ class BeamSolver:
         self.route_lanes = bool(route_lanes)
         self.width_portfolio = bool(width_portfolio)
         self.weights = weights
+        self.value_mode = value_mode
+        self.rollout_max_steps = int(rollout_max_steps)
         self._lane_budget = (min(len(TRAITS), max(1, self.beam_width // 3))
                              if lane_budget is None else max(0, int(lane_budget)))
         self.last_stats: dict = {}
+
+    # ---------------- 节点估值 ----------------
+    def _score(self, bc: "sts.BattleContext") -> float:
+        """按 `value_mode` 给节点打分（rollout 模式含终局信息）。"""
+        if self.value_mode == "rollout":
+            return rollout_value(bc, self.weights, self.rollout_max_steps)
+        return evaluate(bc, self.weights)
 
     # ---------------- 束宽 Portfolio ----------------
     def portfolio_widths(self) -> list[int]:
@@ -432,7 +554,7 @@ class BeamSolver:
     def _solve_once(self, bc: "sts.BattleContext", width: int, max_nodes: int | None = None):
         budget = self.max_nodes if max_nodes is None else int(max_nodes)
         t0 = time.perf_counter()
-        root = _Node(bc=sts.BattleContext(bc), path=(), score=evaluate(bc, self.weights), depth=0,
+        root = _Node(bc=sts.BattleContext(bc), path=(), score=self._score(bc), depth=0,
                      traits=lane_values(bc))
         beam: list[_Node] = [root]
         best_terminal: _Node | None = None
@@ -461,7 +583,7 @@ class BeamSolver:
                     child = _Node(bc=child_bc, path=node.path + (act,),
                                   score=0.0, depth=node.depth + 1,
                                   traits=lane_values(child_bc))
-                    child.score = evaluate(child_bc, self.weights)
+                    child.score = self._score(child_bc)
                     if child_bc.is_terminal():
                         if (child_bc.outcome == sts.BattleOutcome.PLAYER_VICTORY
                                 and (best_terminal is None or child.score > best_terminal.score)):
@@ -502,7 +624,8 @@ class BeamSolver:
                             "depth": 0, "score": float("nan"), "won": False,
                             "outcome": str(bc.outcome), "plan_len": 0, "dead_end": True,
                             "width": width, "lane_seats": lane_seats,
-                            "hit_budget": nodes >= budget}
+                            "hit_budget": nodes >= budget,
+                            "value_mode": self.value_mode}
             chosen = _Node(bc=root.bc, path=(acts[0],), score=float("nan"), depth=1,
                            traits=root.traits)
         stats = {
@@ -516,6 +639,7 @@ class BeamSolver:
             "width": width,
             "lane_seats": lane_seats,
             "hit_budget": nodes >= budget,
+            "value_mode": self.value_mode,
         }
         return list(chosen.path), stats
 
@@ -555,4 +679,5 @@ class BeamSolver:
 
 
 __all__ = ["BeamSolver", "Weights", "DEFAULT_WEIGHTS", "PRESETS", "fingerprint",
-           "lane_values", "legal_actions", "evaluate", "ACTION_TYPE_BY_NAME", "TRAITS"]
+           "lane_values", "legal_actions", "evaluate", "terminal_score", "rollout_value",
+           "ACTION_TYPE_BY_NAME", "TRAITS"]
