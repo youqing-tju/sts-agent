@@ -25,7 +25,12 @@ import time
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _PY = os.path.join(_ROOT, ".venv", "Scripts", "python.exe")
-_CKPT = os.path.join(_ROOT, "checkpoints", "ppo_v9_10000.pt")
+# 可用环境变量覆盖（便于验证不同 checkpoint / 战斗求解器路径，默认行为不变）：
+#   STS_BRIDGE_CKPT=checkpoints/v14_defbeam_2k.pt
+#   STS_BRIDGE_EXTRA_ARGS="--combat-solver beam --beam-weights-preset defensive"
+_CKPT = os.environ.get("STS_BRIDGE_CKPT",
+                       os.path.join(_ROOT, "checkpoints", "ppo_v9_10000.pt"))
+_EXTRA = os.environ.get("STS_BRIDGE_EXTRA_ARGS", "").split()
 
 
 class Bridge:
@@ -34,7 +39,7 @@ class Bridge:
                    PYTHONIOENCODING="utf-8")
         self.proc = subprocess.Popen(
             [_PY, os.path.join(_ROOT, "main.py"),
-             "--checkpoint", _CKPT, "--log-dir", log_dir],
+             "--checkpoint", _CKPT, "--log-dir", log_dir] + _EXTRA,
             cwd=_ROOT, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, text=True, encoding="utf-8",
             errors="replace", bufsize=1)

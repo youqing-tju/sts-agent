@@ -98,3 +98,74 @@ runAtGameStart=true
 
 > 注：`ppo_v9_10000.pt` 每 400 局被训练进程覆写一次（写入是整体覆盖，不会读到半个文件）。
 > agent 只在**启动时加载一次**，所以中途更新权重不会影响正在玩的那一局。
+
+---
+
+# 八、2026-10-16 更新：接入 v14 权重 + Beam 战斗求解器
+
+> ⚠️ 本章覆盖第一章的「配置内容」。**第一~七章的历史信息仍然有效**（Mod 安装、三步操作、
+> 监控口径、失败预案都不变）。
+
+## 8.1 变更内容
+
+| 项 | 旧（9 月） | 新（2026-10-16） |
+|---|---|---|
+| **checkpoint** | `ppo_v9_10000.pt` | **`v14_defbeam_2k.pt`**（2000 局训练，通关率 **53.5%**） |
+| **战斗求解器** | ISMCTS（`CombatBrain`） | **Beam Search**（`BeamBrain`，`preset defensive`） |
+| 宏观决策 | Scorer 打分 argmax | 不变 |
+
+新配置行（`%LOCALAPPDATA%\ModTheSpire\CommunicationMod\config.properties`）：
+
+```
+command=C\:/.../.venv/Scripts/python.exe C\:/.../main.py
+        --checkpoint C\:/.../checkpoints/v14_defbeam_2k.pt
+        --log-dir    C\:/.../logs/realtime
+        --combat-solver beam --beam-weights-preset defensive
+```
+
+**备份**：`config.properties.bak-v9-1016_2011`（回退即覆盖回来）。
+
+## 8.2 为什么换
+
+| 依据 | 数据 |
+|---|---|
+| Beam >> MCTS（同 500 局训练） | 通关率 **24.0% vs 8.0%**（z≈3.09, p≈0.002） |
+| v14（2000 局）vs v12/v13（500 局） | 通关率 **53.5%** vs 27–31%；且**通关局牌组更精简**（31.1 vs 40.4 张）|
+| `defensive` 预设 | 200 局配对实测 **+9.5 pp**（两个独立模型均复现）|
+
+> 详细报告：`logs/v12-beam-vs-mcts-report.md`、`logs/v14-training-report.md`、
+> `logs/weight-tuning-report.md`
+
+## 8.3 上线前已验证（**无需游戏**）
+
+| 验证 | 结果 |
+|---|---|
+| **真机状态可用性** —— 150 帧 L1 真实战斗日志重放，按**真机路径**构造 bc<br>（`init_from_json` + `_sanitize` + `alias_power_ids`） | **150 / 150 成功**，单步 **1.70 ms**（P95 5.56 ms、最大 8.81 ms） |
+| 真机限速余量 | `--min-cmd-interval-ms` 300 ms → **约 34×** |
+| **协议自检** `scripts/selfcheck_bridge.py` | 默认(mcts) 与 beam 路径**均 10/10 PASS** |
+| 默认路径不受影响 | `SimBrain()` 仍是 `CombatBrain`（`combat_solver=mcts`）|
+
+## 8.4 `main.py` 新增 CLI
+
+```
+--combat-solver {mcts,beam}   默认 mcts（= 完全不变的旧行为）
+--beam-width N                默认 2    ⭐ 实测 W=4/W=8 通关率反而更低（宽度不单调）
+--beam-depth N                默认 6
+--beam-max-nodes N            默认 300
+--beam-weights-preset {default,defensive,defensive_max}    ⭐ 推荐 defensive
+```
+
+自检脚本支持环境变量覆盖，便于复现两条路径：
+
+```bash
+STS_BRIDGE_CKPT=checkpoints/v14_defbeam_2k.pt \
+STS_BRIDGE_EXTRA_ARGS="--combat-solver beam --beam-weights-preset defensive" \
+  .venv/Scripts/python.exe scripts/selfcheck_bridge.py
+```
+
+## 8.5 回退
+
+| 想回到 | 操作 |
+|---|---|
+| **v9 + ISMCTS**（9 月状态） | `cp config.properties.bak-v9-1016_2011 config.properties` |
+| 保留 v14、只回退战斗层 | 配置里删掉 `--combat-solver beam --beam-weights-preset defensive` || **完全不用 agent** | 配置里把 `runAtGameStart` 改成 `false` |

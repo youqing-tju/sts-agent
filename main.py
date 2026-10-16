@@ -385,7 +385,9 @@ class SimBrain:
                  cand_dim=DESC_VEC_DIM, hidden=(512, 256),
                  combat_sims=2000, determinizations=10, log_dir=None,
                  min_cmd_interval_ms=300, stuck_grace_ms=600,
-                 shop_mode="smart"):
+                 shop_mode="smart",
+                 combat_solver="mcts", beam_width=2, beam_depth=6,
+                 beam_max_nodes=300, beam_weights_preset=None):
         self.gc = sts.GameContext(sts.CharacterClass.IRONCLAD, 0, 0)
         self._nni = sts.getNNInterface()  # 缓存单例（C++ 所有权 bug 已修复）
         self._reject_streak = 0  # 连续被拒计数（仅 error 帧自增，真实状态清零）
@@ -465,8 +467,20 @@ class SimBrain:
         self._ascension = 0
         self._map_cache = None       # (seed, act) 对应的 SpireMap
         self._map_cache_key = None
-        self.combat_brain = CombatBrain(simulation_count=combat_sims,
-                                        determinizations=determinizations)
+        # 战斗求解器（2026-10-16 新增 beam 路径）。⚠️ 默认仍是 mcts → 现有真机路径行为不变。
+        self.combat_solver = combat_solver
+        if combat_solver == "beam":
+            from beam_brain import BeamBrain      # 延迟 import：避免无关场景加载
+            from combat_beam import PRESETS
+            _w = PRESETS.get(beam_weights_preset) if beam_weights_preset else None
+            self.combat_brain = BeamBrain(beam_width=beam_width, beam_depth=beam_depth,
+                                          beam_max_nodes=beam_max_nodes, weights=_w)
+            log.info("战斗求解器 = Beam（W=%s d=%s n=%s preset=%s）",
+                     beam_width, beam_depth, beam_max_nodes,
+                     beam_weights_preset or "default")
+        else:
+            self.combat_brain = CombatBrain(simulation_count=combat_sims,
+                                            determinizations=determinizations)
 
     # ---- 决策入口 ----
 
@@ -1587,6 +1601,19 @@ def main(argv=None):
                         "50000 为过度预算）。对战延迟敏感可传 8000（86.4%、0.85s）")
     p.add_argument("--determinizations", type=int, default=16,
                    help="战斗 ISMCTS 平行未来数 K（2026-09-11 拉满档：16）")
+    p.add_argument("--combat-solver", choices=["mcts", "beam"], default="mcts",
+                   help="战斗求解器：mcts=ISMCTS（默认，行为与历史一致）| "
+                        "beam=确定性 Beam Search（10 月主线，实测真机单步约 1.7ms）")
+    p.add_argument("--beam-width", type=int, default=2,
+                   help="Beam 束宽（仅 --combat-solver beam）。⭐ 生产值 2 —— "
+                        "实测 W=4/W=8 通关率反而更低，见 logs/beam-advanced-mechanisms.md")
+    p.add_argument("--beam-depth", type=int, default=6, help="Beam 最大搜索深度（仅 beam）")
+    p.add_argument("--beam-max-nodes", type=int, default=300,
+                   help="Beam 单次求解最大展开节点数（仅 beam）")
+    p.add_argument("--beam-weights-preset", default=None,
+                   choices=["default", "defensive", "defensive_max"],
+                   help="Beam 启发式权重预设（仅 beam）。推荐 defensive —— "
+                        "200 局配对实测通关率 +9.5pp")
     p.add_argument("--log-dir", default=_DEFAULT_LOG_DIR,
                    help="三层日志目录；传空串关闭")
     p.add_argument("--min-cmd-interval-ms", type=int, default=300,
@@ -1610,6 +1637,11 @@ def main(argv=None):
         determinizations=args.determinizations,
         log_dir=(args.log_dir or None),
         shop_mode=args.shop_mode,
+        combat_solver=args.combat_solver,
+        beam_width=args.beam_width,
+        beam_depth=args.beam_depth,
+        beam_max_nodes=args.beam_max_nodes,
+        beam_weights_preset=args.beam_weights_preset,
     )
 
     if args.dry_run:
@@ -1629,9 +1661,13 @@ def main(argv=None):
             brain.log.close()
         return 0
 
+    _combat_desc = (f"Beam W={args.beam_width}/d={args.beam_depth}/n={args.beam_max_nodes}"
+                    f" preset={args.beam_weights_preset or 'default'}"
+                    if args.combat_solver == "beam"
+                    else f"ISMCTS {args.determinizations}×{args.combat_sims}")
     print(f"[brain] 就绪 | 权重={args.checkpoint} | "
           f"obs={args.obs_dim} cand={args.cand_dim} | "
-          f"战斗 ISMCTS {args.determinizations}×{args.combat_sims} | "
+          f"战斗 {_combat_desc} | "
           f"日志={args.log_dir}", file=sys.stderr, flush=True)
     sys.stdout.write("ready\n")
     sys.stdout.flush()
