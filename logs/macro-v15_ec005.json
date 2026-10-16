@@ -1,0 +1,5509 @@
+[
+ {
+  "seed": 856258841,
+  "final_floor": 11,
+  "win": false,
+  "deck": 13,
+  "relics": 2,
+  "gold": 26,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 75,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 30
+ },
+ {
+  "seed": 809721117,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 4,
+  "gold": 730,
+  "hp": 26,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 80,
+    "gold": 323,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 59,
+    "gold": 543,
+    "deck": 22,
+    "relics": 3
+   }
+  },
+  "steps": 162
+ },
+ {
+  "seed": 1270809863,
+  "final_floor": 25,
+  "win": false,
+  "deck": 20,
+  "relics": 3,
+  "gold": 75,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 24,
+    "gold": 341,
+    "deck": 17,
+    "relics": 1
+   }
+  },
+  "steps": 92
+ },
+ {
+  "seed": 1953131477,
+  "final_floor": 51,
+  "win": true,
+  "deck": 34,
+  "relics": 7,
+  "gold": 228,
+  "hp": 45,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 51,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 22,
+    "gold": 348,
+    "deck": 18,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 65,
+    "gold": 178,
+    "deck": 29,
+    "relics": 5
+   }
+  },
+  "steps": 182
+ },
+ {
+  "seed": 335776950,
+  "final_floor": 51,
+  "win": true,
+  "deck": 32,
+  "relics": 4,
+  "gold": 431,
+  "hp": 96,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 86,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 1,
+    "gold": 232,
+    "deck": 19,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 91,
+    "gold": 205,
+    "deck": 26,
+    "relics": 3
+   }
+  },
+  "steps": 174
+ },
+ {
+  "seed": 1894911376,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 6,
+  "gold": 220,
+  "hp": 46,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 65,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 39,
+    "gold": 347,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 66,
+    "gold": 612,
+    "deck": 22,
+    "relics": 3
+   }
+  },
+  "steps": 169
+ },
+ {
+  "seed": 1751539841,
+  "final_floor": 51,
+  "win": true,
+  "deck": 25,
+  "relics": 5,
+  "gold": 13,
+  "hp": 80,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 62,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 69,
+    "gold": 293,
+    "deck": 16,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 76,
+    "gold": 198,
+    "deck": 21,
+    "relics": 3
+   }
+  },
+  "steps": 166
+ },
+ {
+  "seed": 365587230,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 7,
+  "gold": 94,
+  "hp": 63,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 58,
+    "gold": 249,
+    "deck": 17,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 72,
+    "gold": 198,
+    "deck": 25,
+    "relics": 5
+   }
+  },
+  "steps": 174
+ },
+ {
+  "seed": 1576371696,
+  "final_floor": 22,
+  "win": false,
+  "deck": 21,
+  "relics": 2,
+  "gold": 235,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 81,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 30,
+    "gold": 152,
+    "deck": 18,
+    "relics": 1
+   }
+  },
+  "steps": 91
+ },
+ {
+  "seed": 1362355165,
+  "final_floor": 12,
+  "win": false,
+  "deck": 17,
+  "relics": 4,
+  "gold": 37,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 55,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   }
+  },
+  "steps": 46
+ },
+ {
+  "seed": 979457375,
+  "final_floor": 30,
+  "win": false,
+  "deck": 23,
+  "relics": 7,
+  "gold": 60,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 29,
+    "gold": 144,
+    "deck": 20,
+    "relics": 2
+   }
+  },
+  "steps": 99
+ },
+ {
+  "seed": 1806356305,
+  "final_floor": 51,
+  "win": true,
+  "deck": 26,
+  "relics": 6,
+  "gold": 0,
+  "hp": 80,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 74,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 38,
+    "gold": 253,
+    "deck": 18,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 76,
+    "gold": 518,
+    "deck": 21,
+    "relics": 2
+   }
+  },
+  "steps": 170
+ },
+ {
+  "seed": 1127414655,
+  "final_floor": 19,
+  "win": false,
+  "deck": 13,
+  "relics": 3,
+  "gold": 316,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 16,
+    "gold": 371,
+    "deck": 15,
+    "relics": 2
+   }
+  },
+  "steps": 66
+ },
+ {
+  "seed": 659654897,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 10,
+  "gold": 0,
+  "hp": 77,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 74,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 22,
+    "gold": 346,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 17,
+    "gold": 574,
+    "deck": 20,
+    "relics": 6
+   }
+  },
+  "steps": 183
+ },
+ {
+  "seed": 1148947236,
+  "final_floor": 51,
+  "win": true,
+  "deck": 26,
+  "relics": 8,
+  "gold": 282,
+  "hp": 52,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 71,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 56,
+    "gold": 332,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 75,
+    "gold": 149,
+    "deck": 22,
+    "relics": 7
+   }
+  },
+  "steps": 167
+ },
+ {
+  "seed": 1628527396,
+  "final_floor": 7,
+  "win": false,
+  "deck": 14,
+  "relics": 2,
+  "gold": 151,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 31,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   }
+  },
+  "steps": 24
+ },
+ {
+  "seed": 210282334,
+  "final_floor": 1,
+  "win": false,
+  "deck": 10,
+  "relics": 1,
+  "gold": 99,
+  "hp": 0,
+  "act_snap": {},
+  "steps": 2
+ },
+ {
+  "seed": 554853888,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 8,
+  "gold": 27,
+  "hp": 72,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 69,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 57,
+    "gold": 132,
+    "deck": 15,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 41,
+    "gold": 238,
+    "deck": 24,
+    "relics": 5
+   }
+  },
+  "steps": 163
+ },
+ {
+  "seed": 418447160,
+  "final_floor": 51,
+  "win": true,
+  "deck": 32,
+  "relics": 12,
+  "gold": 112,
+  "hp": 62,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 54,
+    "gold": 549,
+    "deck": 12,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 71,
+    "gold": 198,
+    "deck": 19,
+    "relics": 6
+   }
+  },
+  "steps": 179
+ },
+ {
+  "seed": 962921090,
+  "final_floor": 31,
+  "win": false,
+  "deck": 25,
+  "relics": 2,
+  "gold": 65,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 81,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 21,
+    "gold": 163,
+    "deck": 20,
+    "relics": 1
+   }
+  },
+  "steps": 108
+ },
+ {
+  "seed": 112435878,
+  "final_floor": 51,
+  "win": true,
+  "deck": 26,
+  "relics": 5,
+  "gold": 202,
+  "hp": 40,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 51,
+    "gold": 169,
+    "deck": 14,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 11,
+    "gold": 202,
+    "deck": 20,
+    "relics": 4
+   }
+  },
+  "steps": 165
+ },
+ {
+  "seed": 845618723,
+  "final_floor": 51,
+  "win": true,
+  "deck": 26,
+  "relics": 5,
+  "gold": 701,
+  "hp": 38,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 79,
+    "gold": 213,
+    "deck": 17,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 68,
+    "gold": 455,
+    "deck": 19,
+    "relics": 3
+   }
+  },
+  "steps": 172
+ },
+ {
+  "seed": 1416556708,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 7,
+  "gold": 52,
+  "hp": 78,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 70,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 67,
+    "gold": 178,
+    "deck": 17,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 28,
+    "gold": 349,
+    "deck": 23,
+    "relics": 3
+   }
+  },
+  "steps": 173
+ },
+ {
+  "seed": 486692374,
+  "final_floor": 51,
+  "win": true,
+  "deck": 25,
+  "relics": 10,
+  "gold": 152,
+  "hp": 51,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 63,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 4,
+    "gold": 225,
+    "deck": 12,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 40,
+    "gold": 474,
+    "deck": 19,
+    "relics": 4
+   }
+  },
+  "steps": 172
+ },
+ {
+  "seed": 1956478492,
+  "final_floor": 7,
+  "win": false,
+  "deck": 11,
+  "relics": 1,
+  "gold": 419,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 61,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 21
+ },
+ {
+  "seed": 1728583236,
+  "final_floor": 51,
+  "win": true,
+  "deck": 34,
+  "relics": 5,
+  "gold": 363,
+  "hp": 33,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 36,
+    "gold": 226,
+    "deck": 19,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 67,
+    "gold": 225,
+    "deck": 28,
+    "relics": 4
+   }
+  },
+  "steps": 182
+ },
+ {
+  "seed": 422302494,
+  "final_floor": 16,
+  "win": false,
+  "deck": 14,
+  "relics": 3,
+  "gold": 13,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 77,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 59
+ },
+ {
+  "seed": 1287368787,
+  "final_floor": 21,
+  "win": false,
+  "deck": 14,
+  "relics": 3,
+  "gold": 164,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 68,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 13,
+    "gold": 184,
+    "deck": 14,
+    "relics": 2
+   }
+  },
+  "steps": 72
+ },
+ {
+  "seed": 1633311429,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 4,
+  "gold": 797,
+  "hp": 59,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 55,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 46,
+    "gold": 365,
+    "deck": 18,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 80,
+    "gold": 629,
+    "deck": 25,
+    "relics": 3
+   }
+  },
+  "steps": 165
+ },
+ {
+  "seed": 1446021769,
+  "final_floor": 22,
+  "win": false,
+  "deck": 18,
+  "relics": 4,
+  "gold": 104,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 53,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 51,
+    "gold": 117,
+    "deck": 17,
+    "relics": 3
+   }
+  },
+  "steps": 78
+ },
+ {
+  "seed": 1909461404,
+  "final_floor": 7,
+  "win": false,
+  "deck": 11,
+  "relics": 1,
+  "gold": 160,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 64,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 22
+ },
+ {
+  "seed": 889242453,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 6,
+  "gold": 372,
+  "hp": 80,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 52,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 60,
+    "gold": 121,
+    "deck": 16,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 60,
+    "gold": 198,
+    "deck": 26,
+    "relics": 4
+   }
+  },
+  "steps": 166
+ },
+ {
+  "seed": 2078294763,
+  "final_floor": 30,
+  "win": false,
+  "deck": 20,
+  "relics": 5,
+  "gold": 293,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 71,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 65,
+    "gold": 209,
+    "deck": 16,
+    "relics": 2
+   }
+  },
+  "steps": 96
+ },
+ {
+  "seed": 1843324520,
+  "final_floor": 8,
+  "win": false,
+  "deck": 15,
+  "relics": 1,
+  "gold": 149,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 48,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   }
+  },
+  "steps": 27
+ },
+ {
+  "seed": 1387113317,
+  "final_floor": 51,
+  "win": true,
+  "deck": 32,
+  "relics": 7,
+  "gold": 73,
+  "hp": 97,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 85,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 76,
+    "gold": 153,
+    "deck": 21,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 7,
+    "gold": 337,
+    "deck": 27,
+    "relics": 4
+   }
+  },
+  "steps": 166
+ },
+ {
+  "seed": 1372008756,
+  "final_floor": 5,
+  "win": false,
+  "deck": 13,
+  "relics": 1,
+  "gold": 401,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 65,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 17
+ },
+ {
+  "seed": 1039381627,
+  "final_floor": 51,
+  "win": true,
+  "deck": 31,
+  "relics": 5,
+  "gold": 363,
+  "hp": 31,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 55,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 49,
+    "gold": 177,
+    "deck": 17,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 64,
+    "gold": 142,
+    "deck": 23,
+    "relics": 4
+   }
+  },
+  "steps": 179
+ },
+ {
+  "seed": 1915394801,
+  "final_floor": 7,
+  "win": false,
+  "deck": 14,
+  "relics": 1,
+  "gold": 155,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 56,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 24
+ },
+ {
+  "seed": 1149301607,
+  "final_floor": 16,
+  "win": false,
+  "deck": 15,
+  "relics": 2,
+  "gold": 122,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 79,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   }
+  },
+  "steps": 50
+ },
+ {
+  "seed": 357950431,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 6,
+  "gold": 101,
+  "hp": 34,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 66,
+    "gold": 0,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 73,
+    "gold": 286,
+    "deck": 20,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 71,
+    "gold": 603,
+    "deck": 24,
+    "relics": 4
+   }
+  },
+  "steps": 161
+ },
+ {
+  "seed": 589158997,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 5,
+  "gold": 804,
+  "hp": 101,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 83,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 83,
+    "gold": 357,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 90,
+    "gold": 612,
+    "deck": 24,
+    "relics": 3
+   }
+  },
+  "steps": 165
+ },
+ {
+  "seed": 1176128080,
+  "final_floor": 22,
+  "win": false,
+  "deck": 19,
+  "relics": 2,
+  "gold": 396,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 76,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 7,
+    "gold": 295,
+    "deck": 16,
+    "relics": 1
+   }
+  },
+  "steps": 72
+ },
+ {
+  "seed": 1477598823,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 8,
+  "gold": 54,
+  "hp": 77,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 80,
+    "gold": 229,
+    "deck": 21,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 47,
+    "gold": 137,
+    "deck": 27,
+    "relics": 5
+   }
+  },
+  "steps": 175
+ },
+ {
+  "seed": 1399171887,
+  "final_floor": 24,
+  "win": false,
+  "deck": 25,
+  "relics": 2,
+  "gold": 265,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 41,
+    "gold": 204,
+    "deck": 20,
+    "relics": 1
+   }
+  },
+  "steps": 91
+ },
+ {
+  "seed": 368253205,
+  "final_floor": 16,
+  "win": false,
+  "deck": 18,
+  "relics": 1,
+  "gold": 46,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 78,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 55
+ },
+ {
+  "seed": 115289469,
+  "final_floor": 20,
+  "win": false,
+  "deck": 18,
+  "relics": 3,
+  "gold": 134,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 74,
+    "gold": 127,
+    "deck": 18,
+    "relics": 2
+   }
+  },
+  "steps": 72
+ },
+ {
+  "seed": 1424942079,
+  "final_floor": 31,
+  "win": false,
+  "deck": 21,
+  "relics": 7,
+  "gold": 277,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 58,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 67,
+    "gold": 138,
+    "deck": 16,
+    "relics": 2
+   }
+  },
+  "steps": 111
+ },
+ {
+  "seed": 1707934661,
+  "final_floor": 6,
+  "win": false,
+  "deck": 14,
+  "relics": 1,
+  "gold": 41,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 61,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 26
+ },
+ {
+  "seed": 660679222,
+  "final_floor": 7,
+  "win": false,
+  "deck": 11,
+  "relics": 1,
+  "gold": 403,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 23
+ },
+ {
+  "seed": 533703408,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 8,
+  "gold": 704,
+  "hp": 73,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 55,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 20,
+    "gold": 341,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 80,
+    "gold": 535,
+    "deck": 24,
+    "relics": 3
+   }
+  },
+  "steps": 163
+ },
+ {
+  "seed": 948595518,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 6,
+  "gold": 185,
+  "hp": 78,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 73,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 46,
+    "gold": 324,
+    "deck": 17,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 93,
+    "gold": 264,
+    "deck": 22,
+    "relics": 2
+   }
+  },
+  "steps": 155
+ },
+ {
+  "seed": 799912235,
+  "final_floor": 51,
+  "win": true,
+  "deck": 26,
+  "relics": 8,
+  "gold": 361,
+  "hp": 64,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 70,
+    "gold": 367,
+    "deck": 18,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 18,
+    "gold": 227,
+    "deck": 23,
+    "relics": 6
+   }
+  },
+  "steps": 179
+ },
+ {
+  "seed": 1944820541,
+  "final_floor": 51,
+  "win": true,
+  "deck": 31,
+  "relics": 5,
+  "gold": 332,
+  "hp": 32,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 40,
+    "gold": 198,
+    "deck": 19,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 65,
+    "gold": 151,
+    "deck": 23,
+    "relics": 3
+   }
+  },
+  "steps": 167
+ },
+ {
+  "seed": 186695766,
+  "final_floor": 51,
+  "win": true,
+  "deck": 27,
+  "relics": 6,
+  "gold": 846,
+  "hp": 74,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 56,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 60,
+    "gold": 327,
+    "deck": 18,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 72,
+    "gold": 689,
+    "deck": 21,
+    "relics": 4
+   }
+  },
+  "steps": 163
+ },
+ {
+  "seed": 1325687627,
+  "final_floor": 22,
+  "win": false,
+  "deck": 19,
+  "relics": 4,
+  "gold": 27,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 74,
+    "gold": 263,
+    "deck": 17,
+    "relics": 2
+   }
+  },
+  "steps": 80
+ },
+ {
+  "seed": 1798799476,
+  "final_floor": 46,
+  "win": false,
+  "deck": 26,
+  "relics": 7,
+  "gold": 675,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 64,
+    "gold": 148,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 85,
+    "gold": 372,
+    "deck": 21,
+    "relics": 3
+   }
+  },
+  "steps": 152
+ },
+ {
+  "seed": 778383504,
+  "final_floor": 51,
+  "win": true,
+  "deck": 25,
+  "relics": 7,
+  "gold": 102,
+  "hp": 59,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 75,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 74,
+    "gold": 145,
+    "deck": 16,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 33,
+    "gold": 249,
+    "deck": 19,
+    "relics": 5
+   }
+  },
+  "steps": 173
+ },
+ {
+  "seed": 1603946738,
+  "final_floor": 12,
+  "win": false,
+  "deck": 12,
+  "relics": 2,
+  "gold": 101,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 0,
+    "deck": 8,
+    "relics": 1
+   }
+  },
+  "steps": 38
+ },
+ {
+  "seed": 1960152876,
+  "final_floor": 31,
+  "win": false,
+  "deck": 22,
+  "relics": 3,
+  "gold": 96,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 53,
+    "gold": 366,
+    "deck": 15,
+    "relics": 1
+   }
+  },
+  "steps": 106
+ },
+ {
+  "seed": 271314226,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 7,
+  "gold": 328,
+  "hp": 71,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 53,
+    "gold": 148,
+    "deck": 18,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 29,
+    "gold": 149,
+    "deck": 24,
+    "relics": 5
+   }
+  },
+  "steps": 173
+ },
+ {
+  "seed": 1435005132,
+  "final_floor": 31,
+  "win": false,
+  "deck": 20,
+  "relics": 2,
+  "gold": 250,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 55,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 36,
+    "gold": 126,
+    "deck": 17,
+    "relics": 1
+   }
+  },
+  "steps": 105
+ },
+ {
+  "seed": 486215564,
+  "final_floor": 23,
+  "win": false,
+  "deck": 19,
+  "relics": 2,
+  "gold": 194,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 77,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 44,
+    "gold": 136,
+    "deck": 17,
+    "relics": 1
+   }
+  },
+  "steps": 86
+ },
+ {
+  "seed": 1821622480,
+  "final_floor": 51,
+  "win": true,
+  "deck": 27,
+  "relics": 5,
+  "gold": 1529,
+  "hp": 46,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 46,
+    "gold": 179,
+    "deck": 16,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 72,
+    "gold": 385,
+    "deck": 21,
+    "relics": 4
+   }
+  },
+  "steps": 158
+ },
+ {
+  "seed": 64688570,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 8,
+  "gold": 554,
+  "hp": 38,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 53,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 55,
+    "gold": 241,
+    "deck": 16,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 18,
+    "gold": 248,
+    "deck": 21,
+    "relics": 5
+   }
+  },
+  "steps": 171
+ },
+ {
+  "seed": 732842322,
+  "final_floor": 31,
+  "win": false,
+  "deck": 19,
+  "relics": 3,
+  "gold": 437,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 16,
+    "gold": 294,
+    "deck": 16,
+    "relics": 1
+   }
+  },
+  "steps": 103
+ },
+ {
+  "seed": 434693710,
+  "final_floor": 16,
+  "win": false,
+  "deck": 17,
+  "relics": 1,
+  "gold": 0,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 35,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 52
+ },
+ {
+  "seed": 92125029,
+  "final_floor": 10,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 190,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 71,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 32
+ },
+ {
+  "seed": 1685109892,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 8,
+  "gold": 313,
+  "hp": 42,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 62,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 32,
+    "gold": 129,
+    "deck": 14,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 50,
+    "gold": 141,
+    "deck": 21,
+    "relics": 3
+   }
+  },
+  "steps": 170
+ },
+ {
+  "seed": 105722461,
+  "final_floor": 48,
+  "win": false,
+  "deck": 28,
+  "relics": 8,
+  "gold": 48,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 64,
+    "gold": 249,
+    "deck": 18,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 6,
+    "gold": 545,
+    "deck": 25,
+    "relics": 6
+   }
+  },
+  "steps": 159
+ },
+ {
+  "seed": 251615438,
+  "final_floor": 51,
+  "win": true,
+  "deck": 35,
+  "relics": 5,
+  "gold": 129,
+  "hp": 67,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 57,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 61,
+    "gold": 313,
+    "deck": 17,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 36,
+    "gold": 218,
+    "deck": 23,
+    "relics": 3
+   }
+  },
+  "steps": 169
+ },
+ {
+  "seed": 534152688,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 5,
+  "gold": 359,
+  "hp": 45,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 28,
+    "gold": 586,
+    "deck": 15,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 24,
+    "gold": 197,
+    "deck": 22,
+    "relics": 4
+   }
+  },
+  "steps": 166
+ },
+ {
+  "seed": 966259816,
+  "final_floor": 51,
+  "win": true,
+  "deck": 32,
+  "relics": 6,
+  "gold": 95,
+  "hp": 66,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 74,
+    "gold": 0,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 62,
+    "gold": 148,
+    "deck": 16,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 61,
+    "gold": 165,
+    "deck": 22,
+    "relics": 4
+   }
+  },
+  "steps": 165
+ },
+ {
+  "seed": 2049195015,
+  "final_floor": 5,
+  "win": false,
+  "deck": 15,
+  "relics": 2,
+  "gold": 151,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 77,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   }
+  },
+  "steps": 20
+ },
+ {
+  "seed": 1791049505,
+  "final_floor": 51,
+  "win": true,
+  "deck": 27,
+  "relics": 9,
+  "gold": 626,
+  "hp": 80,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 80,
+    "gold": 200,
+    "deck": 19,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 80,
+    "gold": 442,
+    "deck": 26,
+    "relics": 4
+   }
+  },
+  "steps": 167
+ },
+ {
+  "seed": 2027366988,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 8,
+  "gold": 74,
+  "hp": 101,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 81,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 36,
+    "gold": 192,
+    "deck": 17,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 29,
+    "gold": 435,
+    "deck": 21,
+    "relics": 5
+   }
+  },
+  "steps": 172
+ },
+ {
+  "seed": 1110852087,
+  "final_floor": 51,
+  "win": true,
+  "deck": 31,
+  "relics": 8,
+  "gold": 130,
+  "hp": 48,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 39,
+    "gold": 229,
+    "deck": 19,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 35,
+    "gold": 211,
+    "deck": 25,
+    "relics": 6
+   }
+  },
+  "steps": 174
+ },
+ {
+  "seed": 189599965,
+  "final_floor": 51,
+  "win": true,
+  "deck": 34,
+  "relics": 6,
+  "gold": 116,
+  "hp": 55,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 53,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 33,
+    "gold": 124,
+    "deck": 15,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 83,
+    "gold": 142,
+    "deck": 25,
+    "relics": 3
+   }
+  },
+  "steps": 173
+ },
+ {
+  "seed": 1454457540,
+  "final_floor": 51,
+  "win": true,
+  "deck": 26,
+  "relics": 6,
+  "gold": 24,
+  "hp": 61,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 50,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 22,
+    "gold": 143,
+    "deck": 18,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 36,
+    "gold": 186,
+    "deck": 23,
+    "relics": 4
+   }
+  },
+  "steps": 170
+ },
+ {
+  "seed": 341658427,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 9,
+  "gold": 1,
+  "hp": 90,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 86,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 59,
+    "gold": 121,
+    "deck": 19,
+    "relics": 4
+   },
+   "3": {
+    "floor": 34,
+    "hp": 73,
+    "gold": 256,
+    "deck": 26,
+    "relics": 6
+   }
+  },
+  "steps": 174
+ },
+ {
+  "seed": 1984763635,
+  "final_floor": 2,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 17,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 8
+ },
+ {
+  "seed": 959878918,
+  "final_floor": 51,
+  "win": true,
+  "deck": 27,
+  "relics": 5,
+  "gold": 533,
+  "hp": 60,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 53,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 14,
+    "gold": 146,
+    "deck": 16,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 75,
+    "gold": 387,
+    "deck": 21,
+    "relics": 3
+   }
+  },
+  "steps": 166
+ },
+ {
+  "seed": 500924284,
+  "final_floor": 28,
+  "win": false,
+  "deck": 21,
+  "relics": 3,
+  "gold": 5,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 70,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 25,
+    "gold": 596,
+    "deck": 17,
+    "relics": 1
+   }
+  },
+  "steps": 99
+ },
+ {
+  "seed": 2086263271,
+  "final_floor": 28,
+  "win": false,
+  "deck": 19,
+  "relics": 2,
+  "gold": 20,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 71,
+    "gold": 298,
+    "deck": 16,
+    "relics": 1
+   }
+  },
+  "steps": 92
+ },
+ {
+  "seed": 1309188152,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 9,
+  "gold": 549,
+  "hp": 16,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 75,
+    "gold": 0,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 67,
+    "gold": 122,
+    "deck": 18,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 6,
+    "gold": 376,
+    "deck": 25,
+    "relics": 3
+   }
+  },
+  "steps": 171
+ },
+ {
+  "seed": 295483518,
+  "final_floor": 10,
+  "win": false,
+  "deck": 15,
+  "relics": 2,
+  "gold": 445,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 33
+ },
+ {
+  "seed": 821625339,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 7,
+  "gold": 29,
+  "hp": 40,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 58,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 67,
+    "gold": 187,
+    "deck": 18,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 77,
+    "gold": 113,
+    "deck": 26,
+    "relics": 4
+   }
+  },
+  "steps": 164
+ },
+ {
+  "seed": 252661617,
+  "final_floor": 33,
+  "win": false,
+  "deck": 19,
+  "relics": 4,
+  "gold": 128,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 71,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 47,
+    "gold": 162,
+    "deck": 16,
+    "relics": 1
+   }
+  },
+  "steps": 106
+ },
+ {
+  "seed": 1566150292,
+  "final_floor": 46,
+  "win": false,
+  "deck": 29,
+  "relics": 6,
+  "gold": 635,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 32,
+    "gold": 243,
+    "deck": 19,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 1,
+    "gold": 490,
+    "deck": 26,
+    "relics": 5
+   }
+  },
+  "steps": 158
+ },
+ {
+  "seed": 353041409,
+  "final_floor": 51,
+  "win": true,
+  "deck": 35,
+  "relics": 7,
+  "gold": 102,
+  "hp": 80,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 47,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 24,
+    "gold": 293,
+    "deck": 19,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 113,
+    "gold": 171,
+    "deck": 25,
+    "relics": 6
+   }
+  },
+  "steps": 186
+ },
+ {
+  "seed": 1385625778,
+  "final_floor": 24,
+  "win": false,
+  "deck": 20,
+  "relics": 3,
+  "gold": 349,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 36,
+    "gold": 193,
+    "deck": 18,
+    "relics": 2
+   }
+  },
+  "steps": 89
+ },
+ {
+  "seed": 659570527,
+  "final_floor": 51,
+  "win": true,
+  "deck": 34,
+  "relics": 17,
+  "gold": 257,
+  "hp": 92,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 61,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 75,
+    "gold": 248,
+    "deck": 16,
+    "relics": 6
+   },
+   "3": {
+    "floor": 34,
+    "hp": 80,
+    "gold": 254,
+    "deck": 23,
+    "relics": 12
+   }
+  },
+  "steps": 194
+ },
+ {
+  "seed": 320963931,
+  "final_floor": 14,
+  "win": false,
+  "deck": 18,
+  "relics": 1,
+  "gold": 225,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 74,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   }
+  },
+  "steps": 46
+ },
+ {
+  "seed": 821071194,
+  "final_floor": 16,
+  "win": false,
+  "deck": 16,
+  "relics": 2,
+  "gold": 22,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   }
+  },
+  "steps": 52
+ },
+ {
+  "seed": 2072109012,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 4,
+  "gold": 171,
+  "hp": 77,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 74,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 57,
+    "gold": 177,
+    "deck": 18,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 68,
+    "gold": 181,
+    "deck": 25,
+    "relics": 3
+   }
+  },
+  "steps": 165
+ },
+ {
+  "seed": 1859918947,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 4,
+  "gold": 329,
+  "hp": 80,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 80,
+    "gold": 236,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 80,
+    "gold": 193,
+    "deck": 25,
+    "relics": 3
+   }
+  },
+  "steps": 171
+ },
+ {
+  "seed": 1255332393,
+  "final_floor": 29,
+  "win": false,
+  "deck": 25,
+  "relics": 7,
+  "gold": 251,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 28,
+    "gold": 156,
+    "deck": 18,
+    "relics": 3
+   }
+  },
+  "steps": 101
+ },
+ {
+  "seed": 1467981857,
+  "final_floor": 51,
+  "win": true,
+  "deck": 35,
+  "relics": 8,
+  "gold": 65,
+  "hp": 36,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 14,
+    "gold": 155,
+    "deck": 19,
+    "relics": 4
+   },
+   "3": {
+    "floor": 34,
+    "hp": 80,
+    "gold": 397,
+    "deck": 25,
+    "relics": 6
+   }
+  },
+  "steps": 167
+ },
+ {
+  "seed": 1234643633,
+  "final_floor": 29,
+  "win": false,
+  "deck": 21,
+  "relics": 3,
+  "gold": 244,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 78,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 56,
+    "gold": 161,
+    "deck": 18,
+    "relics": 2
+   }
+  },
+  "steps": 96
+ },
+ {
+  "seed": 1897073621,
+  "final_floor": 7,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 402,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 18
+ },
+ {
+  "seed": 1910142766,
+  "final_floor": 5,
+  "win": false,
+  "deck": 12,
+  "relics": 2,
+  "gold": 143,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 51,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   }
+  },
+  "steps": 14
+ },
+ {
+  "seed": 1930067284,
+  "final_floor": 31,
+  "win": false,
+  "deck": 27,
+  "relics": 6,
+  "gold": 47,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 76,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 26,
+    "gold": 325,
+    "deck": 18,
+    "relics": 2
+   }
+  },
+  "steps": 112
+ },
+ {
+  "seed": 1633771894,
+  "final_floor": 7,
+  "win": false,
+  "deck": 14,
+  "relics": 1,
+  "gold": 112,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 56,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 21
+ },
+ {
+  "seed": 1728053941,
+  "final_floor": 31,
+  "win": false,
+  "deck": 20,
+  "relics": 8,
+  "gold": 189,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 41,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 45,
+    "gold": 574,
+    "deck": 16,
+    "relics": 2
+   }
+  },
+  "steps": 103
+ },
+ {
+  "seed": 980857290,
+  "final_floor": 16,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 114,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 47,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   }
+  },
+  "steps": 55
+ },
+ {
+  "seed": 1220714412,
+  "final_floor": 20,
+  "win": false,
+  "deck": 16,
+  "relics": 2,
+  "gold": 169,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 62,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 68,
+    "gold": 144,
+    "deck": 14,
+    "relics": 1
+   }
+  },
+  "steps": 65
+ },
+ {
+  "seed": 1731033191,
+  "final_floor": 16,
+  "win": false,
+  "deck": 15,
+  "relics": 3,
+  "gold": 262,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 45,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   }
+  },
+  "steps": 53
+ },
+ {
+  "seed": 1563353054,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 6,
+  "gold": 804,
+  "hp": 91,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 68,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 64,
+    "gold": 293,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 94,
+    "gold": 621,
+    "deck": 24,
+    "relics": 3
+   }
+  },
+  "steps": 176
+ },
+ {
+  "seed": 1553027035,
+  "final_floor": 51,
+  "win": true,
+  "deck": 37,
+  "relics": 12,
+  "gold": 136,
+  "hp": 73,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 68,
+    "gold": 141,
+    "deck": 19,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 40,
+    "gold": 140,
+    "deck": 27,
+    "relics": 9
+   }
+  },
+  "steps": 181
+ },
+ {
+  "seed": 637964318,
+  "final_floor": 5,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 65,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 63,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 19
+ },
+ {
+  "seed": 2053976119,
+  "final_floor": 51,
+  "win": true,
+  "deck": 24,
+  "relics": 7,
+  "gold": 786,
+  "hp": 26,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 54,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 51,
+    "gold": 365,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 57,
+    "gold": 583,
+    "deck": 16,
+    "relics": 4
+   }
+  },
+  "steps": 159
+ },
+ {
+  "seed": 2041019356,
+  "final_floor": 51,
+  "win": true,
+  "deck": 26,
+  "relics": 6,
+  "gold": 907,
+  "hp": 49,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 59,
+    "gold": 303,
+    "deck": 16,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 48,
+    "gold": 736,
+    "deck": 21,
+    "relics": 5
+   }
+  },
+  "steps": 165
+ },
+ {
+  "seed": 1645996888,
+  "final_floor": 51,
+  "win": true,
+  "deck": 32,
+  "relics": 7,
+  "gold": 200,
+  "hp": 71,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 57,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 72,
+    "gold": 272,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 80,
+    "gold": 120,
+    "deck": 23,
+    "relics": 4
+   }
+  },
+  "steps": 168
+ },
+ {
+  "seed": 373375776,
+  "final_floor": 14,
+  "win": false,
+  "deck": 15,
+  "relics": 2,
+  "gold": 113,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 11,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 52
+ },
+ {
+  "seed": 45806148,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 7,
+  "gold": 795,
+  "hp": 1,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 77,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 69,
+    "gold": 257,
+    "deck": 19,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 44,
+    "gold": 529,
+    "deck": 26,
+    "relics": 5
+   }
+  },
+  "steps": 179
+ },
+ {
+  "seed": 2066525398,
+  "final_floor": 5,
+  "win": false,
+  "deck": 11,
+  "relics": 1,
+  "gold": 151,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 60,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 15
+ },
+ {
+  "seed": 1265914801,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 4,
+  "gold": 600,
+  "hp": 21,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 66,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 53,
+    "gold": 194,
+    "deck": 16,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 13,
+    "gold": 415,
+    "deck": 25,
+    "relics": 2
+   }
+  },
+  "steps": 175
+ },
+ {
+  "seed": 118468905,
+  "final_floor": 51,
+  "win": true,
+  "deck": 25,
+  "relics": 7,
+  "gold": 118,
+  "hp": 17,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 39,
+    "gold": 343,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 30,
+    "gold": 273,
+    "deck": 20,
+    "relics": 4
+   }
+  },
+  "steps": 163
+ },
+ {
+  "seed": 2041751014,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 9,
+  "gold": 166,
+  "hp": 81,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 63,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 10,
+    "gold": 176,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 64,
+    "gold": 537,
+    "deck": 22,
+    "relics": 4
+   }
+  },
+  "steps": 178
+ },
+ {
+  "seed": 1900799606,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 8,
+  "gold": 343,
+  "hp": 65,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 55,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 44,
+    "gold": 345,
+    "deck": 13,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 62,
+    "gold": 169,
+    "deck": 23,
+    "relics": 5
+   }
+  },
+  "steps": 175
+ },
+ {
+  "seed": 360691109,
+  "final_floor": 31,
+  "win": false,
+  "deck": 23,
+  "relics": 5,
+  "gold": 39,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 76,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 43,
+    "gold": 169,
+    "deck": 19,
+    "relics": 3
+   }
+  },
+  "steps": 106
+ },
+ {
+  "seed": 1185409779,
+  "final_floor": 29,
+  "win": false,
+  "deck": 19,
+  "relics": 3,
+  "gold": 198,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 45,
+    "gold": 375,
+    "deck": 16,
+    "relics": 1
+   }
+  },
+  "steps": 98
+ },
+ {
+  "seed": 1316609632,
+  "final_floor": 8,
+  "win": false,
+  "deck": 11,
+  "relics": 2,
+  "gold": 16,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 14,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 23
+ },
+ {
+  "seed": 246493317,
+  "final_floor": 16,
+  "win": false,
+  "deck": 17,
+  "relics": 1,
+  "gold": 32,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 60
+ },
+ {
+  "seed": 1245654085,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 6,
+  "gold": 13,
+  "hp": 14,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 67,
+    "gold": 171,
+    "deck": 19,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 45,
+    "gold": 489,
+    "deck": 23,
+    "relics": 3
+   }
+  },
+  "steps": 171
+ },
+ {
+  "seed": 727370166,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 7,
+  "gold": 46,
+  "hp": 42,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 57,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 53,
+    "gold": 321,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 52,
+    "gold": 581,
+    "deck": 20,
+    "relics": 4
+   }
+  },
+  "steps": 171
+ },
+ {
+  "seed": 1100738728,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 8,
+  "gold": 99,
+  "hp": 53,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 62,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 66,
+    "gold": 167,
+    "deck": 15,
+    "relics": 4
+   },
+   "3": {
+    "floor": 34,
+    "hp": 1,
+    "gold": 117,
+    "deck": 21,
+    "relics": 7
+   }
+  },
+  "steps": 165
+ },
+ {
+  "seed": 15416169,
+  "final_floor": 16,
+  "win": false,
+  "deck": 18,
+  "relics": 1,
+  "gold": 106,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 58,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 58
+ },
+ {
+  "seed": 417002686,
+  "final_floor": 23,
+  "win": false,
+  "deck": 16,
+  "relics": 4,
+  "gold": 2,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 66,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 68,
+    "gold": 237,
+    "deck": 16,
+    "relics": 2
+   }
+  },
+  "steps": 75
+ },
+ {
+  "seed": 481923626,
+  "final_floor": 16,
+  "win": false,
+  "deck": 17,
+  "relics": 1,
+  "gold": 130,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 58,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 56
+ },
+ {
+  "seed": 219507270,
+  "final_floor": 12,
+  "win": false,
+  "deck": 13,
+  "relics": 1,
+  "gold": 164,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 73,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 35
+ },
+ {
+  "seed": 1623226169,
+  "final_floor": 16,
+  "win": false,
+  "deck": 13,
+  "relics": 4,
+  "gold": 51,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 62,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 54
+ },
+ {
+  "seed": 670175987,
+  "final_floor": 8,
+  "win": false,
+  "deck": 13,
+  "relics": 1,
+  "gold": 183,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 38,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   }
+  },
+  "steps": 30
+ },
+ {
+  "seed": 2130406072,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 6,
+  "gold": 74,
+  "hp": 59,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 67,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 54,
+    "gold": 187,
+    "deck": 16,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 72,
+    "gold": 401,
+    "deck": 21,
+    "relics": 4
+   }
+  },
+  "steps": 154
+ },
+ {
+  "seed": 1645451361,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 7,
+  "gold": 0,
+  "hp": 6,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 75,
+    "gold": 137,
+    "deck": 18,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 68,
+    "gold": 177,
+    "deck": 25,
+    "relics": 4
+   }
+  },
+  "steps": 164
+ },
+ {
+  "seed": 486695182,
+  "final_floor": 51,
+  "win": true,
+  "deck": 32,
+  "relics": 10,
+  "gold": 69,
+  "hp": 110,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 60,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 28,
+    "gold": 292,
+    "deck": 14,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 100,
+    "gold": 116,
+    "deck": 21,
+    "relics": 8
+   }
+  },
+  "steps": 171
+ },
+ {
+  "seed": 642394308,
+  "final_floor": 16,
+  "win": false,
+  "deck": 15,
+  "relics": 2,
+  "gold": 196,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 54,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   }
+  },
+  "steps": 53
+ },
+ {
+  "seed": 1767330760,
+  "final_floor": 8,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 85,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 8,
+    "relics": 1
+   }
+  },
+  "steps": 34
+ },
+ {
+  "seed": 937468094,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 8,
+  "gold": 116,
+  "hp": 64,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 35,
+    "gold": 288,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 40,
+    "gold": 174,
+    "deck": 25,
+    "relics": 5
+   }
+  },
+  "steps": 178
+ },
+ {
+  "seed": 1476699330,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 9,
+  "gold": 22,
+  "hp": 72,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 66,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 25,
+    "gold": 120,
+    "deck": 11,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 54,
+    "gold": 103,
+    "deck": 19,
+    "relics": 6
+   }
+  },
+  "steps": 173
+ },
+ {
+  "seed": 911620401,
+  "final_floor": 51,
+  "win": true,
+  "deck": 27,
+  "relics": 5,
+  "gold": 717,
+  "hp": 62,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 45,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 25,
+    "gold": 284,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 72,
+    "gold": 547,
+    "deck": 22,
+    "relics": 3
+   }
+  },
+  "steps": 174
+ },
+ {
+  "seed": 2124586708,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 6,
+  "gold": 783,
+  "hp": 54,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 59,
+    "gold": 292,
+    "deck": 17,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 46,
+    "gold": 360,
+    "deck": 24,
+    "relics": 5
+   }
+  },
+  "steps": 168
+ },
+ {
+  "seed": 1196122397,
+  "final_floor": 51,
+  "win": true,
+  "deck": 32,
+  "relics": 9,
+  "gold": 22,
+  "hp": 82,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 84,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 75,
+    "gold": 313,
+    "deck": 18,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 58,
+    "gold": 613,
+    "deck": 25,
+    "relics": 4
+   }
+  },
+  "steps": 176
+ },
+ {
+  "seed": 1459582056,
+  "final_floor": 5,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 129,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 62,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 17
+ },
+ {
+  "seed": 1986659823,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 9,
+  "gold": 662,
+  "hp": 72,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 71,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 37,
+    "gold": 305,
+    "deck": 14,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 10,
+    "gold": 497,
+    "deck": 21,
+    "relics": 6
+   }
+  },
+  "steps": 169
+ },
+ {
+  "seed": 648226449,
+  "final_floor": 11,
+  "win": false,
+  "deck": 14,
+  "relics": 1,
+  "gold": 6,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 62,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 39
+ },
+ {
+  "seed": 1825250259,
+  "final_floor": 22,
+  "win": false,
+  "deck": 20,
+  "relics": 3,
+  "gold": 344,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 77,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 75,
+    "gold": 358,
+    "deck": 18,
+    "relics": 2
+   }
+  },
+  "steps": 80
+ },
+ {
+  "seed": 1667538296,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 6,
+  "gold": 253,
+  "hp": 40,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 82,
+    "gold": 250,
+    "deck": 20,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 64,
+    "gold": 173,
+    "deck": 26,
+    "relics": 3
+   }
+  },
+  "steps": 178
+ },
+ {
+  "seed": 1254218099,
+  "final_floor": 20,
+  "win": false,
+  "deck": 17,
+  "relics": 2,
+  "gold": 188,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 73,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 84,
+    "gold": 162,
+    "deck": 17,
+    "relics": 1
+   }
+  },
+  "steps": 70
+ },
+ {
+  "seed": 1510243275,
+  "final_floor": 10,
+  "win": false,
+  "deck": 16,
+  "relics": 2,
+  "gold": 55,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 64,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 36
+ },
+ {
+  "seed": 321653320,
+  "final_floor": 51,
+  "win": true,
+  "deck": 36,
+  "relics": 6,
+  "gold": 458,
+  "hp": 80,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 42,
+    "gold": 625,
+    "deck": 19,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 80,
+    "gold": 229,
+    "deck": 29,
+    "relics": 5
+   }
+  },
+  "steps": 183
+ },
+ {
+  "seed": 806041465,
+  "final_floor": 47,
+  "win": false,
+  "deck": 33,
+  "relics": 5,
+  "gold": 1381,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 58,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 41,
+    "gold": 112,
+    "deck": 16,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 50,
+    "gold": 244,
+    "deck": 23,
+    "relics": 4
+   }
+  },
+  "steps": 168
+ },
+ {
+  "seed": 1397341367,
+  "final_floor": 45,
+  "win": false,
+  "deck": 34,
+  "relics": 7,
+  "gold": 61,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 47,
+    "gold": 173,
+    "deck": 19,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 76,
+    "gold": 157,
+    "deck": 28,
+    "relics": 4
+   }
+  },
+  "steps": 160
+ },
+ {
+  "seed": 534534044,
+  "final_floor": 24,
+  "win": false,
+  "deck": 24,
+  "relics": 5,
+  "gold": 20,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 68,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 23,
+    "gold": 146,
+    "deck": 18,
+    "relics": 1
+   }
+  },
+  "steps": 91
+ },
+ {
+  "seed": 866866308,
+  "final_floor": 14,
+  "win": false,
+  "deck": 16,
+  "relics": 1,
+  "gold": 84,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 71,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 47
+ },
+ {
+  "seed": 330169984,
+  "final_floor": 6,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 21,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 57,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 22
+ },
+ {
+  "seed": 1048100142,
+  "final_floor": 7,
+  "win": false,
+  "deck": 11,
+  "relics": 1,
+  "gold": 317,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 17
+ },
+ {
+  "seed": 1969023975,
+  "final_floor": 14,
+  "win": false,
+  "deck": 15,
+  "relics": 1,
+  "gold": 149,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   }
+  },
+  "steps": 43
+ },
+ {
+  "seed": 1831056878,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 13,
+  "gold": 239,
+  "hp": 72,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 58,
+    "gold": 216,
+    "deck": 20,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 72,
+    "gold": 116,
+    "deck": 25,
+    "relics": 9
+   }
+  },
+  "steps": 173
+ },
+ {
+  "seed": 625257274,
+  "final_floor": 16,
+  "win": false,
+  "deck": 18,
+  "relics": 1,
+  "gold": 41,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 84,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 54
+ },
+ {
+  "seed": 401141400,
+  "final_floor": 51,
+  "win": true,
+  "deck": 29,
+  "relics": 8,
+  "gold": 429,
+  "hp": 32,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 66,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 31,
+    "gold": 178,
+    "deck": 15,
+    "relics": 4
+   },
+   "3": {
+    "floor": 34,
+    "hp": 46,
+    "gold": 235,
+    "deck": 22,
+    "relics": 6
+   }
+  },
+  "steps": 176
+ },
+ {
+  "seed": 557180172,
+  "final_floor": 7,
+  "win": false,
+  "deck": 13,
+  "relics": 1,
+  "gold": 443,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 66,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 24
+ },
+ {
+  "seed": 1186010292,
+  "final_floor": 51,
+  "win": true,
+  "deck": 31,
+  "relics": 8,
+  "gold": 134,
+  "hp": 71,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 54,
+    "gold": 269,
+    "deck": 18,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 82,
+    "gold": 536,
+    "deck": 25,
+    "relics": 5
+   }
+  },
+  "steps": 188
+ },
+ {
+  "seed": 954027727,
+  "final_floor": 24,
+  "win": false,
+  "deck": 12,
+  "relics": 3,
+  "gold": 415,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 56,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 33,
+    "gold": 351,
+    "deck": 12,
+    "relics": 2
+   }
+  },
+  "steps": 76
+ },
+ {
+  "seed": 1251612095,
+  "final_floor": 42,
+  "win": false,
+  "deck": 28,
+  "relics": 6,
+  "gold": 206,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 72,
+    "gold": 228,
+    "deck": 19,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 46,
+    "gold": 123,
+    "deck": 25,
+    "relics": 5
+   }
+  },
+  "steps": 148
+ },
+ {
+  "seed": 2062049808,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 6,
+  "gold": 57,
+  "hp": 84,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 67,
+    "gold": 304,
+    "deck": 16,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 77,
+    "gold": 575,
+    "deck": 21,
+    "relics": 2
+   }
+  },
+  "steps": 167
+ },
+ {
+  "seed": 989450194,
+  "final_floor": 50,
+  "win": false,
+  "deck": 30,
+  "relics": 4,
+  "gold": 194,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 86,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 44,
+    "gold": 218,
+    "deck": 16,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 30,
+    "gold": 118,
+    "deck": 20,
+    "relics": 2
+   }
+  },
+  "steps": 160
+ },
+ {
+  "seed": 946025340,
+  "final_floor": 13,
+  "win": false,
+  "deck": 12,
+  "relics": 2,
+  "gold": 92,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 60,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   }
+  },
+  "steps": 48
+ },
+ {
+  "seed": 1583619654,
+  "final_floor": 27,
+  "win": false,
+  "deck": 24,
+  "relics": 3,
+  "gold": 395,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 59,
+    "gold": 220,
+    "deck": 20,
+    "relics": 2
+   }
+  },
+  "steps": 94
+ },
+ {
+  "seed": 1569072097,
+  "final_floor": 51,
+  "win": true,
+  "deck": 27,
+  "relics": 14,
+  "gold": 226,
+  "hp": 9,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 68,
+    "gold": 167,
+    "deck": 14,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 39,
+    "gold": 252,
+    "deck": 19,
+    "relics": 8
+   }
+  },
+  "steps": 186
+ },
+ {
+  "seed": 668476877,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 7,
+  "gold": 27,
+  "hp": 57,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 67,
+    "gold": 160,
+    "deck": 16,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 16,
+    "gold": 437,
+    "deck": 22,
+    "relics": 3
+   }
+  },
+  "steps": 174
+ },
+ {
+  "seed": 1669452845,
+  "final_floor": 5,
+  "win": false,
+  "deck": 12,
+  "relics": 2,
+  "gold": 49,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 78,
+    "gold": 0,
+    "deck": 10,
+    "relics": 2
+   }
+  },
+  "steps": 16
+ },
+ {
+  "seed": 1619330966,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 8,
+  "gold": 739,
+  "hp": 67,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 52,
+    "gold": 303,
+    "deck": 15,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 72,
+    "gold": 561,
+    "deck": 21,
+    "relics": 4
+   }
+  },
+  "steps": 158
+ },
+ {
+  "seed": 493220253,
+  "final_floor": 51,
+  "win": true,
+  "deck": 33,
+  "relics": 9,
+  "gold": 69,
+  "hp": 80,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 79,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 53,
+    "gold": 144,
+    "deck": 20,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 60,
+    "gold": 209,
+    "deck": 28,
+    "relics": 5
+   }
+  },
+  "steps": 176
+ },
+ {
+  "seed": 1409181559,
+  "final_floor": 51,
+  "win": true,
+  "deck": 23,
+  "relics": 6,
+  "gold": 102,
+  "hp": 74,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 60,
+    "gold": 324,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 63,
+    "gold": 585,
+    "deck": 20,
+    "relics": 3
+   }
+  },
+  "steps": 166
+ },
+ {
+  "seed": 1736391917,
+  "final_floor": 51,
+  "win": true,
+  "deck": 38,
+  "relics": 9,
+  "gold": 58,
+  "hp": 67,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 51,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 46,
+    "gold": 352,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 22,
+    "gold": 120,
+    "deck": 27,
+    "relics": 6
+   }
+  },
+  "steps": 184
+ },
+ {
+  "seed": 223658902,
+  "final_floor": 7,
+  "win": false,
+  "deck": 13,
+  "relics": 1,
+  "gold": 171,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 46,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 25
+ },
+ {
+  "seed": 1340104898,
+  "final_floor": 7,
+  "win": false,
+  "deck": 13,
+  "relics": 1,
+  "gold": 183,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 62,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 23
+ },
+ {
+  "seed": 297220539,
+  "final_floor": 16,
+  "win": false,
+  "deck": 11,
+  "relics": 2,
+  "gold": 120,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 59,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   }
+  },
+  "steps": 55
+ },
+ {
+  "seed": 866062594,
+  "final_floor": 19,
+  "win": false,
+  "deck": 13,
+  "relics": 4,
+  "gold": 135,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 38,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 28,
+    "gold": 121,
+    "deck": 13,
+    "relics": 3
+   }
+  },
+  "steps": 63
+ },
+ {
+  "seed": 22910271,
+  "final_floor": 23,
+  "win": false,
+  "deck": 28,
+  "relics": 3,
+  "gold": 125,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 11,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 42,
+    "gold": 161,
+    "deck": 26,
+    "relics": 2
+   }
+  },
+  "steps": 86
+ },
+ {
+  "seed": 253376258,
+  "final_floor": 16,
+  "win": false,
+  "deck": 18,
+  "relics": 1,
+  "gold": 106,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 47,
+    "gold": 0,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 57
+ },
+ {
+  "seed": 24979037,
+  "final_floor": 51,
+  "win": true,
+  "deck": 25,
+  "relics": 9,
+  "gold": 57,
+  "hp": 69,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 54,
+    "gold": 385,
+    "deck": 18,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 77,
+    "gold": 128,
+    "deck": 21,
+    "relics": 7
+   }
+  },
+  "steps": 179
+ },
+ {
+  "seed": 1695692846,
+  "final_floor": 41,
+  "win": false,
+  "deck": 24,
+  "relics": 5,
+  "gold": 582,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 74,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 64,
+    "gold": 124,
+    "deck": 16,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 24,
+    "gold": 494,
+    "deck": 22,
+    "relics": 4
+   }
+  },
+  "steps": 133
+ },
+ {
+  "seed": 1542980955,
+  "final_floor": 6,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 24,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 39,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 23
+ },
+ {
+  "seed": 1408609556,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 11,
+  "gold": 728,
+  "hp": 72,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 24,
+    "gold": 104,
+    "deck": 19,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 72,
+    "gold": 341,
+    "deck": 25,
+    "relics": 4
+   }
+  },
+  "steps": 176
+ },
+ {
+  "seed": 1056031602,
+  "final_floor": 45,
+  "win": false,
+  "deck": 29,
+  "relics": 4,
+  "gold": 750,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 24,
+    "gold": 356,
+    "deck": 20,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 38,
+    "gold": 569,
+    "deck": 25,
+    "relics": 3
+   }
+  },
+  "steps": 151
+ },
+ {
+  "seed": 1825015825,
+  "final_floor": 51,
+  "win": true,
+  "deck": 22,
+  "relics": 6,
+  "gold": 31,
+  "hp": 54,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 56,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 46,
+    "gold": 595,
+    "deck": 12,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 59,
+    "gold": 162,
+    "deck": 18,
+    "relics": 3
+   }
+  },
+  "steps": 166
+ },
+ {
+  "seed": 269691882,
+  "final_floor": 51,
+  "win": true,
+  "deck": 23,
+  "relics": 15,
+  "gold": 568,
+  "hp": 66,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 72,
+    "gold": 334,
+    "deck": 14,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 71,
+    "gold": 126,
+    "deck": 17,
+    "relics": 5
+   }
+  },
+  "steps": 170
+ },
+ {
+  "seed": 1206754212,
+  "final_floor": 7,
+  "win": false,
+  "deck": 12,
+  "relics": 1,
+  "gold": 495,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 70,
+    "gold": 349,
+    "deck": 10,
+    "relics": 1
+   }
+  },
+  "steps": 19
+ },
+ {
+  "seed": 453228137,
+  "final_floor": 16,
+  "win": false,
+  "deck": 13,
+  "relics": 3,
+  "gold": 117,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 60,
+    "gold": 99,
+    "deck": 8,
+    "relics": 1
+   }
+  },
+  "steps": 57
+ },
+ {
+  "seed": 490731648,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 5,
+  "gold": 828,
+  "hp": 37,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 77,
+    "gold": 349,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 14,
+    "gold": 581,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 73,
+    "gold": 848,
+    "deck": 23,
+    "relics": 3
+   }
+  },
+  "steps": 171
+ },
+ {
+  "seed": 2031017972,
+  "final_floor": 51,
+  "win": true,
+  "deck": 28,
+  "relics": 7,
+  "gold": 290,
+  "hp": 19,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 80,
+    "gold": 99,
+    "deck": 12,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 56,
+    "gold": 167,
+    "deck": 17,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 18,
+    "gold": 386,
+    "deck": 22,
+    "relics": 2
+   }
+  },
+  "steps": 169
+ },
+ {
+  "seed": 736253227,
+  "final_floor": 22,
+  "win": false,
+  "deck": 17,
+  "relics": 4,
+  "gold": 8,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 58,
+    "gold": 0,
+    "deck": 8,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 11,
+    "gold": 290,
+    "deck": 15,
+    "relics": 2
+   }
+  },
+  "steps": 85
+ },
+ {
+  "seed": 1598066447,
+  "final_floor": 50,
+  "win": false,
+  "deck": 31,
+  "relics": 8,
+  "gold": 402,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 65,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 62,
+    "gold": 142,
+    "deck": 17,
+    "relics": 3
+   },
+   "3": {
+    "floor": 34,
+    "hp": 5,
+    "gold": 387,
+    "deck": 23,
+    "relics": 6
+   }
+  },
+  "steps": 172
+ },
+ {
+  "seed": 923604799,
+  "final_floor": 42,
+  "win": false,
+  "deck": 28,
+  "relics": 6,
+  "gold": 298,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 57,
+    "gold": 0,
+    "deck": 10,
+    "relics": 2
+   },
+   "2": {
+    "floor": 17,
+    "hp": 27,
+    "gold": 152,
+    "deck": 17,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 55,
+    "gold": 225,
+    "deck": 24,
+    "relics": 5
+   }
+  },
+  "steps": 141
+ },
+ {
+  "seed": 1809892789,
+  "final_floor": 31,
+  "win": false,
+  "deck": 25,
+  "relics": 5,
+  "gold": 92,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 69,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 58,
+    "gold": 117,
+    "deck": 18,
+    "relics": 3
+   }
+  },
+  "steps": 108
+ },
+ {
+  "seed": 1186924644,
+  "final_floor": 51,
+  "win": true,
+  "deck": 30,
+  "relics": 8,
+  "gold": 19,
+  "hp": 64,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 50,
+    "gold": 99,
+    "deck": 10,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 40,
+    "gold": 112,
+    "deck": 16,
+    "relics": 2
+   },
+   "3": {
+    "floor": 34,
+    "hp": 71,
+    "gold": 373,
+    "deck": 23,
+    "relics": 4
+   }
+  },
+  "steps": 172
+ },
+ {
+  "seed": 724495345,
+  "final_floor": 6,
+  "win": false,
+  "deck": 14,
+  "relics": 1,
+  "gold": 138,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 72,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   }
+  },
+  "steps": 20
+ },
+ {
+  "seed": 448977107,
+  "final_floor": 33,
+  "win": false,
+  "deck": 27,
+  "relics": 4,
+  "gold": 458,
+  "hp": 0,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 75,
+    "gold": 0,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 62,
+    "gold": 289,
+    "deck": 18,
+    "relics": 2
+   }
+  },
+  "steps": 121
+ },
+ {
+  "seed": 150511476,
+  "final_floor": 51,
+  "win": true,
+  "deck": 40,
+  "relics": 7,
+  "gold": 136,
+  "hp": 86,
+  "act_snap": {
+   "1": {
+    "floor": 1,
+    "hp": 49,
+    "gold": 99,
+    "deck": 11,
+    "relics": 1
+   },
+   "2": {
+    "floor": 17,
+    "hp": 39,
+    "gold": 128,
+    "deck": 21,
+    "relics": 1
+   },
+   "3": {
+    "floor": 34,
+    "hp": 55,
+    "gold": 151,
+    "deck": 30,
+    "relics": 5
+   }
+  },
+  "steps": 189
+ }
+]
