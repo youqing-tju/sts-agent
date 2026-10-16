@@ -255,3 +255,53 @@ command=C\:/.../.venv/Scripts/python.exe C\:/.../main.py
 **④ 终局状态**（牌组/遗物/血量）与时长。
 
 
+
+---
+
+# 十、2026-10-16 深夜：首次真机实跑的两处死锁修复
+
+> 首次实跑（run `1016_234015`）在 10 分钟后卡死。日志分析 + 帧回放定位到**两个独立问题**。
+
+## 10.1 🔴 问题一：奖励屏 A↔B 无限振荡（逻辑根因）
+
+真机状态流实证：
+
+```
+COMBAT_REWARD  rewards=[{"reward_type":"CARD"}]  → 发 CHOOSE 0  → 点开卡牌屏
+CARD_REWARD    cards=3                           → 发 SKIP      → 回到奖励屏
+COMBAT_REWARD  rewards=[{"reward_type":"CARD"}]  ← 卡牌项**仍在**！ → 再 CHOOSE 0 → ∞
+```
+
+- **实测连续振荡 325 次**，`decisions.jsonl` 涨到 10 MB、`states.jsonl` 11 MB，卡死 10 分钟。
+- 根因：`SKIP` 之后 `COMBAT_REWARD` 的奖励列表里**卡牌项不会被消费掉**，而规则版
+  `macro_action`（`main_rule.py`）对 `COMBAT_REWARD` 是**无条件 `CHOOSE 0`**。
+- 修复：`SimBrain` 记下**本层已跳过卡牌奖励的楼层**（`_card_skip_floor`）；
+  `COMBAT_REWARD` 若**只剩卡牌项**且本层已跳过 → 只能 **`PROCEED`**。
+
+## 10.2 🔴 问题二：卡死守卫对「短周期振荡」完全失效（为什么没人发现）
+
+`LoopDetector` 原有三信号（连续相同指纹 / 同一真实状态重复 / 同一命令连续输出）
+**全部要求"连续"重复** —— 而 A→B→A→B 是**一拍一换**，每条信号都被逐帧重置，
+于是三条同时失效：事件流里 `stall=0 / stall_giveup=0`，**卡了 10 分钟没有任何告警**。
+
+修复：新增**信号 4 —— 短周期振荡检测**（周期 2~4），键用 `(状态指纹, 命令)` 序列
+（指纹含 floor/hp/gold/手牌数/回合，所以"同一 (指纹,命令) 再现"= 真的没有进展）。
+⚠️ 判据必须是「最近 p 项 vs 再往前 p 项逐项相同」——若写成"最后 2p 项相等"，
+在完美交替上会隔帧才成立一次，计数器永远到不了阈值（这个坑已在代码注释里写明）。
+
+## 10.3 🔴 问题三（配置）：agent 被**启动两次**
+
+`%LOCALAPPDATA%\ModTheSpire\CommunicationMod\config.properties` 里
+`runAtLauncher=true` **且** `runAtGameStart=true` → mod 起了**两个 agent 进程**
+（实测 `main.py` 同命令行 PID 75296 + 76176），两个进程抢同一根 stdin 管道互相打架。
+→ 与 10.1 叠加，使这一局的日志不可信。
+**修复**：三份 config 统一改为 `runAtLauncher=true` + **`runAtGameStart=false`**
+（= 9 月能正常跑的那份 CJK 配置的取值）。跑完请确认只有**一个** `main.py` 进程。
+
+## 10.4 验证
+
+| 验证 | 结果 |
+|---|---|
+| 单元回归 `tests/test_1016_deadlock_fixes.py`（**11 项**） | 全绿 |
+| 全量测试 | **306 passed / 2 skipped** |
+| 🔬 **真实帧回放**（`scripts/probes/_tmp_replay_deadlock.py`） | 修复后 `COMBAT_REWARD → PROCEED`，序列继续走到 `MAP → CHOOSE 0` → 战斗，**循环被打断** |

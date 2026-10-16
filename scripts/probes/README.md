@@ -99,6 +99,16 @@ _HERE = _find_project_root(__file__)   # 现在指向项目根
 
 结论与数据见 `logs/beam-terminal-value-report.md`。
 
+## 2026-10-16 深夜 新增（真机死锁修复）
+
+| 脚本 | 用途 |
+|---|---|
+| `_tmp_replay_deadlock.py` | **真实帧回放**：吃 `logs/realtime/<run>_states.jsonl` 的卡死尾段，逐帧跑修复后的 `SimBrain.decide()` + `LoopDetector`，验证循环被打断（期望看到 `COMBAT_REWARD → PROCEED`）。用法：`_tmp_replay_deadlock.py [run 前缀]` |
+
+配套：`scripts/realtime_report.py`（真机 run 报告：局数/楼层 → 降级率 → 卡死守卫 → 终局牌组），
+回归测试 `tests/test_1016_deadlock_fixes.py`（11 项）。
+详见 `docs/realtime-launch-guide.md` 第十章。
+
 ### ⚠️ 测试 fixture 的重要修正（同批）
 
 `tests/test_combat_beam.py` 的 `_bc()` 原先用 `bc.init_from_gc(gc)`，而 `gc` 是

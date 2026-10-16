@@ -180,6 +180,24 @@ def _fingerprint(state: dict) -> tuple:
     )
 
 
+#: 卡死守卫要检测的**短周期振荡**周期（信号 4）。2 = A↔B 交替（真机 2026-10-16 血案），
+#: 3/4 覆盖 A→B→C→A 之类的多步往返。
+_CYCLE_PERIODS = (2, 3, 4)
+
+
+def _cyclic_period(hist: list) -> int:
+    """`hist` 尾部是否以 2~4 为周期重复？是则返回最小周期，否则 0。
+
+    ⚠️ 判据是「最近 `p` 项与再往前 `p` 项逐项相同」，**每帧都成立**才用于累计 ——
+    若改成"最后 2p 项相等"，在完美交替序列上会隔帧才成立一次，计数器永远到不了阈值。
+    """
+    n = len(hist)
+    for p in _CYCLE_PERIODS:
+        if n >= 2 * p and all(hist[-1 - k] == hist[-1 - k - p] for k in range(p)):
+            return p
+    return 0
+
+
 def _alternate_cmd(state: dict, avoid: str = None):
     """卡死时强制换一个『几乎总能推进』的动作。
 
@@ -241,8 +259,12 @@ class LoopDetector:
     信号 3（同一命令连续输出）：与状态指纹无关——真机上「命令恒同、状态指纹却在变」
         是真实存在的模式（如 SHOP_SCREEN 反复发 LEAVE 无效）。同一非 STATE 命令
         连续输出 ≥limit 次（允许中间夹 STATE）即判卡死，强制改发不同命令。
+    信号 4（**短周期振荡**，2026-10-16 新增）：🔴 真机血案——CARD_REWARD/SKIP 与
+        COMBAT_REWARD/CHOOSE 0 **交替** 325 次。信号 1/2/3 全都要求「**连续**重复」，
+        被这种一拍一换的模式**逐帧重置** → 三条信号同时失效，卡死 10 分钟无人发现。
+        故补一条：最近的非 STATE (指纹, 命令) 序列若以 2~4 为周期重复 ≥limit 次即判卡死。
 
-    返回当前 severity（三信号取大），main 循环据此强制换动作 / 主动退出。
+    返回当前 severity（四信号取大），main 循环据此强制换动作 / 主动退出。
     """
 
     def __init__(self, limit=_STALL_LIMIT, hard_limit=_STALL_HARD_LIMIT):
@@ -254,6 +276,9 @@ class LoopDetector:
         self._game_repeats = 0    # 同一真实游戏状态出现次数（error 帧不计数）
         self._cmd_key = None      # (screen, cmd) —— 信号 3 的键
         self._cmd_streak = 0      # 同一【屏幕】上同一非 STATE 命令连续输出次数
+        self._hist = []           # 最近的非 STATE (指纹, 命令) 序列 —— 信号 4 用
+        self._cycle = 0           # 短周期振荡计数（信号 4）
+        self.cycle_period = 0     # 最近一次判定到的周期（诊断用）
         self.total_stalls = 0
         self.gave_up = False      # hard_limit 后放弃干预（keep-alive，只回 STATE）
 
@@ -293,7 +318,16 @@ class LoopDetector:
             else:
                 self._cmd_key = key
                 self._cmd_streak = 1
-        sev = max(self._consec, self._game_repeats, self._cmd_streak)
+        # 信号 4：短周期振荡（见类 docstring）—— 用 (指纹, 命令) 序列，而非只看屏幕：
+        # 指纹里含 floor/hp/gold/手牌数/回合，所以"同一 (指纹,命令) 再出现"= 真没进展。
+        if effective:
+            self._hist.append((fp, cmd))
+            if len(self._hist) > 2 * max(_CYCLE_PERIODS):
+                del self._hist[:-2 * max(_CYCLE_PERIODS)]
+            p = _cyclic_period(self._hist)
+            self.cycle_period = p
+            self._cycle = self._cycle + 1 if p else 0
+        sev = max(self._consec, self._game_repeats, self._cmd_streak, self._cycle)
         if sev < self.limit:
             self.gave_up = False          # 恢复正常 → 允许再次干预
         return sev
@@ -411,6 +445,12 @@ class SimBrain:
         # 模拟器分支（ISMCTS / _sim_decide）被禁止，必须回 STATE 请求重发——
         # 绝不拿模拟器自己的假对局状态当事实来源（22:32 死循环主因）。
         self._sim_fresh = False
+        # 🔴 防死循环（2026-10-16 真机血案）：本层已跳过卡牌奖励的楼层号。
+        # 真机实测：CARD_REWARD 发 SKIP 后，COMBAT_REWARD 的 rewards 里**卡牌项仍在**
+        # （rewards=[{"reward_type":"CARD"}]）→ 若 COMBAT_REWARD 再发 CHOOSE 0 就会
+        # 重新点开卡牌屏 → 与 SKIP 构成 A↔B 二周期死循环（实测连续 325 次、
+        # 日志涨到 10MB、卡死 10 分钟）。故：本层已跳过则只能 PROCEED。
+        self._card_skip_floor = None
         self._gs_keys_logged = False  # 一次性诊断：真实 game_state 有哪些键
         self.obs_dim = obs_dim
         self.cand_dim = cand_dim
@@ -614,6 +654,7 @@ class SimBrain:
                     # V10：_rl_sel == -1 表示 RL 选了 SKIP 候选（真机真正跳牌）
                     if _rl_sel == -1:
                         cmd = "SKIP"
+                        self._card_skip_floor = _gs_cr.get("floor")   # 防 COMBAT_REWARD 重开
                     else:
                         cmd = f"CHOOSE {_rl_sel}"
                     self._log_decision(state, screen="CARD_REWARD",
@@ -645,6 +686,7 @@ class SimBrain:
                             self.log.event("card_skip", scores=_scores,
                                            cards=[c.get("id") for c in _cards])
                         cmd = "SKIP"
+                        self._card_skip_floor = _gs_cr.get("floor")   # 防 COMBAT_REWARD 重开
                         self._log_decision(state, screen="CARD_REWARD",
                                            kind="CARD", cmd=cmd,
                                            n_cands=len(_cards), scores=_scores,
@@ -890,6 +932,25 @@ class SimBrain:
         # 战斗奖励：模拟器没有真实奖励内容，RL 会错误跳过——规则逐个领取（不依赖模拟器）
         gs = state.get("game_state", {})
         if (gs.get("screen_type") or "").upper() == "COMBAT_REWARD":
+            # 🔴 防死循环（2026-10-16 真机血案）：若奖励列表里**只剩卡牌项**，而本层
+            # 已经跳过卡牌奖励（`_card_skip_floor == 当前层`），就**必须 PROCEED**——
+            # 再发 CHOOSE 0 会把卡牌屏重新点开，与 SKIP 构成无限 A↔B 振荡。
+            # 真机证据：rewards=[{"reward_type":"CARD"}] 在 SKIP 后**依然存在**。
+            _rws = ((gs.get("screen_state") or {}).get("rewards") or [])
+            _only_card = bool(_rws) and all(
+                isinstance(_r, dict)
+                and str(_r.get("reward_type") or "").upper() == "CARD"
+                for _r in _rws)
+            _cmds_l = [str(c).lower() for c in (state.get("available_commands") or [])]
+            if (_only_card and self._card_skip_floor == gs.get("floor")
+                    and "proceed" in _cmds_l):
+                log.info("COMBAT_REWARD 只剩卡牌项且本层已跳过 → PROCEED（防重开死循环）")
+                if self.log:
+                    self.log.event("reward_proceed_after_skip", floor=gs.get("floor"))
+                self._log_decision(state, screen="COMBAT_REWARD", kind="REWARD",
+                                   cmd="PROCEED", n_cands=0, degraded=False)
+                self._last_cmd = "PROCEED"
+                return "PROCEED"
             cmd = macro_action(state)
             self._log_decision(state, screen="COMBAT_REWARD", kind="REWARD",
                                cmd=cmd, n_cands=0, degraded=True)
@@ -1737,12 +1798,13 @@ def main(argv=None):
                 guard.total_stalls += 1
                 if brain.log:
                     brain.log.event("stall", strikes=strikes, prev_cmd=cmd,
-                                    forced=alt, screen=screen)
+                                    forced=alt, screen=screen,
+                                    period=guard.cycle_period)
                 # stderr 已被顶部重定向到 devnull（C++ 打印洪泛隔离，2026-09-11），
                 # 消息改写日志文件（selfcheck 从 sts_agent_debug.log 读取）。
-                log.warning("[guard] 卡死检测：状态连续 %s 次未变，"
-                            "强制换动作 %r -> %r (screen=%s)",
-                            strikes, cmd, alt, screen)
+                log.warning("[guard] 卡死检测：状态连续 %s 次未变"
+                            "（短周期=%s，0=非周期），强制换动作 %r -> %r (screen=%s)",
+                            strikes, guard.cycle_period, cmd, alt, screen)
                 cmd = alt
                 if strikes >= guard.hard_limit:
                     guard.gave_up = True
