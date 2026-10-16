@@ -182,7 +182,13 @@ STS_BRIDGE_EXTRA_ARGS="--combat-solver beam --beam-weights-preset defensive" \
 |---|---|---|
 | 节点估值 | `static`（静态中间状态，**无终局信息**） | **`rollout`**（叶节点打到终局再打分） |
 | `--beam-depth` | 6 | **1**（rollout 已覆盖未来，深度无用） |
-| checkpoint / 预设 | v14 + `defensive` | **不变** |
+| checkpoint / 预设 | v14 + `defensive` | **不变**（见下方说明） |
+
+> 📌 **为什么 checkpoint 仍用 v14**：已按 P0 用新战斗层重训了 v16（`checkpoints/v16_rollout_2k.pt`，
+> 2000 局、0.5 s/局），但**200 局配对显示宏观层面无显著提升**（Δwin +2.0 pp, McNemar 24/20, p=0.65；
+> Δfloor +0.45, t=0.44）→ **今晚的实跑要保持"只换一个变量"**，先验证**战斗层**。
+> 想一起试新宏观策略：把配置里的 `v14_defbeam_2k.pt` 换成 `v16_rollout_2k.pt` 即可
+> （报告 `logs/v16-rollout-training-report.md`；v16 的赢法不同：牌组 37.4 张 / 遗物 6.2 / Act3 血量 52.9）。
 
 新配置行：
 
@@ -231,4 +237,21 @@ command=C\:/.../.venv/Scripts/python.exe C\:/.../main.py
 |---|---|
 | 第八章（static d=6） | `cp config.properties.bak-beamstatic-1016_2209 config.properties` |
 | 只回退估值方式 | 配置里删掉 `--beam-value-mode rollout --beam-depth 1`（其余不动） |
+
+## 9.6 实跑后怎么读结果
+
+用 `scripts/realtime_report.py`（只读解析 `logs/realtime/`，不改日志）：
+
+```bash
+# 最新一次 run
+.venv/Scripts/python.exe scripts/realtime_report.py
+# 指定 run，或列出所有 run
+.venv/Scripts/python.exe scripts/realtime_report.py 1016_231045
+.venv/Scripts/python.exe scripts/realtime_report.py --list
+```
+
+它直接回答四个问题：**① 跑通了吗**（局数/终局楼层）**② 决策降级率**（`degraded` / `total_fallbacks`
+—— **规则兜底是红线**，偏高说明模型或桥接有问题）**③ 卡死过吗**（`stall` / `stall_giveup`）
+**④ 终局状态**（牌组/遗物/血量）与时长。
+
 
