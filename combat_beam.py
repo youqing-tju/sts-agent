@@ -70,26 +70,72 @@ print(solver.last_stats)           # {'nodes':…, 'ms':…, 'outcome':…, 'sco
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, fields, replace
 
 import slaythespire as sts
 
 # --------------------------------------------------------------------------
-# 评估权重（量级参考 CombatSolver 的 SolverWeights.cs：HP = 30_000）
+# 评估权重（原为模块级常量，2026-10-16 改为可配置 —— P0 调参的前置改造）
 # --------------------------------------------------------------------------
-_W_HP = 30_000          # 玩家生命（最高权重，同 CombatSolver 的 projectedHp×30000）
-_W_BLOCK = 18_000       # 格挡：有效但不如此刻的血（会过期）
-_W_ENERGY = 9_000       # 未花掉的能量 = 潜在资源
-_W_ENEMY_HP = 12_000    # 敌人剩余血量 = 还需输出的伤害量
-_W_INTENT = 6_000       # 敌人意图伤害 = 下回合威胁
-_W_STR = 15_000         # 力量（本场持续收益）
-_W_DEX = 12_000         # 敏捷
-_W_HAND = 2_500         # 手牌 = 选择空间
-_W_DRAW = 500           # 牌库余量（很弱）
+@dataclass(frozen=True)
+class Weights:
+    """`evaluate()` 的启发式权重。
 
-_WIN_BASE = 1e9
-_LOSS_BASE = -1e9
-_TURN_PENALTY = 500.0   # 胜利时回合越少越好
+    ⚠️ 默认值照抄 CombatSolver 的 `SolverWeights.cs` 量级（HP = 30_000），
+    **从未对 STS1 调过** —— 这是「更宽 / 更深 / 更大预算全部变差」的共同根因，
+    见 `logs/beam-advanced-mechanisms.md`。
+
+    不传即为默认值，**行为与改造前逐位一致**。调参用法：
+
+        w = Weights.from_overrides({"intent": 3000})    # 只改一项
+        evaluate(bc, weights=w)
+        BeamSolver(beam_width=2, weights=w)
+    """
+    hp: float = 30_000          # 玩家生命（最高权重，同 CombatSolver 的 projectedHp×30000）
+    block: float = 18_000       # 格挡：有效但不如此刻的血（会过期）
+    energy: float = 9_000       # 未花掉的能量 = 潜在资源
+    enemy_hp: float = 12_000    # 敌人剩余血量 = 还需输出的伤害量
+    enemy_block: float = 4_000  # 敌人格挡 = 还需多打的血
+    intent: float = 6_000       # 敌人意图伤害 = 下回合威胁
+    strength: float = 15_000    # 力量（本场持续收益）
+    dexterity: float = 12_000   # 敏捷
+    hand: float = 2_500         # 手牌 = 选择空间
+    draw: float = 500           # 牌库余量（很弱）
+    win_base: float = 1e9       # 胜利基准分
+    loss_base: float = -1e9     # 失败基准分
+    turn_penalty: float = 500.0  # 胜利时回合越少越好
+
+    @classmethod
+    def from_overrides(cls, overrides: dict | None = None) -> "Weights":
+        """按字段名覆盖默认值。
+
+        ⚠️ 未知字段名**直接报错** —— 防止拼写错误静默失效（调参最怕的坑）。
+        """
+        if not overrides:
+            return cls()
+        known = {f.name for f in fields(cls)}
+        unknown = set(overrides) - known
+        if unknown:
+            raise ValueError("未知权重字段 %s；可用字段 %s"
+                             % (sorted(unknown), sorted(known)))
+        return replace(cls(), **overrides)
+
+
+#: 默认权重 —— 数值与改造前的模块级常量**逐位一致**（保证改造本身零行为变化）
+DEFAULT_WEIGHTS = Weights()
+
+#: 经实测筛选的权重**覆盖**预设（见 `logs/weight-tuning-report.md`）。
+#: 可直接传给 `Weights.from_overrides()`，或 env / `BeamSolver` 的 `weights=` 参数。
+PRESETS: dict[str, dict] = {
+    #: CombatSolver 原量级，**未调**（= 历史默认，保留以复现旧实验）
+    "default": {},
+    #: ⭐ **实测最优**（2026-10-16，200 局同种子配对）：楼层 +2.60（t=3.01, p≈0.003）、
+    #: 通关率 +9.5 pp（McNemar 27/8, p≈0.002）。
+    #: 机理 = **降低"打敌人"奖励 + 提高"规避威胁"奖励** → 更倾向防守。
+    "defensive": {"enemy_hp": 6_000, "intent": 12_000},
+    #: 更激进（通关率最高 +11.0 pp, p≈0.001），但楼层提升不显著、方差更大
+    "defensive_max": {"enemy_hp": 3_000, "intent": 20_000},
+}
 
 
 # --------------------------------------------------------------------------
@@ -258,31 +304,35 @@ def _make(act: tuple[str, int, int]) -> "sts.BattleAction":
 # --------------------------------------------------------------------------
 # 启发式评估（对应 Ranking.cs 的 BeamRankScore）
 # --------------------------------------------------------------------------
-def evaluate(bc: "sts.BattleContext") -> float:
-    """给非终局状态打分。分数越高越好。**启发式质量决定 Beam 的成败。**"""
+def evaluate(bc: "sts.BattleContext", weights: "Weights | None" = None) -> float:
+    """给非终局状态打分。分数越高越好。**启发式质量决定 Beam 的成败。**
+
+    `weights=None` → 用 `DEFAULT_WEIGHTS`（**与改造前逐位一致**）。
+    """
+    w = DEFAULT_WEIGHTS if weights is None else weights
     if bc.is_terminal():
         P = bc.player
         if bc.outcome == sts.BattleOutcome.PLAYER_VICTORY:
             # 赢：血越多、回合越少越好（同 CombatSolver 的 100×(35 + HP − 回合×0.01)）
-            return _WIN_BASE + P.hp * _W_HP - bc.turn * _TURN_PENALTY
+            return w.win_base + P.hp * w.hp - bc.turn * w.turn_penalty
         # 输：仍偏爱"多消耗了敌人"的局面（给失败分支一点梯度）
         enemy_hp = sum(m.hp for m in bc.monsters if m.is_alive)
-        return _LOSS_BASE - enemy_hp * _W_ENEMY_HP
+        return w.loss_base - enemy_hp * w.enemy_hp
 
     P = bc.player
     score = 0.0
-    score += P.hp * _W_HP
-    score += P.block * _W_BLOCK
-    score += P.energy * _W_ENERGY
-    score += P.strength * _W_STR
-    score += P.dexterity * _W_DEX
+    score += P.hp * w.hp
+    score += P.block * w.block
+    score += P.energy * w.energy
+    score += P.strength * w.strength
+    score += P.dexterity * w.dexterity
     for m in bc.monsters:
         if m.is_alive:
-            score -= m.hp * _W_ENEMY_HP
-            score -= _intent_damage(m, bc) * _W_INTENT
-            score -= m.block * 4_000
-    score += len(bc.hand) * _W_HAND
-    score += len(bc.draw_pile) * _W_DRAW
+            score -= m.hp * w.enemy_hp
+            score -= _intent_damage(m, bc) * w.intent
+            score -= m.block * w.enemy_block
+    score += len(bc.hand) * w.hand
+    score += len(bc.draw_pile) * w.draw
     return score
 
 
@@ -310,6 +360,7 @@ class BeamSolver:
         route_lanes: True = 启用**泳道必保席**（P0-② 机制①，默认开）
         lane_budget: 泳道席位上限；None = `min(len(TRAITS), max(1, beam_width // 3))`
         width_portfolio: True = 启用**束宽 Portfolio**（P0-② 机制③，同根多宽度取最优）
+        weights:    启发式权重（`Weights`）；None = `DEFAULT_WEIGHTS`（与改造前一致）
 
     ⚠️ `route_lanes` 在小束宽下席位少（W=2 → 1 席），大束宽下才铺满；
     这是刻意的 —— CombatSolver 的最小档 W=45，泳道占比约 1/5。
@@ -323,13 +374,14 @@ class BeamSolver:
     def __init__(self, beam_width: int = 8, max_depth: int = 24,
                  max_nodes: int = 20_000, dedup: bool = True, seed: int = 0,
                  route_lanes: bool = True, lane_budget: int | None = None,
-                 width_portfolio: bool = False):
+                 width_portfolio: bool = False, weights: "Weights | None" = None):
         self.beam_width = int(beam_width)
         self.max_depth = int(max_depth)
         self.max_nodes = int(max_nodes)
         self.dedup = bool(dedup)
         self.route_lanes = bool(route_lanes)
         self.width_portfolio = bool(width_portfolio)
+        self.weights = weights
         self._lane_budget = (min(len(TRAITS), max(1, self.beam_width // 3))
                              if lane_budget is None else max(0, int(lane_budget)))
         self.last_stats: dict = {}
@@ -380,7 +432,7 @@ class BeamSolver:
     def _solve_once(self, bc: "sts.BattleContext", width: int, max_nodes: int | None = None):
         budget = self.max_nodes if max_nodes is None else int(max_nodes)
         t0 = time.perf_counter()
-        root = _Node(bc=sts.BattleContext(bc), path=(), score=evaluate(bc), depth=0,
+        root = _Node(bc=sts.BattleContext(bc), path=(), score=evaluate(bc, self.weights), depth=0,
                      traits=lane_values(bc))
         beam: list[_Node] = [root]
         best_terminal: _Node | None = None
@@ -409,7 +461,7 @@ class BeamSolver:
                     child = _Node(bc=child_bc, path=node.path + (act,),
                                   score=0.0, depth=node.depth + 1,
                                   traits=lane_values(child_bc))
-                    child.score = evaluate(child_bc)
+                    child.score = evaluate(child_bc, self.weights)
                     if child_bc.is_terminal():
                         if (child_bc.outcome == sts.BattleOutcome.PLAYER_VICTORY
                                 and (best_terminal is None or child.score > best_terminal.score)):
@@ -502,5 +554,5 @@ class BeamSolver:
         return plan[0] if plan else None
 
 
-__all__ = ["BeamSolver", "fingerprint", "lane_values", "legal_actions", "evaluate",
-           "ACTION_TYPE_BY_NAME", "TRAITS"]
+__all__ = ["BeamSolver", "Weights", "DEFAULT_WEIGHTS", "PRESETS", "fingerprint",
+           "lane_values", "legal_actions", "evaluate", "ACTION_TYPE_BY_NAME", "TRAITS"]

@@ -72,7 +72,8 @@ class LightspeedEnv(StsEnv):
                  beam_max_nodes: int = 3000,
                  route_lanes: bool = True,
                  lane_budget: int | None = None,
-                 width_portfolio: bool = False):
+                 width_portfolio: bool = False,
+                 weights: dict | None = None):
         """combat_solver: `"mcts"`（默认，C++ Agent 自动打完战斗）| `"beam"`（Python Beam 接管）。
 
         beam_* 仅在 combat_solver="beam" 时生效。**训练用小预算**：
@@ -82,6 +83,8 @@ class LightspeedEnv(StsEnv):
         P0-② 高级机制（默认开 `route_lanes`，另两项按需开）：
         - `route_lanes`  泳道必保席；`lane_budget` 指定席位上限（None = 自动）
         - `width_portfolio` 同根多束宽取最优（更慢）
+        - `weights`      启发式权重**覆盖**（dict，只覆盖给出的键；None = 默认值）
+          ⚠️ 键名拼错会**直接抛错**（`Weights.from_overrides` 校验），不会静默失效
         """
         self._agent = sts.Agent()
         self._agent.simulation_count_base = mcts_simulations
@@ -92,11 +95,12 @@ class LightspeedEnv(StsEnv):
         self._agent.pause_on_combat = (combat_solver == "beam")
         self._beam = None
         if combat_solver == "beam":
-            from combat_beam import BeamSolver   # 延迟 import：避免无关场景加载
+            from combat_beam import BeamSolver, Weights   # 延迟 import：避免无关场景加载
             self._beam = BeamSolver(beam_width=beam_width, max_depth=beam_depth,
                                     max_nodes=beam_max_nodes,
                                     route_lanes=route_lanes, lane_budget=lane_budget,
-                                    width_portfolio=width_portfolio)
+                                    width_portfolio=width_portfolio,
+                                    weights=Weights.from_overrides(weights))
         self.gc = None
         self._actions = []  # candidates() 缓存的动作列表，step 按 idx 取用
         self._ascension = 0

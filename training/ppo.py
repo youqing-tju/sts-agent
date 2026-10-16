@@ -63,7 +63,8 @@ class PPOTrainer:
                  upgrade_bonus=0.0, relic_bonus=0.0,
                  combat_solver="mcts", beam_width=4, beam_depth=8,
                  beam_max_nodes=3000,
-                 route_lanes=True, lane_budget=None, width_portfolio=False):
+                 route_lanes=True, lane_budget=None, width_portfolio=False,
+                 weights=None):
         self.scorer = scorer.to(device)
         self.value_net = value_net.to(device)
         self.device = device
@@ -85,6 +86,7 @@ class PPOTrainer:
         self.route_lanes = route_lanes
         self.lane_budget = lane_budget
         self.width_portfolio = width_portfolio
+        self.weights = weights          # 启发式权重覆盖（dict）；须透传到 worker 子进程
         self.epochs = epochs
         self.batch_games = batch_games
         self.log_dir = log_dir
@@ -230,7 +232,8 @@ class PPOTrainer:
                             beam_max_nodes=self.beam_max_nodes,
                             route_lanes=self.route_lanes,
                             lane_budget=self.lane_budget,
-                            width_portfolio=self.width_portfolio)
+                            width_portfolio=self.width_portfolio,
+                            weights=self.weights)
         history = []
         parallel = bool(workers and workers > 1)
 
@@ -247,6 +250,7 @@ class PPOTrainer:
                 "route_lanes": self.route_lanes,
                 "lane_budget": self.lane_budget,
                 "width_portfolio": self.width_portfolio,
+                "weights": self.weights,
             }
             seeds_all = [random.randrange(2 ** 31) for _ in range(n_games)]
             nw = max(1, min(int(workers), self.batch_games))
@@ -369,5 +373,6 @@ def _collect_worker(args):
                         beam_max_nodes=cfg.get("beam_max_nodes", 3000),
                         route_lanes=cfg.get("route_lanes", True),
                         lane_budget=cfg.get("lane_budget"),
-                        width_portfolio=cfg.get("width_portfolio", False))
+                        width_portfolio=cfg.get("width_portfolio", False),
+                        weights=cfg.get("weights"))
     return _run_episode(seed, scorer, env, device="cpu")

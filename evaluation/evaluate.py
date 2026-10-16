@@ -178,6 +178,11 @@ def main(argv=None):
                    help="泳道席位上限（默认 = min(泳道数, beam_width//3)）")
     p.add_argument("--beam-portfolio", action="store_true",
                    help="启用束宽 Portfolio（同根多宽度取最优，更慢）")
+    p.add_argument("--beam-weights-file", default=None,
+                   help='启发式权重覆盖的 JSON 文件，如 {"intent": 3000}')
+    p.add_argument("--beam-weights-preset", default=None,
+                   choices=["default", "defensive", "defensive_max"],
+                   help="启发式权重预设（--beam-weights-file 优先）")
     args = p.parse_args(argv)
 
     if args.checkpoint:
@@ -190,12 +195,21 @@ def main(argv=None):
         pname = args.policy
     env_kwargs = {}
     if args.combat_solver == "beam":
+        w_over = None
+        if args.beam_weights_file:
+            import json as _json
+            with open(args.beam_weights_file, "r", encoding="utf-8") as f:
+                w_over = _json.load(f)
+        elif args.beam_weights_preset:
+            from combat_beam import PRESETS
+            w_over = PRESETS[args.beam_weights_preset]
         env_kwargs = {"combat_solver": "beam", "beam_width": args.beam_width,
                       "beam_depth": args.beam_depth,
                       "beam_max_nodes": args.beam_max_nodes,
                       "route_lanes": not args.no_beam_lanes,
                       "lane_budget": args.beam_lane_budget,
-                      "width_portfolio": args.beam_portfolio}
+                      "width_portfolio": args.beam_portfolio,
+                      "weights": w_over}
     results = evaluate(policy, n_seeds=args.seeds, workers=args.workers,
                        mcts_sim=args.mcts_sim, log_dir=args.log_dir,
                        env_kwargs=env_kwargs)

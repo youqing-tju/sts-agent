@@ -197,10 +197,22 @@ export KMP_DUPLICATE_LIB_OK=TRUE
   算法细节见 `logs/combatsolver-search-algorithm.md`、`logs/combatsolver-pruning-valuation.md`
 - **P0-③｜补 Power 绑定**：扩展 C++ 绑定暴露 Vulnerable/Weak 等，修指纹漏判 + 启发式缺特征。
   需重编译 pyd —— **⚠️ 见坑 2：本机 VS 已卸载，需先装 VS**。
-- 🔴 **P0｜调启发式权重**（由 P1 升级，2026-10-15）：三个反常现象（更宽 / 更深 / 更大预算**全部变差**）
-  的共同根因 = `evaluate()` 评分不准。当前 9 个权重照抄 CombatSolver 量级，**未对 STS1 调过**。
-  ⚠️ **前置改造**：权重现在是**模块级常量**（`combat_beam.py:60-68`），
-  要实验必须先改成可配置（函数参数 / 配置对象）。
+- ✅ **P0｜调启发式权重（2026-10-16 完成 —— 本项目首次拿到战斗层的统计显著改进）**
+  - **前置改造**：权重提为 `Weights` dataclass，默认值与改造前**逐位一致**（零行为变化）；
+    `from_overrides` **拼错键直接报错**；透传 env / 训练 / 评估；
+    CLI = `--beam-weights-file <json>` 或 `--beam-weights-preset defensive`
+  - **单维扫描**（14 组 × 100 局）：**无一显著改善** → 评分已在局部最优附近；
+    `enemy_hp`×2 **灾难性变差**（−22%, t=−5.06）；`dexterity` / `strength` 是**死权重**（0/0、1/1）
+  - ⭐ **组合有效**（200 局同种子配对）：`{enemy_hp: 6000, intent: 12000}`
+    → 楼层 **+2.60（配对 t=3.01, p≈0.003）**、通关率 **+9.5 pp（McNemar 27/8, p≈0.002）**
+  - **已固化为预设** `defensive`（`combat_beam.PRESETS`），另有更激进的 `defensive_max`
+  - ⚠️ **不要动 `block`** —— 加上 24000 反而稀释效果（+6.5% < +9.5%）
+  - 报告 `logs/weight-tuning-report.md`；原始数据 `logs/weight-sweep-*.json`
+- **P0｜把 `defensive` 用于训练** —— 战斗执行变强会改变 RL 的学习环境，
+  是下面「Beam 宽度 ↔ 抓牌质量」实验的前提。
+- **P1｜用新预设重跑宽度 / 深度扫描**：评估基准变了，最优预算（W / depth / nodes）可能随之变化。
+- **P1｜`enemy_hp` × `intent` 二维细网格**（3000/4500/6000 × 12000/16000/20000）：
+  目标是"提升保持、**退化收窄**"（§5.4 的双刃现象：最大 −35 层）。
 - **P1｜Beam 宽度 ↔ RL 抓牌质量的对照实验**（§3 的核心验证）：
   扫 W ∈ {1,2,4,8}，同训练量，比"通关局牌组质量"而非楼层。
   ⚠️ 新事实：Beam 前瞻本来只有 2 步（depth=6）；**"变弱"的杠杆在宽度、不在深度**。
@@ -225,14 +237,17 @@ export KMP_DUPLICATE_LIB_OK=TRUE
 8. 命名：项目内文档放 `docs/`，分析报告放 `logs/`（`logs/*.md` 会入库，
    `logs/**/*.jsonl` 等大数据不入库）。
 
-## 10. 当前项目状态（2026-10-15 更新）
+## 10. 当前项目状态（2026-10-16 更新）
 
 - 仓库：`youqing-tju/sts-agent` —— **公开**，**MIT 许可**，默认分支 `master`
-- 本地 = 远端；测试 **275 passed / 4 skipped**（`test_combat_beam.py` 共 28 项）
+- 测试 **283 passed / 4 skipped**（`test_combat_beam.py` 共 30 项）
 - ✅ **P0-① 完成**：Beam 指纹优化，生产提速 6.1×（`logs/beam-fingerprint-optimization.md`）
-- ✅ **P0-② 已实现但实测无收益**（见 §8）→ 当前最优配置仍是 CLI 默认
+- ✅ **P0-② 已实现但实测无收益** → 最优搜索配置仍是 CLI 默认
   **`W=2 / depth=6 / max_nodes=300`**（`logs/beam-advanced-mechanisms.md`）
-- ⏭ **下一步 = P0 调启发式权重**（前置：把 `evaluate()` 的 9 个权重从模块级常量改为可配置）
+- ✅ **P0 调权重完成** ⭐ **首次拿到战斗层显著改进**：预设 `defensive`
+  （`{enemy_hp: 6000, intent: 12000}`）→ 楼层 +2.60（p≈0.003）、通关率 +9.5 pp（p≈0.002）
+  （`logs/weight-tuning-report.md`）
+- ⏭ **下一步 = 用 `defensive` 训练**（`--beam-weights-preset defensive`）
 - ✅ **顶层 `LICENSE` 已加**（MIT, 2026 youqing-tju），文件内同时列出 `third_party/` 各组件的许可证
 - ✅ **开源合规核查通过**：无密钥/token（已扫全部 commit 的完整 diff）、无本机绝对路径、无个人信息、未混入无关项目内容
 - ✅ **`bc-cartpole-demo` 已删除**（10-15）→ `07-projects/` 下现在**只有 `sts-agent` 一个项目**

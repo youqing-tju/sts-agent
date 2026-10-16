@@ -71,3 +71,13 @@ _HERE = _find_project_root(__file__)   # 现在指向项目根
 | `_tmp_lane_seats_probe.py` | 统计泳道必保席在生产配置下的占位率（防止机制空转） | 无 |
 
 结论与数据见 `logs/beam-fingerprint-optimization.md`。
+
+## 2026-10-16 新增（启发式权重调参 P0）
+
+| 脚本 | 用途 |
+|---|---|
+| `_tmp_weight_sweep.py` | 扫描 `Weights` 的 14 个单维覆盖配置，**配对比较**（配对 t + McNemar）vs baseline |
+
+> 之所以能用 100 局做配对检验：本项目评估是**确定性**的（同种子同配置两次运行结果逐项相同），
+> 所以每个种子可配对，灵敏度远高于两组独立比例检验。
+> 结果与判读见 `logs/weight-tuning-report.md`。

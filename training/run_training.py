@@ -74,10 +74,23 @@ def main():
                    help="泳道席位上限（默认 = min(泳道数, beam_width//3)）")
     p.add_argument("--beam-portfolio", action="store_true",
                    help="启用束宽 Portfolio（同根多宽度取最优，更慢）")
+    p.add_argument("--beam-weights-file", default=None,
+                   help='启发式权重覆盖的 JSON 文件，如 {"intent": 3000}')
+    p.add_argument("--beam-weights-preset", default=None,
+                   choices=["default", "defensive", "defensive_max"],
+                   help="启发式权重预设（--beam-weights-file 优先）")
     p.add_argument("--hidden", default="512,256",
                    help="Scorer 隐藏层，逗号分隔。V6=(512,256)；"
                         "V7 试过 (1024,512) 但实测无增益")
     args = p.parse_args()
+    # P0：启发式权重覆盖（JSON 文件，仅覆盖给出的键；未知键会直接报错）
+    beam_weights = None
+    if args.beam_weights_file:
+        with open(args.beam_weights_file, "r", encoding="utf-8") as f:
+            beam_weights = json.load(f)
+    elif args.beam_weights_preset:
+        from combat_beam import PRESETS
+        beam_weights = PRESETS[args.beam_weights_preset]
 
     workers = args.workers
     if workers is None:
@@ -121,6 +134,7 @@ def main():
                              route_lanes=not args.no_beam_lanes,
                              lane_budget=args.beam_lane_budget,
                              width_portfolio=args.beam_portfolio,
+                             weights=beam_weights,
                              device=args.device or _auto_device())
     else:
         scorer = Scorer(obs_dim=OBS_DIM, cand_dim=DESC_VEC_DIM, hidden=(128, 128))

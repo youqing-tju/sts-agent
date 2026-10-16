@@ -435,5 +435,66 @@ def test_solve_stats_has_hit_budget():
     assert "hit_budget" in s.last_stats
 
 
+# --------------------------------------------------------------------------
+# 6. P0：可配置权重（Weights）
+# --------------------------------------------------------------------------
+def test_weights_default_matches_legacy_values():
+    """🔴 默认权重必须与改造前的模块级常量**逐位一致**（保证改造零行为变化）。"""
+    w = combat_beam.DEFAULT_WEIGHTS
+    assert (w.hp, w.block, w.energy, w.enemy_hp, w.intent,
+            w.strength, w.dexterity, w.hand, w.draw) == (
+        30_000, 18_000, 9_000, 12_000, 6_000, 15_000, 12_000, 2_500, 500)
+    assert w.enemy_block == 4_000
+    assert w.win_base == 1e9 and w.loss_base == -1e9 and w.turn_penalty == 500.0
+
+
+def test_weights_from_overrides_partial():
+    w = combat_beam.Weights.from_overrides({"intent": 3_000})
+    assert w.intent == 3_000
+    assert w.hp == 30_000, "未覆盖的字段必须保持默认"
+    assert combat_beam.Weights.from_overrides(None) == combat_beam.DEFAULT_WEIGHTS
+    assert combat_beam.Weights.from_overrides({}) == combat_beam.DEFAULT_WEIGHTS
+
+
+def test_weights_unknown_field_raises():
+    """拼错字段名必须报错 —— 否则调参会静默失效。"""
+    with pytest.raises(ValueError):
+        combat_beam.Weights.from_overrides({"intnet": 1})
+
+
+def test_evaluate_none_equals_default_weights():
+    bc = _bc()
+    assert evaluate(bc) == evaluate(bc, combat_beam.DEFAULT_WEIGHTS)
+
+
+def test_evaluate_respects_weights_override():
+    bc = _bc()
+    # 玩家 hp > 0，把 hp 权重置 0 → 分数必然变化（不依赖意图伤害是否非零）
+    assert evaluate(bc, combat_beam.Weights.from_overrides({"hp": 0})) != evaluate(bc)
+
+
+def test_beam_solver_accepts_and_stores_weights():
+    w = combat_beam.Weights.from_overrides({"intent": 0})
+    s = BeamSolver(beam_width=2, max_depth=4, max_nodes=200, weights=w)
+    assert s.weights is w
+    assert s.solve(_bc())
+    assert BeamSolver(beam_width=2).weights is None
+
+
+def test_presets_all_constructible():
+    """每个预设都必须能构造出 `Weights`（键名拼错会在此暴露）。"""
+    assert combat_beam.PRESETS, "预设表不应为空"
+    for name, ov in combat_beam.PRESETS.items():
+        w = combat_beam.Weights.from_overrides(ov)
+        assert isinstance(w, combat_beam.Weights), name
+
+
+def test_preset_defensive_matches_measured_config():
+    """`defensive` 必须与 200 局实测的那组配置一致（见 logs/weight-tuning-report.md）。"""
+    assert combat_beam.PRESETS["default"] == {}
+    assert combat_beam.PRESETS["defensive"] == {"enemy_hp": 6_000, "intent": 12_000}
+    assert combat_beam.PRESETS["defensive_max"] == {"enemy_hp": 3_000, "intent": 20_000}
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v"]))
